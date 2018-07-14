@@ -206,7 +206,7 @@ function formattedField($fldname,$fldval)
 	} else if (preg_match("/Date/",$fldname))	{
 		return formattedDate($fldval);
 	} else if (preg_match("/CorrectedMiles|TotalPoints/",$fldname)) {
-		return number_format($fldval,0);
+		return number_format(floatval($fldval),0);
 	} else
 		return $fldval;
 }
@@ -219,7 +219,8 @@ function parseCertificateOptions($opts)
 	foreach ($optarray as $opt)
 	{
 		$kv = explode('=',trim($opt));
-		$CERTOPTS[$kv[0]] = $kv[1];
+		if (isset($kv[0]) && isset($kv[1]))
+			$CERTOPTS[$kv[0]] = $kv[1];
 	}
 }	
 
@@ -351,14 +352,17 @@ function repeatFirstCertificate()
 {
 	global $CERTOPTS;
 	//var_dump($CERTOPTS);
-	switch($CERTOPTS['optDoublefirst'])
+	if (isset($CERTOPTS['optDoublefirst']))
 	{
-		case 'OFF':
-			return false;
-		case 'AUTO':
-			$browser = $_SERVER['HTTP_USER_AGENT'];
-			//echo("Browser=".$browser."; match=".$CERTOPTS['doublebrowser'].";");
-			return preg_match($CERTOPTS['txtDoublebrowser'],$browser);
+		switch($CERTOPTS['optDoublefirst'])
+		{
+			case 'OFF':
+				return false;
+			case 'AUTO':
+				$browser = $_SERVER['HTTP_USER_AGENT'];
+				//echo("Browser=".$browser."; match=".$CERTOPTS['doublebrowser'].";");
+				return preg_match($CERTOPTS['txtDoublebrowser'],$browser);
+		}
 	}
 	return true;
 }
@@ -374,7 +378,12 @@ function viewCertificates()
 	$sql = "SELECT EntrantID FROM entrants WHERE EntrantStatus=".$KONSTANTS['EntrantFinisher'].' AND FinishPosition>';
 	if ($ShowPositionZero)
 		$sql .= '=';
-	$sql .= '0 ORDER BY '.$sortspec;
+	$sql .= '0 ';
+	if (isset($_REQUEST['class']))
+		$sql .= ' AND Class In ('.$_REQUEST['class'].')';
+	if (isset($_REQUEST['entrant']))
+		$sql .= ' AND EntrantID In ('.$_REQUEST['entrant'].')';
+	$sql .= ' ORDER BY '.$sortspec;
 	$R = $DB->query($sql);
 	$ds = false;
 	while ($rd = $R->fetchArray())
@@ -406,10 +415,10 @@ function saveCertificate()
 	
 }
 
-if ($_REQUEST['show0'])
+if (isset($_REQUEST['show0']) && $_REQUEST['show0'])
 	$ShowPositionZero = true;
 
-if ($_REQUEST['c']=='viewcert')
+if (isset($_REQUEST['c']) && $_REQUEST['c']=='viewcert')
 {
 	if (isset($_REQUEST['EntrantID']))
 		$eid = $_REQUEST['EntrantID'];
@@ -418,7 +427,7 @@ if ($_REQUEST['c']=='viewcert')
 	viewCertificate($eid,false,false);
 	exit;
 }
-if ($_REQUEST['c'] == 'showcerts')
+if (isset($_REQUEST['c']) && $_REQUEST['c'] == 'showcerts')
 {
 	viewCertificates();
 	exit;

@@ -268,9 +268,9 @@ $TAGS = array(
 	
 	
 // Uninteresting values
-$KONSTANTS['MaxMilesPenaltyFixedPoints'] = 0;
-$KONSTANTS['MaxMilesPenaltyFixedMults'] = 1;
-$KONSTANTS['MaxMilesPenaltyPointsPerMile'] = 2;
+$KONSTANTS['MaxMilesFixedP'] = 0;
+$KONSTANTS['MaxMilesFixedM'] = 1;
+$KONSTANTS['MaxMilesPerMile'] = 2;
 $KONSTANTS['ManualScoring'] = 0;
 $KONSTANTS['SimpleScoring'] = 1;
 $KONSTANTS['CompoundScoring'] = 2;

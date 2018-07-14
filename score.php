@@ -172,7 +172,10 @@ function putScore()
 
 function saveSpecials()
 {
-	$sv = implode(',',$_REQUEST['SpecialID']);
+	if (isset($_REQUEST['SpecialID']))
+		$sv = implode(',',$_REQUEST['SpecialID']);
+	else
+		$sv = '';
 	$sg = explode(',',$_REQUEST['SGroupsUsed']);
 	foreach ($sg as $g)
 	{

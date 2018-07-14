@@ -451,15 +451,15 @@ function showEntrantCombinations($Combos)
 {
 	global $DB, $TAGS, $KONSTANTS;
 
-	$BA = explode(',',','.$combos); // The leading comma means that the first element is index 1 not 0
+	$BA = explode(',',','.$Combos); // The leading comma means that the first element is index 1 not 0
 	
 	$R = $DB->query('SELECT * FROM combinations ORDER BY ComboID');
 	while ($rd = $R->fetchArray())
 	{
-		$BP[$rd['ComboID']] = $rd['BriefDesc'];
+		$BA[$rd['ComboID']] = $rd['BriefDesc'];
 	}
 	echo('<span  class="xlabel" ></span>');
-	foreach($BP as $bk => $b)
+	foreach($BA as $bk => $b)
 	{
 		if ($bk <> '') {
 			echo('<span title="'.htmlspecialchars($bk).'">');
@@ -506,7 +506,7 @@ function showEntrantRecord($rd)
 	echo('<span  title="'.$TAGS['RiderIBA'][1].'"><label for="RiderIBA">'.$TAGS['RiderIBA'][0].' </label> ');
 	echo('<input type="number"  onchange="enableSaveButton();" name="RiderIBA" id="RiderIBA" value="'.$rd['RiderIBA'].'"> </span>');
 	
-	echo('<span class="xlabel" title="'.$TAGS['BikeID'][1].'"><label for="Bike">'.$TAGS['Bike'][0].' </label> ');
+	echo('<span class="xlabel" title="'.$TAGS['Bike'][1].'"><label for="Bike">'.$TAGS['Bike'][0].' </label> ');
 	echo('<input type="text"  onchange="enableSaveButton();" name="Bike" id="Bike" value="'.$rd['Bike'].'"> </span>');
 	
 	echo('<span title="'.$TAGS['BikeReg'][1].'"><label for="BikeReg">'.$TAGS['BikeReg'][0].' </label> ');
@@ -689,7 +689,7 @@ if (isset($_REQUEST['c']) && $_REQUEST['c']=='entrant')
 else if (isset($_REQUEST['c']) && $_REQUEST['c']=='newentrant')
 	showNewEntrant();
 else if (isset($_REQUEST['c']) && $_REQUEST['c']=='entrants')
-	listEntrants($_REQUEST['ord']);
+	listEntrants(isset($_REQUEST['ord']) ? $_REQUEST['ord'] : '');
 
 
 ?>

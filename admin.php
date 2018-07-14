@@ -159,7 +159,7 @@ function rankEntrants()
 	$sql .= 'AS SELECT EntrantID,TeamID,TotalPoints,CorrectedMiles,0 AS Rank FROM entrants WHERE EntrantStatus = '.$KONSTANTS['EntrantFinisher'];
 	$DB->exec($sql);
 	
-	if ($TeamRanking != $KONSTANTS['TeamRankIndividual'])
+	if ($TeamRanking != $KONSTANTS['TeamRankIndividuals'])
 		presortTeams($TeamRanking);
 
 	
@@ -321,11 +321,11 @@ function showSetupMenu()
 
 
 startHtml('<a href="about.php" class="techie" title="'.$TAGS['HelpAbout'][1].'">'.$TAGS['HelpAbout'][0].'</a>');
-if ($_REQUEST['c']=='setup')
+if (isset($_REQUEST['c']) && $_REQUEST['c']=='setup')
 	showSetupMenu();
-else if ($_REQUEST['c']=='entrants')
+else if (isset($_REQUEST['c']) && $_REQUEST['c']=='entrants')
 	showEntrantsMenu();
-else if ($_REQUEST['c']=='bonus')
+else if (isset($_REQUEST['c']) && $_REQUEST['c']=='bonus')
 	showBonusMenu();
 else
 	showAdminMenu();

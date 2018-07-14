@@ -70,9 +70,9 @@ function saveBonuses()
 		$sql .= "'".$DB->escapeString($_REQUEST['BonusID'][$i])."'";
 		$sql .= ",'".$DB->escapeString($_REQUEST['BriefDesc'][$i])."'";
 		$sql .= ",".intval($_REQUEST['Points'][$i]);
-		$sql .= ",".intval($_REQUEST['Cat1Entry'][$i]);
-		$sql .= ",".intval($_REQUEST['Cat2Entry'][$i]);
-		$sql .= ",".intval($_REQUEST['Cat3Entry'][$i]);
+		$sql .= ",".intval(isset($_REQUEST['Cat1Entry'][$i]) ? $_REQUEST['Cat1Entry'][$i] : 0);
+		$sql .= ",".intval(isset($_REQUEST['Cat2Entry'][$i]) ? $_REQUEST['Cat2Entry'][$i] : 0);
+		$sql .= ",".intval(isset($_REQUEST['Cat3Entry'][$i]) ? $_REQUEST['Cat3Entry'][$i] : 0);
 		$sql .= ",0)";
 		if ($_REQUEST['BonusID'][$i]<>'')
 		{
@@ -80,17 +80,23 @@ function saveBonuses()
 			$DB->exec($sql);
 		}
 	}
-	$arr = $_REQUEST['Compulsory'];
-	for ($i = 0 ; $i < count($arr) ; $i++ )
+	if (isset($_REQUEST['Compulsory']))
 	{
-		$sql = "UPDATE bonuses SET Compulsory=1 WHERE BonusID='".$DB->escapeString($_REQUEST['Compulsory'][$i])."'";
-		$DB->exec($sql);
+		$arr = $_REQUEST['Compulsory'];
+		for ($i = 0 ; $i < count($arr) ; $i++ )
+		{	
+			$sql = "UPDATE bonuses SET Compulsory=1 WHERE BonusID='".$DB->escapeString($_REQUEST['Compulsory'][$i])."'";
+			$DB->exec($sql);
+		}
 	}
-	$arr = $_REQUEST['DeleteEntry'];
-	for ($i=0; $i < count($arr); $i++)
+	if (isset($_REQUEST['DeleteEntry']))
 	{
-		$sql = "DELETE FROM bonuses WHERE BonusID='".$DB->escapeString($_REQUEST['DeleteEntry'][$i])."'";
-		$DB->exec($sql);
+		$arr = $_REQUEST['DeleteEntry'];
+		for ($i=0; $i < count($arr); $i++)
+		{
+			$sql = "DELETE FROM bonuses WHERE BonusID='".$DB->escapeString($_REQUEST['DeleteEntry'][$i])."'";
+			$DB->exec($sql);
+		}
 	}
 	if (isset($_REQUEST['menu'])) 
 	{
@@ -127,13 +133,16 @@ function saveCategories()
 				echo('ERROR: '.$DB->lastErrorMsg().'<br>'.$sql.'<hr>');
 		}
 	}
-	for ($i = 0; $i < count($_REQUEST['DeleteEntry']); $i++)
+	if (isset($_REQUEST['DeleteEntry']))
 	{
-		$sql = 'DELETE FROM categories WHERE Axis='.intval($_REQUEST['axis']).' AND Cat='.intval($_REQUEST['DeleteEntry'][$i]);
-		//echo($sql.'<br>');
-		$DB->exec($sql);
-		if (($res = $DB->lastErrorCode()) <> 0)
-			echo('ERROR: '.$DB->lastErrorMsg().'<br>'.$sql.'<hr>');
+		for ($i = 0; $i < count($_REQUEST['DeleteEntry']); $i++)
+		{
+			$sql = 'DELETE FROM categories WHERE Axis='.intval($_REQUEST['axis']).' AND Cat='.intval($_REQUEST['DeleteEntry'][$i]);
+			//echo($sql.'<br>');
+			$DB->exec($sql);
+			if (($res = $DB->lastErrorCode()) <> 0)
+				echo('ERROR: '.$DB->lastErrorMsg().'<br>'.$sql.'<hr>');
+		}
 	}
 	if (isset($_REQUEST['menu'])) 
 	{
@@ -169,11 +178,14 @@ function saveCombinations()
 			$DB->exec($sql);
 		}
 	}
-	$arr = $_REQUEST['DeleteEntry'];
-	for ($i=0; $i < count($arr); $i++)
+	if (isset($_REQUEST['DeleteEntry']))
 	{
-		$sql = "DELETE FROM combinations WHERE ComboID='".$DB->escapeString($_REQUEST['DeleteEntry'][$i])."'";
-		$DB->exec($sql);
+		$arr = $_REQUEST['DeleteEntry'];
+		for ($i=0; $i < count($arr); $i++)
+		{
+			$sql = "DELETE FROM combinations WHERE ComboID='".$DB->escapeString($_REQUEST['DeleteEntry'][$i])."'";
+			$DB->exec($sql);
+		}
 	}
 	if (isset($_REQUEST['menu'])) 
 	{
@@ -227,12 +239,14 @@ function saveCompoundCalcs()
 		if ($DB->lastErrorCode() <> 0)
 			echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
 	}
-	
-	$arr = $_REQUEST['DeleteEntry'];
-	for ($i=0; $i < count($arr); $i++)
+	if (isset($_REQUEST['DeleteEntry']))
 	{
-		$sql = "DELETE FROM catcompound WHERE rowid=".$_REQUEST['DeleteEntry'][$i];
-		$DB->exec($sql);
+		$arr = $_REQUEST['DeleteEntry'];
+		for ($i=0; $i < count($arr); $i++)
+		{
+			$sql = "DELETE FROM catcompound WHERE rowid=".$_REQUEST['DeleteEntry'][$i];
+			$DB->exec($sql);
+		}
 	}
 
 	if (isset($_REQUEST['menu'])) 
@@ -330,7 +344,7 @@ function saveSpecials()
 		$sql = "INSERT OR REPLACE INTO specials (BonusID,BriefDesc,GroupName,Points,MultFactor) VALUES(";
 		$sql .= "'".$DB->escapeString($_REQUEST['BonusID'][$i])."'";
 		$sql .= ",'".$DB->escapeString($_REQUEST['BriefDesc'][$i])."'";
-		$sql .= ",'".$DB->escapeString($_REQUEST['GroupName'][$i])."'";
+		$sql .= ",'".$DB->escapeString(isset($_REQUEST['GroupName'][$i]) ? $_REQUEST['GroupName'][$i] : '')."'";
 		$sql .= ','.intval($_REQUEST['Points'][$i]);
 		$sql .= ','.intval($_REQUEST['MultFactor'][$i]);
 		$sql .= ")";
@@ -340,17 +354,23 @@ function saveSpecials()
 			$DB->exec($sql);
 		}
 	}
-	$arr = $_REQUEST['Compulsory'];
-	for ($i = 0 ; $i < count($arr) ; $i++ )
+	if (isset($_REQUEST['Compulsory']))
 	{
-		$sql = "UPDATE specials SET Compulsory=1 WHERE BonusID='".$DB->escapeString($_REQUEST['Compulsory'][$i])."'";
-		$DB->exec($sql);
+		$arr = $_REQUEST['Compulsory'];
+		for ($i = 0 ; $i < count($arr) ; $i++ )
+		{
+			$sql = "UPDATE specials SET Compulsory=1 WHERE BonusID='".$DB->escapeString($_REQUEST['Compulsory'][$i])."'";
+			$DB->exec($sql);
+		}
 	}
-	$arr = $_REQUEST['DeleteEntry'];
-	for ($i=0; $i < count($arr); $i++)
+	if (isset($_REQUEST['DeleteEntry']))
 	{
-		$sql = "DELETE FROM specials WHERE BonusID='".$DB->escapeString($_REQUEST['DeleteEntry'][$i])."'";
-		$DB->exec($sql);
+		$arr = $_REQUEST['DeleteEntry'];
+		for ($i=0; $i < count($arr); $i++)
+		{
+			$sql = "DELETE FROM specials WHERE BonusID='".$DB->escapeString($_REQUEST['DeleteEntry'][$i])."'";
+			$DB->exec($sql);
+		}
 	}
 	if (isset($_REQUEST['menu'])) 
 	{
@@ -396,14 +416,16 @@ function saveTimePenalties()
 				echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
 		}
 	}
-	
-	$arr = $_REQUEST['DeleteEntry'];
-	for ($i=0; $i < count($arr); $i++)
+	if (isset($_REQUEST['DeleteEntry']))
 	{
-		$sql = "DELETE FROM timepenalties WHERE rowid=".$_REQUEST['DeleteEntry'][$i];
-		$DB->exec($sql);
+		$arr = $_REQUEST['DeleteEntry'];
+		for ($i=0; $i < count($arr); $i++)
+		{
+			$sql = "DELETE FROM timepenalties WHERE rowid=".$_REQUEST['DeleteEntry'][$i];
+			$DB->exec($sql);
 			if ($DB->lastErrorCode() <> 0)
 				echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
+		}
 	}
 
 	if (isset($_REQUEST['menu'])) 
@@ -955,7 +977,7 @@ function showRallyConfig()
 	
 	
 	
-	echo('<fieldset id="tab_basic" class="tabContent"><legend>'.TAGS['BasicRallyConfig'][0].'</legend>');
+	echo('<fieldset id="tab_basic" class="tabContent"><legend>'.$TAGS['BasicRallyConfig'][0].'</legend>');
 	echo('<span class="vlabel">');
 	echo('<label for="RallyTitle" class="vlabel">'.$TAGS['RallyTitle'][0].' </label> ');
 	echo('<input size="50" type="text" name="RallyTitle" id="RallyTitle" value="'.htmlspecialchars($rd['RallyTitle']).'" title="'.$TAGS['RallyTitle'][1].'"> ');
@@ -1017,7 +1039,7 @@ function showRallyConfig()
 	echo('<input type="radio"'.$chk.' name="ScoringMethod" id="ScoringMethodM" value="'.$KONSTANTS['ManualScoring'].'" title="'.$TAGS['ScoringMethodM'][1].'"> ');
 	echo('<label for="ScoringMethodS" title="'.$TAGS['ScoringMethodS'][1].'">'.$TAGS['ScoringMethodS'][0].' </label> ');
 	$chk = ($rd['ScoringMethod']==$KONSTANTS['SimpleScoring']) ? ' checked="checked" ' : '';
-	echo('<input type="radio"'.$chk.' name="ScoringMethod" id="ScoringMethodS" value="'.$KONSTANTS['SimpleScoring'].'" title="'.$TAGS['SimpleScoringS'][1].'"> ');
+	echo('<input type="radio"'.$chk.' name="ScoringMethod" id="ScoringMethodS" value="'.$KONSTANTS['SimpleScoring'].'" title="'.$TAGS['ScoringMethodS'][1].'"> ');
 	echo('<label for="ScoringMethodC" title="'.$TAGS['ScoringMethodC'][1].'">'.$TAGS['ScoringMethodC'][0].' </label> ');
 	$chk = ($rd['ScoringMethod']==$KONSTANTS['CompoundScoring']) ? ' checked="checked" ' : '';
 	echo('<input type="radio" '.$chk.'name="ScoringMethod" id="ScoringMethodC" value="'.$KONSTANTS['CompoundScoring'].'" title="'.$TAGS['ScoringMethodC'][1].'"> ');
@@ -1092,14 +1114,14 @@ function showRallyConfig()
 	echo('<span class="vlabel">');
 	echo('<span>'.$TAGS['MilesPenaltyText'][0].': </span> ');
 	echo('<label for="MaxMilesFixedP"  class="vlabel" title="'.$TAGS['MaxMilesFixedP'][1].'">'.$TAGS['MaxMilesFixedP'][0].' </label> ');
-	$chk = ($rd['MaxMilesMethod']==$KONSTANTS['MaxMilesPenaltyFixedP']) ? ' checked="checked" ' : '';
-	echo(' <input type="radio"'.$chk.' name="MaxMilesMethod" id="MaxMilesFixedP" value="'.$KONSTANTS['MaxMilesPenaltyFixedP'].'" title="'.$TAGS['MaxMilesFixedP'][1].'"> ');
+	$chk = ($rd['MaxMilesMethod']==$KONSTANTS['MaxMilesFixedP']) ? ' checked="checked" ' : '';
+	echo(' <input type="radio"'.$chk.' name="MaxMilesMethod" id="MaxMilesFixedP" value="'.$KONSTANTS['MaxMilesFixedP'].'" title="'.$TAGS['MaxMilesFixedP'][1].'"> ');
 	echo('<label for="MaxMilesFixedM" title="'.$TAGS['MaxMilesFixedM'][1].'">'.$TAGS['MaxMilesFixedM'][0].' </label> ');
-	$chk = ($rd['MaxMilesMethod']==$KONSTANTS['MaxMilesPenaltyFixedM']) ? ' checked="checked" ' : '';
-	echo(' <input type="radio"'.$chk.' name="MaxMilesMethod" id="MaxMilesFixedM" value="'.$KONSTANTS['MaxMilesPenaltyFixedM'].'" title="'.$TAGS['MaxMilesFixedM'][1].'"> ');
-	echo('<label for="MaxMilesPerMile" title="'.$TAGS['MaxMilesPenaltyPointsPerMile'][1].'">'.$TAGS['MaxMilesPerMile'][0].' </label> ');
-	$chk = ($rd['MaxMilesMethod']==$KONSTANTS['MaxMilesPenaltyPointsPerMile']) ? ' checked="checked" ' : '';
-	echo(' <input type="radio"'.$chk.' name="MaxMilesMethod" id="MaxMilesPerMile" value="'.$KONSTANTS['MaxMilesPenaltyPointsPerMile'].'" title="'.$TAGS['MaxMilesPenaltyPointsPerMile'][1].'"> ');
+	$chk = ($rd['MaxMilesMethod']==$KONSTANTS['MaxMilesFixedM']) ? ' checked="checked" ' : '';
+	echo(' <input type="radio"'.$chk.' name="MaxMilesMethod" id="MaxMilesFixedM" value="'.$KONSTANTS['MaxMilesFixedM'].'" title="'.$TAGS['MaxMilesFixedM'][1].'"> ');
+	echo('<label for="MaxMilesPerMile" title="'.$TAGS['MaxMilesPerMile'][1].'">'.$TAGS['MaxMilesPerMile'][0].' </label> ');
+	$chk = ($rd['MaxMilesMethod']==$KONSTANTS['MaxMilesPerMile']) ? ' checked="checked" ' : '';
+	echo(' <input type="radio"'.$chk.' name="MaxMilesMethod" id="MaxMilesPerMile" value="'.$KONSTANTS['MaxMilesPerMile'].'" title="'.$TAGS['MaxMilesPerMile'][1].'"> ');
 	echo('</span>');
 
 	echo('<span class="vlabel">');
@@ -1385,7 +1407,7 @@ if (isset($_REQUEST['c']))
 				$axis = $_REQUEST['axis'];
 			else
 				$axis = $_REQUEST['cat'];
-			showCategories($axis,$_REQUEST['ord']);
+			showCategories($axis,isset($_REQUEST['ord']) ? $_REQUEST['ord'] : '');
 			break;
 			
 		case 'bonuses':
