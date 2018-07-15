@@ -152,17 +152,15 @@ function rankEntrants()
 	$TiedPointsRanking = $rd['TiedPointsRanking'];
 	$TeamRanking = $rd['TeamRanking'];
 	
-	
 	$DB->exec('UPDATE entrants SET FinishPosition=0');
-	
+
 	$sql = 'CREATE TEMPORARY TABLE "_ranking" ';
 	$sql .= 'AS SELECT EntrantID,TeamID,TotalPoints,CorrectedMiles,0 AS Rank FROM entrants WHERE EntrantStatus = '.$KONSTANTS['EntrantFinisher'];
 	$DB->exec($sql);
-	
+
 	if ($TeamRanking != $KONSTANTS['TeamRankIndividuals'])
 		presortTeams($TeamRanking);
 
-	
 	$R = $DB->query('SELECT * FROM _ranking ORDER BY TotalPoints DESC,CorrectedMiles ASC');
 	
 	$fp = 0;
@@ -170,6 +168,7 @@ function rankEntrants()
 	$N = 1;
 	$LastTeam = -1;
 
+	$DB->query('BEGIN TRANSACTION');
 
 	While ($rd = $R->fetchArray()) 
 	{
@@ -208,8 +207,9 @@ function rankEntrants()
 		$sql = "UPDATE entrants SET FinishPosition=$fp WHERE EntrantID=".$rd['EntrantID'];
 		//echo($sql.'; LastTeam='.$LastTeam.', N='.$N.', fp='.$fp.'<br>');
 		$DB->exec($sql);
+
 	}
-	
+	$DB->query('COMMIT TRANSACTION');
 }
 
 if (isset($_REQUEST['c']) && $_REQUEST['c']=='rank')
