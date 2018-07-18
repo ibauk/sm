@@ -258,7 +258,21 @@ $TAGS = array(
 	'xlsNoSpecfile'		=> array('!specfile','No "specfile" parameter supplied'),
 	'xlsNotEmpty'		=> array('Entrants already setup!','The table of entrants is not empty, please tick override and retry'),
 	
+	'ZapDatabaseOffer'	=> array('Zap / Reinitialize Database','Clear the database ready to start from scratch'),
+	'ZapDatabaseZapped'	=> array('Database Zapped/Initialized','The database is empty and ready to start from scratch'),
 	
+						/* Index 1 used as html content of P, pay attention */
+	'ZapDBCaution'		=> array('BEWARE!','This will empty the database of all content except certificate templates. The rally database must then be setup from scratch.'),
+						/* Index 1 used as default values in database, beware SQL */
+	'ZapDBRallySlogan'	=> array('Toughest Motorcycle Rally','Toughest Motorcycle Rally'),
+	'ZapDBRallyTitle'	=> array('IBA Motorcycle Rally','IBA Motorcycle Rally'),
+	
+	'ZapDBGo'			=> array('Go ahead, Zap the lot!','Execute the zap command'),
+	
+						/* Index 0 is the truth value of the checkbox, Index 1 is the associated question */
+	'ZapDBRUSure1'		=> array('yESiMsURE','I am absolutely sure I want to do this'),
+	'ZapDBRUSure2'		=> array('ImReallySure','Quite, quite definitely'),
+	'ZapDBRUCancel'		=> array('NoIWont','I don\'t really mean this'),
 	
 	
 	'zzzzzzzzzz'		=> array('zzz','dummy to mark end of array')
@@ -329,11 +343,16 @@ $HTML_STARTED = false;
 // Common subroutines
 
 function splitDatetime($dt)
+/* Accept either 'T' or space as splitting date/time */
 {
-	if (!strpos($dt,'T'))
-		$dtx = ['','']; // explode('T',date('Y-m-d').'T'.date('H:i'));
+	if (strpos($dt,'T'))
+		$S = 'T';
+	else if (strpos($dt,' '))
+		$S = ' ';
 	else
-		$dtx = explode('T',$dt);
+		return ['','']; 
+	
+	$dtx = explode($S,$dt);
 	return $dtx;
 		
 }

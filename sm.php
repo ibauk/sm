@@ -64,6 +64,7 @@ function saveBonuses()
 
 	//var_dump($_REQUEST);
 	$arr = $_REQUEST['BonusID'];
+	$DB->query("BEGIN TRANSACTION");
 	for ($i=0; $i < count($arr); $i++)
 	{
 		$sql = "INSERT OR REPLACE INTO bonuses (BonusID,BriefDesc,Points,Cat1,Cat2,Cat3,Compulsory) VALUES(";
@@ -98,6 +99,7 @@ function saveBonuses()
 			$DB->exec($sql);
 		}
 	}
+	$DB->query('COMMIT TRANSACTION');
 	if (isset($_REQUEST['menu'])) 
 	{
 		$_REQUEST['c'] = $_REQUEST['menu'];
@@ -118,6 +120,7 @@ function saveCategories()
 	if ($DB->lastErrorCode() <> 0)
 		echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
 	
+	$DB->query('BEGIN TRANSACTION');
 	for ($i = 0; $i < count($_REQUEST['Entry']); $i++)
 	{
 		$n = intval($_REQUEST['Entry'][$i]);
@@ -144,6 +147,7 @@ function saveCategories()
 				echo('ERROR: '.$DB->lastErrorMsg().'<br>'.$sql.'<hr>');
 		}
 	}
+	$DB->query('COMMIT TRANSACTION');
 	if (isset($_REQUEST['menu'])) 
 	{
 		$_REQUEST['c'] = $_REQUEST['menu'];
@@ -159,6 +163,7 @@ function saveCombinations()
 
 	//var_dump($_REQUEST); echo('<br>');
 	$arr = $_REQUEST['ComboID'];
+	$DB->query('BEGIN TRANSACTION');
 	for ($i=0; $i < count($arr); $i++)
 	{
 		// Let's make sure the bonus list is good
@@ -187,6 +192,7 @@ function saveCombinations()
 			$DB->exec($sql);
 		}
 	}
+	$DB->query('COMMIT TRANSACTION');
 	if (isset($_REQUEST['menu'])) 
 	{
 		$_REQUEST['c'] = $_REQUEST['menu'];
@@ -224,6 +230,7 @@ function saveCompoundCalcs()
 	}
 	
 	$arr = $_REQUEST['axis'];
+	$DB->query('BEGIN TRANSACTION');
 	for ($i=0; $i < count($arr); $i++)
 	{
 		$sql = "UPDATE catcompound SET "; //(id,Cat,NMethod,ModBonus,NMin,PointsMults,NPower) VALUES(";
@@ -248,7 +255,7 @@ function saveCompoundCalcs()
 			$DB->exec($sql);
 		}
 	}
-
+	$DB->query('COMMIT TRANSACTION');
 	if (isset($_REQUEST['menu'])) 
 	{
 		$_REQUEST['c'] = $_REQUEST['menu'];
@@ -264,6 +271,7 @@ function saveSGroups()
 
 	//var_dump($_REQUEST);
 	$arr = $_REQUEST['GroupName'];
+	$DB->query('BEGIN TRANSACTION');
 	for ($i=0; $i < count($arr); $i++)
 	{
 		$sql = "INSERT OR REPLACE INTO sgroups (GroupName,GroupType) VALUES(";
@@ -282,7 +290,7 @@ function saveSGroups()
 		$sql = "DELETE FROM sgroups WHERE GroupName='".$DB->escapeString($_REQUEST['DeleteEntry'][$i])."'";
 		$DB->exec($sql);
 	}
-
+	$DB->query('COMMIT TRANSACTION');
 	if (isset($_REQUEST['menu'])) 
 	{
 		$_REQUEST['c'] = $_REQUEST['menu'];
@@ -339,6 +347,7 @@ function saveSpecials()
 
 	//var_dump($_REQUEST);
 	$arr = $_REQUEST['BonusID'];
+	$DB->query('BEGIN TRANSACTION');
 	for ($i=0; $i < count($arr); $i++)
 	{
 		$sql = "INSERT OR REPLACE INTO specials (BonusID,BriefDesc,GroupName,Points,MultFactor) VALUES(";
@@ -372,6 +381,7 @@ function saveSpecials()
 			$DB->exec($sql);
 		}
 	}
+	$DB->query('COMMIT TRANSACTION');
 	if (isset($_REQUEST['menu'])) 
 	{
 		$_REQUEST['c'] = $_REQUEST['menu'];
@@ -389,6 +399,7 @@ function saveTimePenalties()
 	//var_dump($_REQUEST);
 	
 	$arr = $_REQUEST['id'];
+	$DB->query('BEGIN TRANSACTION');
 	for ($i=0; $i < count($arr); $i++)
 	{
 		if ($arr[$i]=='')
@@ -427,7 +438,7 @@ function saveTimePenalties()
 				echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
 		}
 	}
-
+	$DB->query('COMMIT TRANSACTION');
 	if (isset($_REQUEST['menu'])) 
 	{
 		$_REQUEST['c'] = $_REQUEST['menu'];

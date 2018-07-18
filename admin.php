@@ -319,14 +319,90 @@ function showSetupMenu()
 	
 }
 
+function showInitialisationOffer()
+{
+	global $TAGS, $DB;
+
+	echo('<h4 title="'.$TAGS['ZapDatabaseOffer'][1].'">'.$TAGS['ZapDatabaseOffer'][0].'</h4>');
+	echo('<p>'.$TAGS['ZapDBCaution'][1].'</p>');
+	echo('<form method="post" action="admin.php">');
+	echo('<input type="hidden" name="c" value="zapdb">');
+	echo('<label for="ruSure1">'.$TAGS['ZapDBRUSure1'][1].'</label> ');
+	echo('<input type="checkbox" id="ruSure1" name="ruSure1" value="'.$TAGS['ZapDBRUSure1'][0].'"><br>');
+	echo('<label for="ruSure2">'.$TAGS['ZapDBRUSure2'][1].'</label> ');
+	echo('<input type="checkbox" id="ruSure2" name="ruSure2" value="'.$TAGS['ZapDBRUSure2'][0].'"><br>');
+	echo('<label for="ruCancel">'.$TAGS['ZapDBRUCancel'][1].'</label> ');
+	echo('<input type="checkbox" id="ruCancel" name="ruCancel" value="'.$TAGS['ZapDBRUCancel'][0].'"><br>');
+	echo('<input type="submit" name="zapdb" title="'.$TAGS['ZapDBGo'][1].'" value="'.$TAGS['ZapDBGo'][0].'">');
+	echo('</form>');
+	
+	echo('</body>');
+	echo('</html>');
+	
+	
+}
+
+function zapDatabase()
+{
+	global $TAGS, $DB;
+	
+	$DB->query('BEGIN TRANSACTION');
+	$DB->query('DELETE FROM rallyparams');
+	$sql = "INSERT INTO rallyparams (RallyTitle,RallySlogan) VALUES('".$TAGS['ZapDBRallyTitle'][1]."','".$TAGS['ZapDBRallySlogan'][1]."')";
+	//echo($sql.'<hr>');
+	$DB->query($sql);
+	$DB->query('DELETE FROM bonuses');
+	$DB->query('DELETE FROM catcompound');
+	$DB->query('DELETE FROM categories');
+	$DB->query('DELETE FROM claims');
+	$DB->query('DELETE FROM combinations');
+	$DB->query('DELETE FROM entrants');
+	$DB->query('DELETE FROM sgroups');
+	$DB->query('DELETE FROM specials');
+	$DB->query('DELETE FROM timepenalties');
+	$DB->query('COMMIT TRANSACTION');
+	
+	echo('<h4 title="'.TAGS['ZapDatabaseZapped'][1].'">'.$TAGS['ZapDatabaseZapped'][0].'</h4>');
+	showSetupMenu();
+	
+}
+
+function isZapDBCommand()
+{
+	global $TAGS;
+	
+	//echo('<hr>');
+	$res = isset($_REQUEST['c']) && isset($_REQUEST['zapdb']) && isset($_REQUEST['ruSure1']) &&	isset($_REQUEST['ruSure2']);
+	//echo(($res ? "True " : "False ").'; ');
+	if (isset($_REQUEST['ruCancel']))
+	{
+		$res = FALSE;
+		//echo(' Cancelled ');
+	}
+	if ($_REQUEST['ruSure1'] != $TAGS['ZapDBRUSure1'][0])
+		$res = FALSE;
+	if ($_REQUEST['ruSure2'] != $TAGS['ZapDBRUSure2'][0])
+		$res = FALSE;
+			
+	//echo($res.'<hr>');
+	return $res;
+	
+}
+
 
 startHtml('<a href="about.php" class="techie" title="'.$TAGS['HelpAbout'][1].'">'.$TAGS['HelpAbout'][0].'</a>');
+//var_dump($_REQUEST);
 if (isset($_REQUEST['c']) && $_REQUEST['c']=='setup')
 	showSetupMenu();
 else if (isset($_REQUEST['c']) && $_REQUEST['c']=='entrants')
 	showEntrantsMenu();
 else if (isset($_REQUEST['c']) && $_REQUEST['c']=='bonus')
 	showBonusMenu();
+else if (isset($_REQUEST['c']) && $_REQUEST['c']=='offerzap')
+	showInitialisationOffer();
+else if (isZapDBCommand())
+		ZapDatabase();
+			
 else
 	showAdminMenu();
 
