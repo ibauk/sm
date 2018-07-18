@@ -732,15 +732,16 @@ function calcTimePenalty()
 {
 	const OneMinute = 1000 * 60;
 	var TP = document.getElementsByName('TimePenalty[]');
-	var FT = document.getElementById('FinishDate').value + 'T' + document.getElementById('FinishTime').value;
+	var FT = document.getElementById('FinishDate').value + ' ' + document.getElementById('FinishTime').value;
 	var  FTDate = new Date(FT);
 	for ( var i = 0 ; i < TP.length ; i++ )
 		if (FT >= TP[i].getAttribute('data-start') && FT <= TP[i].getAttribute('data-end'))
 		{
-			var PF = TP[i].getAttribute('data-factor');
-			var PM = TP[i].getAttribute('data-method');
+			var PF = parseInt(TP[i].getAttribute('data-factor'));
+			var PM = parseInt(TP[i].getAttribute('data-method'));
 			var PStartDate = new Date(TP[i].getAttribute('data-start'));
-			var Mins = 1 + (Math.abs(FTDate - PStartDate) * OneMinute);
+			var Mins = 1 + (Math.abs(FTDate - PStartDate) / OneMinute);
+			//alert(PStartDate + ' == ' + FTDate + ' == ' + PM + '=' + TPM_PointsPerMin + ' == ' + Mins);
 			switch(PM)
 			{
 				case TPM_MultPerMin:

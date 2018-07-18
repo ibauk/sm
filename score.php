@@ -93,6 +93,35 @@ function chooseScoringMethod()
 }
 
 
+/* This calculates a 'safe' default finishing time to be used until and
+ * entrant has her actual time entered. This time should not affect
+ * the entrant's score or finisher status.
+ */
+function defaultFinishTime()
+{
+	global $DB;
+
+	$notime = ['',''];
+	$R = $DB->query("SELECT FinishTime FROM rallyparams");
+	if (!$R)
+		return $notime;
+	$RD = $R->fetchArray();
+	$dtx = splitdatetime($RD['FinishTime']);
+	$finishTime = $RD['FinishTime'];
+	$R = $DB->query("SELECT PenaltyStart FROM timepenalties ORDER BY PenaltyStart");
+	if ($R)
+	{
+		$RD = $R->fetchArray();
+		$finishTime = $RD['PenaltyStart'];
+	}
+	// Make it one minute earlier
+	$finishTime = date_sub(DateTime::createFromFormat('Y-m-d H:i',$finishTime),new DateInterval('PT1M'))->format('Y-m-d H:i');
+	$res = splitDatetime($finishTime);
+
+	return $res;
+}
+	
+
 
 function inviteScorer()
 {
@@ -222,7 +251,7 @@ function scoreEntrant()
 		if (count($rr)==2 && intval($rr[0])>0 && intval($rr[0])<10)
 			echo('<input type="hidden" name="RejectReason" data-code="'.$rr[0].'" value="'.$rr[1].'">');
 	}
-	$RallyFinishTime = splitDatetime($rd['FinishTime']);
+	$RallyFinishTime = defaultFinishTime();
 	$ScoringMethod = $rd['ScoringMethod'];
 	if ($ScoringMethod == $KONSTANTS['AutoScoring'])
 		$ScoringMethod = chooseScoringMethod();
