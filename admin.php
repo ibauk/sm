@@ -371,20 +371,18 @@ function isZapDBCommand()
 {
 	global $TAGS;
 	
-	//echo('<hr>');
 	$res = isset($_REQUEST['c']) && isset($_REQUEST['zapdb']) && isset($_REQUEST['ruSure1']) &&	isset($_REQUEST['ruSure2']);
-	//echo(($res ? "True " : "False ").'; ');
 	if (isset($_REQUEST['ruCancel']))
 	{
 		$res = FALSE;
-		//echo(' Cancelled ');
 	}
+	if (!$res)
+		return FALSE;
 	if ($_REQUEST['ruSure1'] != $TAGS['ZapDBRUSure1'][0])
 		$res = FALSE;
 	if ($_REQUEST['ruSure2'] != $TAGS['ZapDBRUSure2'][0])
 		$res = FALSE;
 			
-	//echo($res.'<hr>');
 	return $res;
 	
 }
