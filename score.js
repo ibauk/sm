@@ -147,10 +147,14 @@ function areYouSure(question)
 
 function walkBonusArrays(f)
 {
-	var sg = document.getElementById('SGroupsUsed').value.split(',');
 	var bt = "BonusID[],SpecialID[]";
-	for (var i = 0; i < sg.length; i++)
-		bt += ',SpecialID_' + sg[i] + '[]';
+	var sgObj = document.getElementById('SGroupsUsed');
+	if (sgObj != null)
+	{
+		var sg = sgObj.value.split(',');
+		for (var i = 0; i < sg.length; i++)
+			bt += ',SpecialID_' + sg[i] + '[]';
+	}
 	bt += ',ComboID[]';
 	var bta = bt.split(',');
 	for (var i = 0; i < bta.length; i++)
@@ -418,27 +422,31 @@ function calcComplexScore(res)
 
 	// Specials
 	
-	var sg = document.getElementById("SGroupsUsed").value.split(",");
-	for (var j = 0; j < sg.length; j++)
+	var sgObj = document.getElementById("SGroupsUsed");
+	if (sgObj != null)
 	{
-		bonuses = document.getElementsByName("SpecialID_"+sg[j]+"[]");
-		for (var i = 0, bps = 0, mults = 0; i < bonuses.length; i++ )
-			if (bonuses[i].checked)
-			{
-				bps += parseInt(bonuses[i].getAttribute('data-points'));
-				mults += parseInt(bonuses[i].getAttribute('data-mult'));
-				sxappend(bonuses[i].getAttribute('id'),bonuses[i].parentNode.firstChild.innerHTML,bonuses[i].getAttribute('data-points'),bonuses[i].getAttribute('data-mult'),bps);
-			}
+		var sg = sgObj.value.split(",");
+		for (var j = 0; j < sg.length; j++)
+		{
+			bonuses = document.getElementsByName("SpecialID_"+sg[j]+"[]");
+			for (var i = 0, bps = 0, mults = 0; i < bonuses.length; i++ )
+				if (bonuses[i].checked)
+				{
+					bps += parseInt(bonuses[i].getAttribute('data-points'));
+					mults += parseInt(bonuses[i].getAttribute('data-mult'));
+					sxappend(bonuses[i].getAttribute('id'),bonuses[i].parentNode.firstChild.innerHTML,bonuses[i].getAttribute('data-points'),bonuses[i].getAttribute('data-mult'),bps);
+				}
 		
-		if (showMults)
-			scoreReason += "\r\n" + sg[j] + ': ' + 'P-' + bps + " (M-" + mults + ")";
-		else
-			if (bps != 0)
-				scoreReason += "\r\n" + sg[j] + ': ' + bps;
+			if (showMults)
+				scoreReason += "\r\n" + sg[j] + ': ' + 'P-' + bps + " (M-" + mults + ")";
+			else
+				if (bps != 0)
+					scoreReason += "\r\n" + sg[j] + ': ' + bps;
 	
-		totalMultipliers += mults;
-		totalBonusPoints += bps;
+			totalMultipliers += mults;
+			totalBonusPoints += bps;
 		
+		}
 	}
 	
 
@@ -607,10 +615,10 @@ function calcScore(enableSave)
 	
 	if (sm != SM_Manual)
 	{
+		tickCombos();
 		repaintBonuses();
 		sxstart();
 		reportRejectedClaims();
-		tickCombos();
 		if (debug) alert("calcScore[1]");
 		if (sm == SM_Compound)
 			TPS = calcComplexScore(res);
@@ -656,21 +664,24 @@ function calcSimpleScore(res)
 		
 	TS += bps;
 
-	var sg = document.getElementById("SGroupsUsed").value.split(",");
-	for (var j = 0; j < sg.length; j++)
+	var sgObj = document.getElementById("SGroupsUsed");
+	if (sgObj != null)
 	{
-		bp = document.getElementsByName("SpecialID_"+sg[j]+"[]");
-		for (var i = 0, bps = 0; i < bp.length; i++ )
-			if (bp[i].checked)
-			{
-				bps += parseInt(bp[i].getAttribute('data-points'));
-				sxappend(bp[i].getAttribute('id'),bp[i].parentNode.firstChild.innerHTML,bp[i].getAttribute('data-points'),0,TS + bps);
-			}
+		var sg = sgObj.value.split(",");
+		for (var j = 0; j < sg.length; j++)
+		{
+			bp = document.getElementsByName("SpecialID_"+sg[j]+"[]");
+			for (var i = 0, bps = 0; i < bp.length; i++ )
+				if (bp[i].checked)
+				{
+					bps += parseInt(bp[i].getAttribute('data-points'));
+					sxappend(bp[i].getAttribute('id'),bp[i].parentNode.firstChild.innerHTML,bp[i].getAttribute('data-points'),0,TS + bps);
+				}
 		
-		TS += bps;
-		if (bps != 0)
-			reason += "\r\n" + sg[j] + ': ' + bps;
-		
+			TS += bps;
+			if (bps != 0)
+				reason += "\r\n" + sg[j] + ': ' + bps;
+		}
 	}
 	
 	bp = document.getElementsByName("SpecialID[]");
@@ -840,7 +851,7 @@ function odoAdjust()
 
 function reflectBonusCheckedState(B)
 {
-	//if (B.id == 'S7r7')
+	//if (B.id == 'CLinked1')
 		//alert('Bonus ' + B.id + ' has checked = ' + B.checked + ' and Reject = ' + B.getAttribute('data-rejected'));
 	var S = B.parentElement;
 	if (B.checked)
@@ -921,7 +932,7 @@ function setFinisherStatus()
 			sxappend(document.getElementById('EntrantStatus').options[status].text,x,0,0,0);
 	}
 	var CS = parseInt(document.getElementById('EntrantStatus').value);
-	if (CS != EntrantOK)
+	if (CS != EntrantOK && CS != EntrantFinisher)
 		return;
 	var TS = parseInt(document.getElementById('TotalPoints').value);
 	var MP = parseInt(document.getElementById('MinPoints').value);
@@ -950,6 +961,17 @@ function setFinisherStatus()
 	for (var i = 0 ; i < BL.length; i++ )
 		if (BL[i].getAttribute('data-reqd')==COMPULSORYBONUS && !BL[i].checked)
 			return SFS(EntrantDNF,DNF_MISSEDCOMPULSORY);
+	
+	var sgObj = document.getElementById('SGroupsUsed');
+	if (sgObj != null)
+	{
+		var sg = sgObj.value.split(',');
+		for (var i = 0; i < sg.length; i++)
+			BL = document.getElementsByName('SpecialID_' + sg[i] + '[]');
+			for (var i = 0 ; i < BL.length; i++ )
+				if (BL[i].getAttribute('data-reqd')==COMPULSORYBONUS && !BL[i].checked)
+					return SFS(EntrantDNF,DNF_MISSEDCOMPULSORY);
+	}
 	
 	BL = document.getElementsByName('ComboID[]');
 	for (var i = 0 ; i < BL.length; i++ )

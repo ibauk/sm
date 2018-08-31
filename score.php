@@ -111,11 +111,13 @@ function defaultFinishTime()
 	$R = $DB->query("SELECT PenaltyStart FROM timepenalties ORDER BY PenaltyStart");
 	if ($R)
 	{
-		$RD = $R->fetchArray();
-		$finishTime = $RD['PenaltyStart'];
+		if ($RD = $R->fetchArray())
+		{
+			$finishTime = $RD['PenaltyStart'];
+		}
 	}
 	// Make it one minute earlier
-	$finishTime = date_sub(DateTime::createFromFormat('Y-m-d H:i',$finishTime),new DateInterval('PT1M'))->format('Y-m-d H:i');
+	$finishTime = date_sub(DateTime::createFromFormat('Y-m-d\TH:i',$finishTime),new DateInterval('PT1M'))->format('Y-m-d H:i');
 	$res = splitDatetime($finishTime);
 
 	return $res;
@@ -210,7 +212,8 @@ function saveSpecials()
 	{
 		if ($sv <> '')
 			$sv .= ',';
-		$sv .= implode($_REQUEST['SpecialID'.'_'.$g]);
+		if (isset($_REQUEST['SpecialID'.'_'.$g]))
+			$sv .= implode($_REQUEST['SpecialID'.'_'.$g]);
 	}
 	return ",SpecialsTicked='".$sv."'";
 }
@@ -454,7 +457,7 @@ function showCombinations($Combos)
 {
 	global $DB, $TAGS, $KONSTANTS;
 
-	$BA = explode(',',','.$combos); // The leading comma means that the first element is index 1 not 0
+	$BA = explode(',',','.$Combos); // The leading comma means that the first element is index 1 not 0
 	
 	$R = $DB->query('SELECT * FROM combinations ORDER BY ComboID');
 	while ($rd = $R->fetchArray())
