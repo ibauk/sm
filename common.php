@@ -297,7 +297,7 @@ $KONSTANTS['RankTeamsAsIndividuals'] = 0;
 $KONSTANTS['RankTeamsHighest'] = 1;
 $KONSTANTS['RankTeamsLowest'] = 2;
 $KONSTANTS['OdoCountsMiles'] = 0;
-$KONSTANTS['OdoCountsKilos'] = 1;
+$KONSTANTS['OdoCountsKilometres'] = 1;
 $KONSTANTS['EntrantDNS'] = 0;
 $KONSTANTS['EntrantOK'] = 1;
 $KONSTANTS['EntrantFinisher'] = 8;
@@ -320,7 +320,7 @@ $KONSTANTS['ComboScoreMethodMults'] = 1;
 $KONSTANTS['NUMBER_OF_COMPOUND_AXES'] = 3;
 
 // Default settings
-$KONSTANTS['DefaultKmsOdo'] = $KONSTANTS['OdoCountsMiles'];
+$KONSTANTS['DefaultKmsOdo'] = $KONSTANTS['OdoCountsMiles']; // $KONSTANTS['OdoCountsKilometres']
 $KONSTANTS['DefaultOdoScaleFactor'] = 1;
 $KONSTANTS['DefaultCountry'] = 'UK';
 $KONSTANTS['DefaultEntrantStatus'] = $KONSTANTS['EntrantOK'];
@@ -341,6 +341,23 @@ $RALLY_INITIALISED = (1==1);
 $HTML_STARTED = false;
 
 // Common subroutines
+
+function properName($enteredName)
+// Used to fix names entered online; not everyone knows about shift keys
+// If they've tried, I just return what they entered but if not I'll
+// return initial capitals followed by lowercase
+{
+	$x = explode(' ',$enteredName);
+	$z = false;
+	for ($i = 0; $i < sizeof($x); $i++)
+		if (ctype_lower($x[$i]) || ctype_upper($x[$i]))
+			$z = true;
+	if ($z)
+		return ucwords(strtolower($enteredName));
+	else
+		return $enteredName;
+	
+}
 
 function splitDatetime($dt)
 /* Accept either 'T' or space as splitting date/time */

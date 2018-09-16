@@ -47,8 +47,8 @@ const DNF_MISSEDCOMPULSORY = "Missed a compulsory bonus";
 const RPT_Bonuses	= "Bonuses";
 const RPT_Specials	= "Specials";
 const RPT_Combos	= "Combos";
-const RPT_MPenalty	= "MPenalty";
-const RPT_TPenalty	= "TPenalty";
+const RPT_MPenalty	= "MileagePenalty";
+const RPT_TPenalty	= "TimePenalty";
 const RPT_Total 	= "TOTAL";
 
 const CFGERR_MethodNIY = "Error: compoundCalcRuleMethod {0} not implemented yet";
@@ -743,8 +743,9 @@ function calcTimePenalty()
 {
 	const OneMinute = 1000 * 60;
 	var TP = document.getElementsByName('TimePenalty[]');
-	var FT = document.getElementById('FinishDate').value + ' ' + document.getElementById('FinishTime').value;
+	var FT = document.getElementById('FinishDate').value + 'T' + document.getElementById('FinishTime').value;
 	var  FTDate = new Date(FT);
+	//alert("TP: "+FTDate);
 	for ( var i = 0 ; i < TP.length ; i++ )
 		if (FT >= TP[i].getAttribute('data-start') && FT <= TP[i].getAttribute('data-end'))
 		{
@@ -1130,6 +1131,10 @@ function sxappend(id,desc,bp,bm,tp)
 	
 	//return;
 	
+	var estat = document.getElementById('EntrantStatus');
+	
+	document.getElementById('sxsfs').innerHTML = estat.options[estat.selectedIndex].text;
+	
 	var row = sxb.insertRow(-1);
 	var td_id = row.insertCell(-1);
 	td_id.innerHTML = id;
@@ -1159,10 +1164,11 @@ function sxhide()
 function sxprint()
 {
     var mywindow = window.open('', 'PRINT', 'height=400,width=600');
-
+	var hdrtitle = document.getElementById('hdrRallyTitle').innerHTML;
+	
     mywindow.document.write('<html><head><title>' + document.title  + '</title>');
     mywindow.document.write('</head><body >');
-    mywindow.document.write('<h1>' + document.title  + '</h1>');
+    mywindow.document.write('<h1>' + hdrtitle  + '</h1>');
     mywindow.document.write(document.getElementById(SX_id).innerHTML);
     mywindow.document.write('</body></html>');
 
@@ -1187,7 +1193,7 @@ function sxstart()
 	var sx = document.getElementById(SX_id);
 	if (!sx) return;
 	
-	var html = '<table><caption>'+document.getElementById("RiderID").innerHTML+'</caption><thead><tr><th class="id">id</th><th class="desc"></th><th class="bp">BP</th>';
+	var html = '<table><caption>'+document.getElementById("RiderID").innerHTML+' [<span id="sxsfs"></span>]</caption><thead><tr><th class="id">id</th><th class="desc"></th><th class="bp">BP</th>';
 	if (showMults) html += '<th class="bm">BM</th>';
 	html += '<th class="tp">TP</th></tr></thead><tbody></tbody></table>';
 	sx.innerHTML = html;

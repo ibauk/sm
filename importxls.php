@@ -36,14 +36,18 @@ require_once("common.php");
 //$target_dir = __DIR__ .'/uploads/';
 $target_dir = './uploads/';
 
-$SPECFILES = array(	'BBR' => array('bbrspec.php','Brit Butt Rally'),
+
+/**
+$SPECFILES = array(	'BBR' => array('bbrspec.php','Brit Butt rally'),
+					'Jorvic' => array('jorvicspec.php','Jorvic rally'),
 					'RBLR' => array('rblrspec.php','RBLR1000')
 				);
+**/
+require_once("specfiles.php");
 
 require_once './PHPExcel/Classes/PHPExcel/IOFactory.php';
 
-
-function getMergeCols($sheet,$row,$colspec)
+function getMergeCols($sheet,$row,$colspec,$sep = ' ')
 // Extract and return the contents of one or more cells
 {
 	if ($sheet < 0)
@@ -54,7 +58,7 @@ function getMergeCols($sheet,$row,$colspec)
 	$res = '';
 	for ($i = 0; $i < sizeof($cols); $i++)
 	{
-		if ($res <> '') $res .= ' ';
+		if ($res <> '') $res .= $sep;
 		$res .= $sheet->getCellByColumnAndRow($cols[$i],$row)->getValue();
 	}
 	return $res;
@@ -109,7 +113,7 @@ function showUpload()
 		echo('<input type="radio" name="specfile" id="specfile'.$i.'" value="'.$specs[0].'"');
 		if ($chk)
 			echo(' checked=checked ');
-		echo('></span>');
+		echo('></span> &nbsp;&nbsp;');
 		$chk = FALSE;
 	}
 ?>
@@ -150,7 +154,7 @@ require_once($_REQUEST['specfile']);
 
 startHtml($TAGS['xlsImporting'][0]);
 
-$debugging = TRUE;
+$debugging = FALSE;
 
 echo("debugging=".$debugging."; specfile=".$_REQUEST['specfile']."<br>");
 
@@ -166,7 +170,7 @@ try {
 } catch (Exception $e) {
 	die("Error: ".$e->getMessage());
 }
-if ($debugging) echo("2<br>");
+if ($debugging) echo("2 $xlstype<br>");
 $rdr = PHPExcel_IOFactory::createReader($xlstype); 
 $rdr->setReadDataOnly(true);
 $rdr->setLoadSheetsOnly($IMPORTSPEC['whichsheet']);
@@ -176,10 +180,17 @@ try {
 } catch (Exception $e) {
 	die("Error: ".$e->getMessage());
 }
+if ($debugging)
+{
+	if ($xls)
+		echo(" xls ");
+	else
+		echo(" !!! ");
+}
 if ($debugging) echo("4<br>");
 $sheet = $xls->getSheet();
-if ($debugging) echo("5<br>");	
 $row = $IMPORTSPEC['FirstDataRow'];  // Skip the column headers
+if ($debugging) echo("5 [$row]<br>");	
 $nrows = 0;
 
 echo("<p>".$TAGS['xlsImporting'][1]."</p>");
@@ -202,9 +213,24 @@ echo('<p class="techie">');
 
 $row = $row - 1;  // Step back one so I can bump below
 
-while ($row++) {
+while ($row++ >= 0) {
 	try {
 		if ($debugging) echo("a ");
+		if (isset($IMPORTSPEC['reject']))
+			foreach($IMPORTSPEC['reject'] as $col => $re)
+			{
+				$val = getMergeCols($sheet,$row,$col);
+				if (preg_match($re,$val) === 1 ? TRUE : FALSE)
+					$ok = TRUE;
+				else
+					$ok = FALSE;
+				if ($debugging)
+					echo(' ['.$val.'] != ['.$re.']');
+				if ($ok)
+				{
+					continue 2;
+				}
+			}
 		if (isset($IMPORTSPEC['cols']['EntrantID']))
 		{
 			$entrantid = getMergeCols($sheet,$row,$IMPORTSPEC['cols']['EntrantID']);
@@ -242,6 +268,10 @@ while ($row++) {
 		$pillionnames = getNameFields($sheet,$row,array('PillionName','PillionFirst','PillionLast'));
 		$bike = getNameFields($sheet,$row,array('Bike','Make','Model'));
 		if ($debugging) echo("d [$bike[0]] ");
+		if (isset($IMPORTSPEC['cols']['BikeReg']))
+			$bikereg = getMergeCols($sheet,$row,$IMPORTSPEC['cols']['BikeReg']);
+		else
+			$bikereg = '';
 		
 		$rideriba = getMergeCols($sheet,$row,$IMPORTSPEC['cols']['RiderIBA']);
 		$pillioniba = getMergeCols($sheet,$row,$IMPORTSPEC['cols']['PillionIBA']);
@@ -269,6 +299,8 @@ while ($row++) {
 			$fl = buildList($fl,'PillionFirst');
 			if ($bike[0] != '')
 				$fl = buildList($fl,'Bike');
+			if (isset($IMPORTSPEC['cols']['BikeReg']))
+				$fl = buildList($fl,'BikeReg');
 			
 			$fl = buildList($fl,'FinishPosition');
 			$fl = buildList($fl,'RiderIBA');
@@ -294,6 +326,8 @@ while ($row++) {
 			$fl = buildList($fl,':PillionFirst');
 			if ($bike[0] != '')
 				$fl = buildList($fl,':Bike');
+			if (isset($IMPORTSPEC['cols']['BikeReg']))
+				$fl = buildList($fl,':BikeReg');
 			
 			$fl = buildList($fl,':FinishPosition');
 			$fl = buildList($fl,':RiderIBA');
@@ -331,16 +365,25 @@ while ($row++) {
 			die($e->getMessage());
 		}
 		if ($debugging) echo("B  ");
-		$stmt->bindValue(':RiderName',trim($ridernames[0]),SQLITE3_TEXT);
+		$stmt->bindValue(':RiderName',properName(trim($ridernames[0])),SQLITE3_TEXT);
 		if ($debugging) echo("C  ");
-		$stmt->bindValue(':RiderFirst',trim($ridernames[1]),SQLITE3_TEXT);
+		$stmt->bindValue(':RiderFirst',properName(trim($ridernames[1])),SQLITE3_TEXT);
 		if ($debugging) echo("D  ");
 		if ($debugging) var_dump($pillionnames);
-		$stmt->bindValue(':PillionName',trim($pillionnames[0]),SQLITE3_TEXT);
+		
+		// Not everyone can follow simple form-filling instructions
+		if (trim($pillionnames[0])==trim($ridernames[0]))
+		{
+			$pillionnames[0] = '';
+			$pillionnames[1] = '';
+		}
+		$stmt->bindValue(':PillionName',properName(trim($pillionnames[0])),SQLITE3_TEXT);
 		if ($debugging) echo("E  ");
-		$stmt->bindValue(':PillionFirst',trim($pillionnames[1]),SQLITE3_TEXT);
+		$stmt->bindValue(':PillionFirst',properName(trim($pillionnames[1])),SQLITE3_TEXT);
 		if ($debugging) echo("F  ");
-		$stmt->bindValue(':Bike',trim($bike[0]),SQLITE3_TEXT);
+		$stmt->bindValue(':Bike',properName(trim($bike[0])),SQLITE3_TEXT);
+		if (isset($IMPORTSPEC['cols']['BikeReg']))
+			$stmt->bindValue(':BikeReg',strtoupper(trim($bikereg)),SQLITE3_TEXT);
 		
 		$stmt->bindValue(':FinishPosition',$finishposition,SQLITE3_INTEGER);
 		$stmt->bindValue(':RiderIBA',$rideriba,SQLITE3_INTEGER);
