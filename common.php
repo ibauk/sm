@@ -36,6 +36,7 @@ $DBFILENAME = 'ScoreMaster.db';
 
 // This array specifies labels and tootips for each onscreen field to avoid the need for 'literals in the procedure division'.
 // This is in alphabetic order by key. It doesn't need to be but it makes your life easier, doesn't it?
+// DO NOT alter key names!
 $TAGS = array(
 	'abtAuthor'			=> array('Author','Who developed this application'),
 	'abtDatabase'		=> array('Database file','Full path to the file containing the database'),
@@ -149,6 +150,7 @@ $TAGS = array(
 	'OdoCheckFinish'	=> array('Odo check finish','The odometer reading at the end of the odo check'),
 	'OdoCheckMiles'		=> array('Odo check distance','The mileage used to check the accuracy of odometers'),
 	'OdoCheckStart'		=> array('Odo check start','The reading at the start of the odometer check'),
+	'OdoCheckTrip'		=> array('Odo check trip','What distance did the trip meter record?'),
 	'OdoKms'			=> array('Odo counts',''),
 	'OdoKmsK'			=> array('kilometres',''),
 	'OdoKmsM'			=> array('miles',''),
@@ -296,6 +298,8 @@ $KONSTANTS['TiedPointsSplit'] = 1;
 $KONSTANTS['RankTeamsAsIndividuals'] = 0;	
 $KONSTANTS['RankTeamsHighest'] = 1;
 $KONSTANTS['RankTeamsLowest'] = 2;
+$KONSTANTS['DistanceIsMiles'] = 0;
+$KONSTANTS['DistanceIsKilometres'] = 1;
 $KONSTANTS['OdoCountsMiles'] = 0;
 $KONSTANTS['OdoCountsKilometres'] = 1;
 $KONSTANTS['EntrantDNS'] = 0;
@@ -319,8 +323,29 @@ $KONSTANTS['ComboScoreMethodMults'] = 1;
  */
 $KONSTANTS['NUMBER_OF_COMPOUND_AXES'] = 3;
 
+
+/*
+ * This next constant determines whether the basic unit of distance used
+ * by this application is the mile or the kilometre. The field names on
+ * the database remain as 'miles' or 'mileage' as they're only used 
+ * internally but calculations switching between miles and kilometres
+ * are affected by this setting. Field labels and tooltips must also
+ * be altered manually. It is assumed that a particular instance of this 
+ * application will always use the same unit of measure.
+ */
+ 
+$KONSTANTS['BasicDistanceUnits'] = $KONSTANTS['DistanceIsMiles'];
+// $KONSTANTS['BasicDistanceUnits'] = $KONSTANTS['DistanceIsKilometres'];
+
+
+
+
 // Default settings
-$KONSTANTS['DefaultKmsOdo'] = $KONSTANTS['OdoCountsMiles']; // $KONSTANTS['OdoCountsKilometres']
+
+// This setting should normally reflect BasicDistanceUnits above
+$KONSTANTS['DefaultKmsOdo'] = $KONSTANTS['OdoCountsMiles']; 
+// $KONSTANTS['DefaultKmsOdo'] = $KONSTANTS['OdoCountsKilometres'];
+
 $KONSTANTS['DefaultOdoScaleFactor'] = 1;
 $KONSTANTS['DefaultCountry'] = 'UK';
 $KONSTANTS['DefaultEntrantStatus'] = $KONSTANTS['EntrantOK'];
@@ -391,7 +416,7 @@ function getValueFromDB($sql,$col,$defaultvalue)
 
 function startHtml($otherInfo = '')
 {
-	global $DB, $TAGS, $HTML_STARTED;
+	global $DB, $TAGS, $KONSTANTS, $HTML_STARTED;
 	global $HOME_URL;
 	
 	if ($HTML_STARTED)
@@ -613,6 +638,7 @@ table#entrants	.FinishPosition,.TotalPoints,.CorrectedMiles	{ text-align: center
 <script src="score.js?ver=<?= filemtime('score.js')?>" defer="defer"></script>
 </head>
 <body onload="bodyLoaded();">
+<?php echo('<input type="hidden" id="BasicDistanceUnits" value="'.$KONSTANTS['BasicDistanceUnits'].'"/>'); ?>
 <div id="header">
 <?php	
 	echo("<a href=\"".$HOME_URL);

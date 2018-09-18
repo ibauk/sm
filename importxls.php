@@ -50,8 +50,8 @@ require_once './PHPExcel/Classes/PHPExcel/IOFactory.php';
 function getMergeCols($sheet,$row,$colspec,$sep = ' ')
 // Extract and return the contents of one or more cells
 {
-	if ($sheet < 0)
-		var_dump($colspec);
+//	if ($sheet < 0)
+//		var_dump($colspec);
 	if ($colspec === NULL)
 		return '';
 	$cols = explode(':',$colspec);
@@ -204,7 +204,7 @@ if ($rr['Rex'] > 0) {
 		exit;
 	}
 }
-
+$DB->query("BEGIN TRANSACTION");
 $DB->query("DELETE FROM entrants");
 
 $SqlBuilt = FALSE;
@@ -418,6 +418,8 @@ while ($row++ >= 0) {
 		break;
 	}
 }
+$DB->query("COMMIT TRANSACTION");
+
 echo("</p><p>All done - $nrows rows loaded </p>");
  
 ?>

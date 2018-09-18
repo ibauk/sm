@@ -327,19 +327,22 @@ function showEntrantChecks($rd)
 	
 	echo('<span   title="'.$TAGS['OdoKms'][1].' "> '.$TAGS['OdoKms'][0].' ');
 	echo('<label for="OdoKmsM">'.$TAGS['OdoKmsM'][0].': </label> ');
-	$chk = $rd['OdoKms'] <> $KONSTANTS['OdoCountsKilos'] ? ' checked="checked" ' : '';
+	$chk = $rd['OdoKms'] <> $KONSTANTS['OdoCountsKilometres'] ? ' checked="checked" ' : '';
 	echo('<input onchange="odoAdjust();" type="radio" name="OdoKms" id="OdoKmsM" value="'.$KONSTANTS['OdoCountsMiles'].'"'.$chk.'></span>');
 	echo('&nbsp;&nbsp;&nbsp;<span><label for="OdoKmsK">'.$TAGS['OdoKmsK'][0].' </label> ');
-	$chk = $rd['OdoKms'] == $KONSTANTS['OdoCountsKilos'] ? ' checked="checked" ' : '';
-	echo('<input  onchange="odoAdjust();" type="radio" name="OdoKms" id="OdoKmsK" value="'.$KONSTANTS['OdoCountsKilos'].'"'.$chk.'></span>');
+	$chk = $rd['OdoKms'] == $KONSTANTS['OdoCountsKilometres'] ? ' checked="checked" ' : '';
+	echo('<input  onchange="odoAdjust();" type="radio" name="OdoKms" id="OdoKmsK" value="'.$KONSTANTS['OdoCountsKilometres'].'"'.$chk.'></span>');
 
 	if ($hideOdoCheck)
 		echo('<div style="display:none;">');
 	echo('<span  class="xlabel" title="'.$TAGS['OdoCheckStart'][1].' "><label for="OdoCheckStart">'.$TAGS['OdoCheckStart'][0].' </label> ');
-	echo('<input  onchange="odoAdjust();" type="number" step="any" name="OdoCheckStart" id="OdoCheckStart" value="'.$rd['OdoCheckStart'].'"> </span>');
+	echo('<input  onchange="odoAdjust(false);" type="number" step="any" name="OdoCheckStart" id="OdoCheckStart" value="'.$rd['OdoCheckStart'].'"> </span>');
 	
 	echo('<span  title="'.$TAGS['OdoCheckFinish'][1].' "><label for="OdoCheckFinish">'.$TAGS['OdoCheckFinish'][0].' </label> ');
-	echo('<input  onchange="odoAdjust();" type="number" step="any" name="OdoCheckFinish" id="OdoCheckFinish" value="'.$rd['OdoCheckFinish'].'"> </span>');
+	echo('<input  onchange="odoAdjust(false);" type="number" step="any" name="OdoCheckFinish" id="OdoCheckFinish" value="'.$rd['OdoCheckFinish'].'"> </span>');
+	
+	echo('<span  title="'.$TAGS['OdoCheckTrip'][1].' "><label for="OdoCheckTrip">'.$TAGS['OdoCheckTrip'][0].' </label> ');
+	echo('<input  onchange="odoAdjust(true);" type="number" step="any" name="OdoCheckTrip" id="OdoCheckTrip" value="'.$rd['OdoCheckTrip'].'"> </span>');
 	
 	echo('<span   title="'.$TAGS['OdoScaleFactor'][1].'"><label for="OdoScaleFactor">'.$TAGS['OdoScaleFactor'][0].' </label> ');
 	echo('<input type="number" step="any" name="OdoScaleFactor" id="OdoScaleFactor" value="'.$rd['OdoScaleFactor'].'"> </span>');
@@ -435,16 +438,17 @@ function showEntrantSpecials($specials)
 		$BP[$rd['BonusID']] = $rd['BriefDesc'];
 	}
 	echo('<span  class="xlabel" ></span>');
-	foreach($BP as $bk => $b)
-	{
-		if ($bk <> '') {
-			echo('<span title="'.htmlspecialchars($bk).'">');
-			echo('<label for="S'.$bk.'">'.htmlspecialchars($b).' </label>');
-			$chk = array_search($bk, $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
-			echo('<input type="checkbox"'.$chk.' name="SpecialID[]" id="S'.$bk.'" value="'.$bk.'"> ');
-			echo(' &nbsp;&nbsp;</span>');
+	if (isset($BP))
+		foreach($BP as $bk => $b)
+		{
+			if ($bk <> '') {
+				echo('<span title="'.htmlspecialchars($bk).'">');
+				echo('<label for="S'.$bk.'">'.htmlspecialchars($b).' </label>');
+				$chk = array_search($bk, $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
+				echo('<input type="checkbox"'.$chk.' name="SpecialID[]" id="S'.$bk.'" value="'.$bk.'"> ');
+				echo(' &nbsp;&nbsp;</span>');
+			}
 		}
-	}
 }
 
 function showEntrantCombinations($Combos)
@@ -544,11 +548,11 @@ function showEntrantRecord($rd)
 
 	echo('<span  class="xlabel" title="'.$TAGS['OdoKms'][1].' "> '.$TAGS['OdoKms'][0].' ');
 	echo('<label for="OdoKmsM">'.$TAGS['OdoKmsM'][0].': </label> ');
-	$chk = $rd['OdoKms'] <> $KONSTANTS['OdoCountsKilos'] ? ' checked="checked" ' : '';
+	$chk = $rd['OdoKms'] <> $KONSTANTS['OdoCountsKilometres'] ? ' checked="checked" ' : '';
 	echo('<input onchange="odoAdjust();" type="radio" name="OdoKms" id="OdoKmsM" value="'.$KONSTANTS['OdoCountsMiles'].'"'.$chk.'></span>');
 	echo('&nbsp;&nbsp;&nbsp;<span><label for="OdoKmsK">'.$TAGS['OdoKmsK'][0].' </label> ');
-	$chk = $rd['OdoKms'] == $KONSTANTS['OdoCountsKilos'] ? ' checked="checked" ' : '';
-	echo('<input  onchange="odoAdjust();" type="radio" name="OdoKms" id="OdoKmsK" value="'.$KONSTANTS['OdoCountsKilos'].'"'.$chk.'></span>');
+	$chk = $rd['OdoKms'] == $KONSTANTS['OdoCountsKilometres'] ? ' checked="checked" ' : '';
+	echo('<input  onchange="odoAdjust();" type="radio" name="OdoKms" id="OdoKmsK" value="'.$KONSTANTS['OdoCountsKilometres'].'"'.$chk.'></span>');
 
 	echo('<span  class="xlabel" title="'.$TAGS['OdoCheckStart'][1].' "><label for="OdoCheckStart">'.$TAGS['OdoCheckStart'][0].' </label> ');
 	echo('<input  onchange="odoAdjust();" type="number" step="any" name="OdoCheckStart" id="OdoCheckStart" value="'.$rd['OdoCheckStart'].'"> </span>');

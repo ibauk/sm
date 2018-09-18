@@ -33,7 +33,9 @@
 /*
  *	2.1	Only autoset EntrantStatus to Finisher if status was 'ok' and CorrectedMiles > 0
  *	2.1	Multiple special groups; cleanup explanations
- *	2.1	Accept/Reject claim handling
+ *	2.1	Accept/Reject claim handling; 
+ *	2.1 kms/mile, mile/kms handling
+ *	2.1 Odo check trip reading - used though not stored
  *
  */
  
@@ -60,6 +62,7 @@ const CLAIM_REJECTED = "Claim rejected";
 
 
 const KmsPerMile = 1.60934;
+
  
 const EntrantDNS = 0;
 const EntrantOK = 1;
@@ -819,10 +822,14 @@ function getFirstChildWithTagName( element, tagName ) {  // Tabbing
 
 
 /* ODO readings form filler */
-function odoAdjust()
+function odoAdjust(useTrip)
 {
 	var odox = document.getElementById('tab_odo');
 	if (!odox) return;
+	
+	// Any non-zero value here means that we're handling kilometres rather than miles
+	var basickms = parseInt(document.getElementById('BasicDistanceUnits').value) != 0;
+	
 	var odokms = document.getElementById('OdoKmsK').checked;
 	var odocheckmiles = parseFloat(document.getElementById('OdoCheckMiles').value);
 	var correctionfactor = parseFloat(document.getElementById('OdoScaleFactor').value);
@@ -830,22 +837,36 @@ function odoAdjust()
 	{
 		var odocheckstart = parseFloat(document.getElementById('OdoCheckStart').value);
 		var odocheckfinish = parseFloat(document.getElementById('OdoCheckFinish').value);
-		if (document.getElementById('OdoCheckStart').value != '' && odocheckfinish > odocheckstart)
+		var odochecktrip = parseFloat(document.getElementById('OdoCheckTrip').value);
+		if (!useTrip)
+			odochecktrip = odocheckfinish - odocheckstart;
+		
+		if (document.getElementById('OdoCheckStart').value != '' && odochecktrip > 0)
 		{
-			var checkdistance = odocheckfinish - odocheckstart;
-			if (odokms)
+			var checkdistance = odochecktrip;
+			if (odokms && !basickms) // Want miles, have kms
 				checkdistance = checkdistance / KmsPerMile;
+			else if (!odokms && basickms) // Want kms, have miles
+				checkdistance = checkdistance * KmsPerMile;
 			correctionfactor = odocheckmiles / checkdistance ;
 			document.getElementById('OdoScaleFactor').value = correctionfactor.toString();
 		}
 	}		
+	if (useTrip)
+		document.getElementById('OdoCheckFinish').value = odocheckstart + odochecktrip;
+	else
+		document.getElementById('OdoCheckTrip').value = odocheckfinish - odocheckstart;
+	
 	var odorallystart = parseFloat(document.getElementById('OdoRallyStart').value);
 	var odorallyfinish = parseFloat(document.getElementById('OdoRallyFinish').value);
 	if (document.getElementById('OdoRallyStart').value != '' && odorallyfinish > odorallystart)
 	{
 		var rallydistance = (odorallyfinish - odorallystart) * correctionfactor;
-		if (odokms)
+		if (odokms && !basickms)
 			rallydistance = rallydistance / KmsPerMile;
+		else if (!odokms && basickms)
+			rallydistance = rallydistance * KmsPerMile;
+		
 		document.getElementById('CorrectedMiles').value = rallydistance.toFixed(0);
 	}
 }

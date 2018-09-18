@@ -67,13 +67,23 @@ function saveBonuses()
 	$DB->query("BEGIN TRANSACTION");
 	for ($i=0; $i < count($arr); $i++)
 	{
-		$sql = "INSERT OR REPLACE INTO bonuses (BonusID,BriefDesc,Points,Cat1,Cat2,Cat3,Compulsory) VALUES(";
+		$sql = "INSERT OR REPLACE INTO bonuses (BonusID,BriefDesc,Points";
+		if (isset($_REQUEST['Cat1Entry']))
+			$sql .= ",Cat1";
+		if (isset($_REQUEST['Cat2Entry']))
+			$sql .= ",Cat2";
+		if (isset($_REQUEST['Cat3Entry']))
+			$sql .= ",Cat3";
+		$sql .= ",Compulsory) VALUES(";
 		$sql .= "'".$DB->escapeString($_REQUEST['BonusID'][$i])."'";
 		$sql .= ",'".$DB->escapeString($_REQUEST['BriefDesc'][$i])."'";
 		$sql .= ",".intval($_REQUEST['Points'][$i]);
-		$sql .= ",".intval(isset($_REQUEST['Cat1Entry'][$i]) ? $_REQUEST['Cat1Entry'][$i] : 0);
-		$sql .= ",".intval(isset($_REQUEST['Cat2Entry'][$i]) ? $_REQUEST['Cat2Entry'][$i] : 0);
-		$sql .= ",".intval(isset($_REQUEST['Cat3Entry'][$i]) ? $_REQUEST['Cat3Entry'][$i] : 0);
+		if (isset($_REQUEST['Cat1Entry']))
+			$sql .= ",".intval(isset($_REQUEST['Cat1Entry'][$i]) ? $_REQUEST['Cat1Entry'][$i] : 0);
+		if (isset($_REQUEST['Cat2Entry']))
+			$sql .= ",".intval(isset($_REQUEST['Cat2Entry'][$i]) ? $_REQUEST['Cat2Entry'][$i] : 0);
+		if (isset($_REQUEST['Cat3Entry']))
+			$sql .= ",".intval(isset($_REQUEST['Cat3Entry'][$i]) ? $_REQUEST['Cat3Entry'][$i] : 0);
 		$sql .= ",0)";
 		if ($_REQUEST['BonusID'][$i]<>'')
 		{
@@ -405,8 +415,8 @@ function saveTimePenalties()
 		if ($arr[$i]=='')
 		{
 			$sql = "INSERT INTO timepenalties (PenaltyStart,PenaltyFinish,PenaltyMethod,PenaltyFactor) VALUES (";
-			$sql .= "'".$_REQUEST['PenaltyStart'][$i]."'";
-			$sql .= ",'".$_REQUEST['PenaltyFinish'][$i]."'";
+			$sql .= "'".$_REQUEST['PenaltyStartDate'][$i].'T'.$_REQUEST['PenaltyStartTime'][$i]."'";
+			$sql .= ",'".$_REQUEST['PenaltyFinishDate'][$i].'T'.$_REQUEST['PenaltyFinishTime'][$i]."'";
 			$sql .= ",".$_REQUEST['PenaltyMethod'][$i];
 			$sql .= ",".$_REQUEST['PenaltyFactor'][$i];
 			$sql .= ")";
@@ -414,13 +424,13 @@ function saveTimePenalties()
 		else
 		{
 			$sql = "UPDATE timepenalties SET ";
-			$sql .= "PenaltyStart='".$_REQUEST['PenaltyStart'][$i]."'";
-			$sql .= ",PenaltyFinish='".$_REQUEST['PenaltyFinish'][$i]."'";
+			$sql .= "PenaltyStart='".$_REQUEST['PenaltyStartDate'][$i].'T'.$_REQUEST['PenaltyStartTime'][$i]."'";
+			$sql .= ",PenaltyFinish='".$_REQUEST['PenaltyFinishDate'][$i].'T'.$_REQUEST['PenaltyFinishTime'][$i]."'";
 			$sql .= ",PenaltyMethod=".$_REQUEST['PenaltyMethod'][$i];
 			$sql .= ",PenaltyFactor=".$_REQUEST['PenaltyFactor'][$i];
 			$sql .= " WHERE rowid=".$_REQUEST['id'][$i];
 		}
-		if ($_REQUEST['PenaltyStart'][$i] <> '')
+		if ($_REQUEST['PenaltyStartDate'][$i] <> '' && $_REQUEST['PenaltyStartTime'][$i] <> '')
 		{
 			$DB->exec($sql);
 			if ($DB->lastErrorCode() <> 0)
@@ -510,8 +520,13 @@ function triggerNewRow(obj)
 	//echo('<thead><tr><th>B</th>');
 	echo('<th>'.$TAGS['BriefDescLit'][0].'</th>');
 	echo('<th>'.$TAGS['BonusPoints'][0].'</th>');
-	echo('<th>'.$cat1label.'</th><th>'.$cat2label.'</th><th>'.$cat3label.'</th>');
-	echo('<th>'.$TAGS['CompulsoryBonus'][0].'</th>');
+	if (count($cats1) > 0)
+		echo('<th>'.$cat1label.'</th>');
+	if (count($cats2) > 0)
+		echo('<th>'.$cat2label.'</th>');
+	if (count($cats3) > 0)
+		echo('<th>'.$cat3label.'</th>');
+echo('<th>'.$TAGS['CompulsoryBonus'][0].'</th>');
 	echo('<th>'.$TAGS['DeleteEntryLit'][0].'</th>');
 	echo("</tr>\r\n");
 	echo('</thead><tbody>');
@@ -526,33 +541,42 @@ function triggerNewRow(obj)
 		echo('<tr><td><input class="BonusID" type="text" readonly name="BonusID[]"  value="'.$rd['BonusID'].'"></td>');
 		echo('<td><input class="BriefDesc" type="text" name="BriefDesc[]" value="'.$rd['BriefDesc'].'"></td>');
 		echo('<td><input type="number" name="Points[]" value="'.$rd['Points'].'"></td>');
-		echo('<td><select name=Cat1Entry[]>');
-		foreach ($cats1 as $ce => $bd)
+		if (count($cats1) > 0)
 		{
-			echo('<option value="'.$ce.'" ');
-			if ($ce == $rd['Cat1'])
-				echo('selected="selected" ');
-			echo('>'.htmlspecialchars($bd).'</option>');
+			echo('<td><select name=Cat1Entry[]>');
+			foreach ($cats1 as $ce => $bd)
+			{
+				echo('<option value="'.$ce.'" ');
+				if ($ce == $rd['Cat1'])
+					echo('selected="selected" ');
+				echo('>'.htmlspecialchars($bd).'</option>');
+			}
+			echo('</select></td>');
 		}
-		echo('</select></td>');
-		echo('<td><select name=Cat2Entry[]>');
-		foreach ($cats2 as $ce => $bd)
+		if (count($cats2) > 0)
 		{
-			echo('<option value="'.$ce.'" ');
-			if ($ce == $rd['Cat2'])
-				echo('selected="selected" ');
-			echo('>'.htmlspecialchars($bd).'</option>');
+			echo('<td><select name=Cat2Entry[]>');
+			foreach ($cats2 as $ce => $bd)
+			{
+				echo('<option value="'.$ce.'" ');
+				if ($ce == $rd['Cat2'])
+					echo('selected="selected" ');
+				echo('>'.htmlspecialchars($bd).'</option>');
+			}
+			echo('</select></td>');
 		}
-		echo('</select></td>');
-		echo('<td><select name=Cat3Entry[]>');
-		foreach ($cats3 as $ce => $bd)
+		if (count($cats3) > 0)
 		{
-			echo('<option value="'.$ce.'" ');
-			if ($ce == $rd['Cat3'])
-				echo('selected="selected" ');
-			echo('>'.htmlspecialchars($bd).'</option>');
+			echo('<td><select name=Cat3Entry[]>');
+			foreach ($cats3 as $ce => $bd)
+			{
+				echo('<option value="'.$ce.'" ');
+				if ($ce == $rd['Cat3'])
+					echo('selected="selected" ');
+				echo('>'.htmlspecialchars($bd).'</option>');
+			}
+			echo('</select></td>');
 		}
-		echo('</select></td>');
 		if ($rd['Compulsory']==1)
 			$chk = " checked ";
 		else
@@ -564,33 +588,42 @@ function triggerNewRow(obj)
 	echo('<tr class="newrow"><td><input type="text" name="BonusID[]" onchange="triggerNewRow(this)"></td>');
 	echo('<td><input type="text" name="BriefDesc[]"></td>');
 	echo('<td><input type="number" name="Points[]" value="'.$rd['Points'].'"></td>');
-	echo('<td><select name="Cat1Entry[]">');
-	$S = ' selected="selected" ';
-	foreach ($cats1 as $ce => $bd)
+	if (count($cats1) > 0)
 	{
-		echo('<option value="'.$ce.'" '.$S);
-		echo('>'.htmlspecialchars($bd).'</option>');
-		$S = '';
+		echo('<td><select name="Cat1Entry[]">');
+		$S = ' selected="selected" ';
+		foreach ($cats1 as $ce => $bd)
+		{
+			echo('<option value="'.$ce.'" '.$S);
+			echo('>'.htmlspecialchars($bd).'</option>');
+			$S = '';
+		}
+		echo('</select></td>');
 	}
-	echo('</select></td>');
-	echo('<td><select name=Cat2Entry[]>');
-	$S = ' selected="selected" ';
-	foreach ($cats2 as $ce => $bd)
+	if (count($cats2) > 0)
 	{
-		echo('<option value="'.$ce.'" '.$S);
-		echo('>'.htmlspecialchars($bd).'</option>');
-		$S = '';
+		echo('<td><select name=Cat2Entry[]>');
+		$S = ' selected="selected" ';
+		foreach ($cats2 as $ce => $bd)
+		{
+			echo('<option value="'.$ce.'" '.$S);
+			echo('>'.htmlspecialchars($bd).'</option>');
+			$S = '';
+		}
+		echo('</select></td>');
 	}
-	echo('</select></td>');
-	echo('<td><select name=Cat3Entry[]>');
-	$S = ' selected="selected" ';
-	foreach ($cats3 as $ce => $bd)
+	if (count($cats3) > 0)
 	{
-		echo('<option value="'.$ce.'" '.$S);
-		echo('>'.htmlspecialchars($bd).'</option>');
-		$S = '';
+		echo('<td><select name=Cat3Entry[]>');
+		$S = ' selected="selected" ';
+		foreach ($cats3 as $ce => $bd)
+		{
+			echo('<option value="'.$ce.'" '.$S);
+			echo('>'.htmlspecialchars($bd).'</option>');
+			$S = '';
+		}
+		echo('</select></td>');
 	}
-	echo('</select></td>');
 	// Can't make new row compulsory, just update afterwards
 	//echo('<td><input type="checkbox"'.$chk.' name="Compulsory[]" value="'.$rd['BonusID'].'">');
 	echo('<td></td><td></td>');
@@ -1354,8 +1387,13 @@ function triggerNewRow(obj)
 	while ($rd = $R->fetchArray())
 	{
 		echo('<tr>');
-		echo('<td><input type="hidden" name="id[]" value="'.$rd['id'].'"><input type="datetime-local" name="PenaltyStart[]" value="'.$rd['PenaltyStart'].'"></td>');
-		echo('<td><input type="datetime-local" name="PenaltyFinish[]" value="'.$rd['PenaltyFinish'].'"></td>');
+		echo('<td><input type="hidden" name="id[]" value="'.$rd['id'].'">');
+		$dtx = splitDatetime($rd['PenaltyStart']);
+		echo('<input type="date" name="PenaltyStartDate[]" value="'.$dtx[0].'"> ');
+		echo('<input type="time" name="PenaltyStartTime[]" value="'.$dtx[1].'"></td>');
+		$dtx = splitDatetime($rd['PenaltyFinish']);		
+		echo('<td><input type="date" name="PenaltyFinishDate[]" value="'.$dtx[0].'"> ');
+		echo('<input type="time" name="PenaltyFinishTime[]" value="'.$dtx[1].'"></td>');
 		echo('<td><select name="PenaltyMethod[]">');
 		for ($i=0;$i<=3;$i++)
 		{
@@ -1370,8 +1408,11 @@ function triggerNewRow(obj)
 		echo('<td><input type="checkbox" name="DeleteEntry[]" value="'.$rd['id'].'"></td>');
 		echo('</tr>');
 	}
-	echo('<tr class="newrow"><td><input type="hidden" name="id[]" value=""><input type="datetime-local" name="PenaltyStart[]" onchange="triggerNewRow(this)"></td>');
-	echo('<td><input type="datetime-local" name="PenaltyFinish[]"></td>');
+	echo('<tr class="newrow"><td><input type="hidden" name="id[]" value="">');
+	echo('<input type="date" name="PenaltyStartDate[]" value=""> ');
+	echo('<input type="time" name="PenaltyStartTime[]" value=""></td>');
+	echo('<td><input type="date" name="PenaltyFinishDate[]" value=""> ');
+	echo('<input type="time" name="PenaltyFinishTime[]" value=""></td>');
 	echo('<td><select name="PenaltyMethod[]">');
 	for ($i=0;$i<=3;$i++)
 	{

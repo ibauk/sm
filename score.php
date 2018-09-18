@@ -37,6 +37,7 @@ $HOME_URL = "score.php";
  *	2.1	Use '-' instead of space between label and bonus checkbox
  *	2.1	Multiple radio groups of specials
  *	2.1 RejectedClaims handling
+  *	2.1 Odo check trip reading - used though not stored
  *
  */
 

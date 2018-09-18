@@ -33,7 +33,7 @@
 // This matches the latest wufoo forms used to register entrants in the
 // 2018 Jorvic rally
 
-$IMPORTSPEC['xlsname']		= "jorvic.xlsx";		// Actual file is uploaded and called this
+$IMPORTSPEC['xlsname']		= "jorvic.xlsx";	// Actual file is uploaded and called this
 $IMPORTSPEC['whichsheet']	= 0;				// zero-based index to sheet within spreadsheet
 $IMPORTSPEC['FirstDataRow']	= 2;				// Points to the first row of data starting at row 1
 
