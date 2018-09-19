@@ -52,6 +52,7 @@ $TAGS = array(
 	'AdmCatTable'		=> array('Categories','View/edit axis categories'),
 	'AdmCombosTable'	=> array('Combinations','View/edit combination bonuses'),
 	'AdmCompoundCalcs'	=> array('Compound calculations','Maintain table of calculation records'),
+	'AdmDoBlank'		=> array('Blank score sheet','Show blank score sheet ready for printing'),
 	'AdmDoScoring'		=> array('Scoring','Score individual entrants'),
 	'AdmEditCert'		=> array('Edit certificate content','Edit the HTML &amp; CSS of the master certificate'),
 	'AdmEntrants'		=> array('Entrants table','View/edit list of Entrants'),
@@ -98,7 +99,7 @@ $TAGS = array(
 	'CombosLit'			=> array('Combinations','Combination bonuses'),
 	'CommaSeparated'	=> array('Comma separated list',''),
 	'CompulsoryBonus'	=> array('Compulsory?','This bonus is required for Finisher status'),
-	'CorrectedMiles'	=> array('Corrected miles','Official rally mileage'),
+	'CorrectedMiles'	=> array('Miles ridden','Official rally mileage'),
 	'Country'			=> array('Country',"Entrant's home country"),
 	'DeleteEntryLit'	=> array('Delete?',''),
 	'EntrantDNF'		=> array('DNF','Did not qualify as a finisher'),
@@ -378,9 +379,9 @@ function properName($enteredName)
 		if (ctype_lower($x[$i]) || ctype_upper($x[$i]))
 			$z = true;
 	if ($z)
-		return ucwords(strtolower($enteredName));
+		return ucwords(strtolower(str_replace('  ',' ',$enteredName)));
 	else
-		return $enteredName;
+		return str_replace('  ',' ',$enteredName);
 	
 }
 
@@ -441,7 +442,13 @@ body, input, select		{
 input,select			{ color: #000; font-weight: bold; }
 input[type="number"], .number	{ width:4em; }
 input[type="date"]		{ width: 10em; }
+
+/* Format ready for blank form */
+#FinishTime { width: 4em; }
+#FinishDate	{ width: 10em; }
+
 input:read-only			{ border: none; }
+input:-moz-read-only	{ border: none; }
 input.wide				{ width: 12em; }
 input[type='submit']	{
 	background-color: #00ff48;
@@ -592,6 +599,8 @@ table#entrants	.FinishPosition,.TotalPoints,.CorrectedMiles	{ text-align: center
 .hidescorex		{ display:none; }
 .showscorex		{ display:inherit; }
 
+.hide			{ display:none; } /* General purpose content hider */
+
 .clickme		{ cursor: pointer; }
 
 /* Help about */
@@ -632,7 +641,7 @@ table#entrants	.FinishPosition,.TotalPoints,.CorrectedMiles	{ text-align: center
 .unchecked,.unchecked > * 	{background-color: inherited; color: inherited; }
 
 @media print {
-.noprint		{ display: none; }
+.noprint		{ display: none !important; }
 }
 </style>
 <script src="score.js?ver=<?= filemtime('score.js')?>" defer="defer"></script>

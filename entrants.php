@@ -73,7 +73,9 @@ function listEntrants($ord = "EntrantID")
 		if ($rd['Rex'] == 0)
 			$ShowTeamCol = FALSE;
 		
-	$sql = "SELECT * FROM entrants";
+	$sql = "SELECT *,substr(RiderName,1,RiderPos-1) As RiderFirst";
+	$sql .= ",substr(RiderName,RiderPos+1) As RiderLast";
+	$sql .= " FROM (SELECT *,instr(RiderName,' ') As RiderPos FROM entrants) ";
 	if ($ord <> '')
 		$sql .= " ORDER BY $ord";
 	//echo('<br>listEntrants: '.$sql.'<br>');
@@ -89,7 +91,11 @@ function listEntrants($ord = "EntrantID")
 		echo('<caption title="'.htmlentities($TAGS['EntrantListCheck'][1]).'">'.htmlentities($TAGS['EntrantListCheck'][0]).'</caption>');
 		
 	echo('<thead><tr><th class="EntrantID"><a href="entrants.php?c=entrants&amp;ord=EntrantID&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['EntrantID'][0].'</a></th>');
-	echo('<th class="RiderName"><a href="entrants.php?c=entrants&amp;ord=RiderName&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['RiderName'][0].'</a></th>');
+	if ($ord == 'RiderName' || $ord == 'RiderFirst')
+		$riderord = 'RiderLast';
+	else
+		$riderord = 'RiderName';
+	echo('<th class="RiderName"><a href="entrants.php?c=entrants&amp;ord='.$riderord.'&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['RiderName'][0].'</a></th>');
 	echo('<th class="PillionName"><a href="entrants.php?c=entrants&amp;ord=PillionName&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['PillionName'][0].'</a></th>');
 	echo('<th class="Bike"><a href="entrants.php?c=entrants&amp;ord=Bike&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['Bike'][0].'</a></th>');
 	if ($ShowTeamCol && $_REQUEST['mode']=='full')

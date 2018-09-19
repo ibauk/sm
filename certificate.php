@@ -375,10 +375,17 @@ function viewCertificates()
 	$sortspec = 'FinishPosition DESC';
 	if (isset($_REQUEST['seq']))
 		$sortspec = $_REQUEST['seq'];
-	$sql = "SELECT EntrantID FROM entrants WHERE EntrantStatus=".$KONSTANTS['EntrantFinisher'].' AND FinishPosition>';
-	if ($ShowPositionZero)
-		$sql .= '=';
-	$sql .= '0 ';
+	
+	$sql = "SELECT *,substr(RiderName,1,RiderPos-1) As RiderFirst";
+	$sql .= ",substr(RiderName,RiderPos+1) As RiderLast";
+	$sql .= " FROM (SELECT *,instr(RiderName,' ') As RiderPos FROM entrants) ";
+
+	$sql .= " WHERE EntrantStatus=".$KONSTANTS['EntrantFinisher'];
+	if (!$ShowPositionZero)  // Would set this flag when printing RBLR certs, normally finishers would be ranked
+	{
+		$sql .= ' AND FinishPosition>0';
+	}
+
 	if (isset($_REQUEST['class']))
 		$sql .= ' AND Class In ('.$_REQUEST['class'].')';
 	if (isset($_REQUEST['entrant']))

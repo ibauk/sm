@@ -46,6 +46,7 @@ const DNF_FINISHEDTOOLATE = "Finished too late";
 const DNF_MISSEDCOMPULSORY = "Missed a compulsory bonus";
 
 // Elements of Score explanation, include trailing space, etc
+const RPT_Tooltip	= "Click for explanation";
 const RPT_Bonuses	= "Bonuses";
 const RPT_Specials	= "Specials";
 const RPT_Combos	= "Combos";
@@ -207,7 +208,7 @@ function calcComplexScore(res)
 	var compoundCalcRules = document.getElementsByName("catcompound[]");	// Rules for calculating compound scores
 	var showMults = document.getElementById("ShowMults").value == SM_ShowMults;
 	
-	var scoreReason = '';
+	var scoreReason = RPT_Tooltip + "\r\n";
 	
 	
 	if (debug) alert("ccs1");
@@ -650,7 +651,7 @@ function calcSimpleScore(res)
  */
 {
 	var debug = false;
-	var reason = '';  // Contains tooltip explanation of total score
+	var reason = RPT_Tooltip + "\r\n";  // Contains tooltip explanation of total score
 	var TS = 0;
 	var bps = 0;
 	

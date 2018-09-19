@@ -219,24 +219,41 @@ function saveSpecials()
 	return ",SpecialsTicked='".$sv."'";
 }
 
-function scoreEntrant()
+function scoreEntrant($showBlankForm = FALSE)
 {
 	global $DB, $TAGS, $KONSTANTS;
 
-	$R = $DB->query('SELECT * FROM entrants WHERE EntrantID='.$_REQUEST['EntrantID']);
-	$rd = $R->fetchArray();
 	
-	if (!$rd)
+	if (!$showBlankForm) 
 	{
-		showPicklist('EntrantID');
-		exit;
+		$sql = 'SELECT * FROM entrants';
+		$sql .= ' WHERE EntrantID='.$_REQUEST['EntrantID'];
+		$R = $DB->query($sql);
+		$rd = $R->fetchArray();
+	
+		if (!$rd)
+		{
+			showPicklist('EntrantID');
+			exit;
+		}
+		$ScorerName = $_REQUEST['ScorerName'];
 	}
-	startHtml($TAGS['Scorer'][0].': '.$_REQUEST['ScorerName']);
+	else
+	{
+		$ScorerName = '__________';
+	}
+	
+	startHtml($TAGS['Scorer'][0].': '.$ScorerName);
 
 	eval("\$evs = ".$TAGS['EntrantStatusV'][0]);
 	
 	$R = $DB->query('SELECT * FROM rallyparams');
 	$rd = $R->fetchArray();
+	
+	$dts = splitDatetime($rd['StartTime']);
+	$dtf = splitDatetime($rd['FinishTime']);
+	$OneDayRally = $dts[0] == $dtf[0];
+	
 	$axisnames = [];
 
 	// Flag this page as a scoresheet so the javascript knows what to do.
@@ -256,6 +273,8 @@ function scoreEntrant()
 			echo('<input type="hidden" name="RejectReason" data-code="'.$rr[0].'" value="'.$rr[1].'">');
 	}
 	$RallyFinishTime = defaultFinishTime();
+	$RallyStartTime = $dts;
+	
 	$ScoringMethod = $rd['ScoringMethod'];
 	if ($ScoringMethod == $KONSTANTS['AutoScoring'])
 		$ScoringMethod = chooseScoringMethod();
@@ -301,9 +320,29 @@ function scoreEntrant()
 	while ($rd = $R->fetchArray())
 		echo('<input type="hidden" name="catcompound[]" data-cat="'.$rd['Axis'].'" data-method="'.$rd['NMethod'].'" data-mb="'.$rd['ModBonus'].'" data-min="'.$rd['NMin'].'" data-pm="'.$rd['PointsMults'].'" data-power="'.$rd['NPower'].'">');
 	
-	$R = $DB->query('SELECT * FROM entrants WHERE EntrantID='.$_REQUEST['EntrantID']);
+	$sql = 'SELECT * FROM entrants';
+	if ($showBlankForm) 
+		$sql .= ' LIMIT 1';	// Just need a valid array, don't care about the contents
+	else
+		$sql .= ' WHERE EntrantID='.$_REQUEST['EntrantID'];
+	$R = $DB->query($sql);
 	$rd = $R->fetchArray();
 
+	if ($showBlankForm)
+	{
+		$_REQUEST['EntrantID']	= '';
+		$rd['EntrantID']		= '';
+		$rd['RiderName']		= '_________________';
+		$rd['FinishTime']		= '';
+		$rd['CorrectedMiles']	= '';
+		$rd['TotalPoints']		= '';
+		//$rd['EntrantStatus']	= '';
+		$rd['BonusesVisited']	= '';
+		$rd['SpecialsTicked']	= '';
+		$rd['CombosTicked']		= '';
+	}
+	
+	
 	echo('<input type="hidden" name="EntrantID" value="'.$_REQUEST['EntrantID'].'">');
 	echo('<input type="hidden" name="RejectedClaims" id="RejectedClaims" value="'.$rd['RejectedClaims'].'">');
 	echo("\r\n");
@@ -316,30 +355,67 @@ function scoreEntrant()
 	if ($rd['PillionName'] <> '')
 		echo(' &amp; '.htmlspecialchars($rd['PillionName']));
 	echo('</span> ');
+	$dt = splitDatetime($rd['StartTime']);
+	if ($dt[0] == '')
+		$dt = $RallyStartTime;
+	$hideclass = ' class="hide" ';
+	echo('<span '.$hideclass.'title="'.$TAGS['StartDate'][1].'"><label for="StartDate">'.$TAGS['StartDate'][0].' </label> ');
+	echo('<input type="date" id="StartDate" name="StartDate" value="'.$dt[0].'"  />');
+	echo('</span> ');
+	echo('<span '.$hideclass.' title="'.$TAGS['StartTime'][1].'"><label for="StartTime">'.$TAGS['StartTime'][0].' </label> ');
+	echo('<input type="time" id="StartTime" name="StartTime" value="'.$dt[1].'"  />');
+	echo('</span>');
 	$dt = splitDatetime($rd['FinishTime']);
 	if ($dt[0] == '')
 		$dt = $RallyFinishTime;
-	echo('<span title="'.$TAGS['FinishDate'][1].'"><label for="FinishDate">'.$TAGS['FinishDate'][0].' </label> ');
-	echo('<input type="date" id="FinishDate" name="FinishDate" value="'.$dt[0].'" onchange="calcScore(true)" />');
+	if ($OneDayRally)
+		$hideclass = ' class="hide" ';
+	else
+		$hideclass = '';
+	$datetype = 'date';
+	$timetype = 'time';
+	$numbertype = 'number';
+	$sbfro = '';
+	if ($showBlankForm)
+	{
+		$dt[0] = '__________';
+		$dt[1] = '______';
+		$datetype = 'text';
+		$timetype = 'text';
+		$numbertype = 'text';
+		$sbfro = ' readonly="readonly" ';
+		$cmiles = '_____';
+	}
+	else
+	{
+		$cmiles = intval($rd['CorrectedMiles']);
+	}
+	echo('<span '.$hideclass.'title="'.$TAGS['FinishDate'][1].'"><label for="FinishDate">'.$TAGS['FinishDate'][0].' </label> ');
+	echo('<input '.$sbfro.' type="'.$datetype.'" id="FinishDate" name="FinishDate" value="'.$dt[0].'" onchange="calcScore(true)" />');
 	echo('</span> ');
 	echo('<span id="Timings" title="'.$TAGS['FinishTime'][1].'"><label for="FinishTime">'.$TAGS['FinishTime'][0].' </label> ');
-	echo('<input type="time" id="FinishTime" name="FinishTime" value="'.$dt[1].'" onchange="calcScore(true)" />');
+	echo('<input '.$sbfro.'type="'.$timetype.'" id="FinishTime" name="FinishTime" value="'.$dt[1].'" onchange="calcScore(true)" />');
 	if ($ScoringMethod == $KONSTANTS['ManualScoring'])
 		echo(' <input type="button" value="'.$TAGS['nowlit'][0].'" onclick="setSplitNow(\'Finish\');" />');
 	
 	
 	echo('</span> ');
 	echo('<span title="'.$TAGS['CorrectedMiles'][1].'"><label for="CorrectedMiles">'.$TAGS['CorrectedMiles'][0].' </label> ');
-	echo('<input type="number"  name="CorrectedMiles" id="CorrectedMiles" value="'.intval($rd['CorrectedMiles']).'" onchange="calcScore(true)" /> ');
+	echo('<input '.$sbfro.'type="'.$numbertype.'"  name="CorrectedMiles" id="CorrectedMiles" value="'.$cmiles.'" onchange="calcScore(true)" /> ');
 	echo('</span> ');
-	echo('<span title="'.$TAGS['TotalPoints'][1].'"><label for="TotalPoints">'.$TAGS['TotalPoints'][0].' </label> ');
+	
+	
+	if (!$showBlankForm)
+	{
+		
+	echo('<span class="clickme" onclick="sxtoggle();" title="'.$TAGS['TotalPoints'][1].'"><label for="TotalPoints">'.$TAGS['TotalPoints'][0].' </label> ');
 	if ($ScoringMethod <> $KONSTANTS['ManualScoring'])
 		$ro = 'readonly="readonly" ';
 	else
 		$ro = '';
-	echo('<input type="number" '.$ro.' name="TotalPoints" id="TotalPoints" value="'.$rd['TotalPoints'].'" onchange="calcScore(true)" /> ');
+	echo('<input type="'.($ro != ''? 'text' : 'number').'" '.$ro.' name="TotalPoints" id="TotalPoints" value="'.$rd['TotalPoints'].'" onchange="calcScore(true)" /> ');
 	echo('</span> ');
-	echo(' <span class="clickme" onclick="sxtoggle();"> ? </span>');
+	// echo(' <span class="clickme noprint" onclick="sxtoggle();"> ? </span>');
 	if ($ScoringMethod == $KONSTANTS['CompoundScoring'])
 	{
 		if ($ShowMults == $KONSTANTS['SuppressMults'])
@@ -347,7 +423,7 @@ function scoreEntrant()
 		else
 			$style = '';
 		echo('<span '.$style.' title="'.$TAGS['TotalMults'][1].'"><label for="TotalMults">'.$TAGS['TotalMults'][0].'</label> ');
-		echo(' <input type="number" readonly="readonly" title="'.$TAGS['TotalMults'][1].'" id="TotalMults" value="0" onchange="caclScore(true)" /> ');
+		echo(' <input type="text" readonly="readonly" title="'.$TAGS['TotalMults'][1].'" id="TotalMults" value="0" onchange="caclScore(true)" /> ');
 		echo('</span>');
 	}
 	echo('<br /><span title="'.$TAGS['EntrantStatus'][1].'"><label for="EntrantStatus">'.$TAGS['EntrantStatus'][0].' </label> ');
@@ -360,8 +436,15 @@ function scoreEntrant()
 	echo('<option value="'.$KONSTANTS['EntrantDNF'].'" '.($rd['EntrantStatus']==$KONSTANTS['EntrantDNF'] ? ' selected="selected" ' : '').'>'.$TAGS['EntrantDNF'][0].'</option>');
 	echo('</select>');
 	echo('</span> ');
-	echo('<input type="submit" id="savescorebutton" disabled="disabled" name="savescore" data-altvalue="'.$TAGS['SaveScore'][0].'" value="'.$TAGS['ScoreSaved'][0].'" /> ');
+	echo('<input type="submit" class="noprint" id="savescorebutton" disabled="disabled" name="savescore" data-altvalue="'.$TAGS['SaveScore'][0].'" value="'.$TAGS['ScoreSaved'][0].'" /> ');
 	//echo('<input type="submit" id="backtolistbutton" name="showpicklist" data-altvalue="'.$TAGS['ShowEntrants'][0].'" value="'.$TAGS['ShowEntrants'][0].'"> ');
+	
+	
+	} // End !$showBlank Form
+	
+	
+	
+	
 	
 	echo("\r\n");
 	echo('</div>');
@@ -697,7 +780,9 @@ if (isset($_REQUEST['savescore']))
 if (isset($_REQUEST['login']) && $_REQUEST['ScorerName'] <> '')
 	loginNewScorer();
 else if (isset($_REQUEST['c']) && $_REQUEST['c'] == 'score')
-	scoreEntrant();
+	scoreEntrant(FALSE);
+else if (isset($_REQUEST['c']) && $_REQUEST['c'] == 'blank')
+	scoreEntrant(TRUE);
 else if (isset($_REQUEST['c']) && $_REQUEST['c'] == 'pickentrant')
 	showPicklist($_REQUEST['ord']);
 else if (isset($_REQUEST['ScorerName']))

@@ -269,6 +269,7 @@ function showEntrantsMenu()
 		'AdmEntrants'		=> array('entrants.php?c=entrants&amp;ord=EntrantID&amp;mode=full',NULL),
 		'AdmNewEntrant'		=> array('entrants.php?c=newentrant',NULL),
 		'AdmDoScoring'		=> array('score.php',NULL),
+		'AdmDoBlank'		=> array('score.php?c=blank',NULL),
 		'AdmRankEntries'	=> array('admin.php?c=rank',NULL),
 		'AdmExportFinishers'=> array('exportxls.php?c=expfinishers',"this.firstChild.innerHTML='".$TAGS['FinishersExported'][0]."';"),
 		'AdmImportEntrants'	=> array('importxls.php?showupload',NULL)
