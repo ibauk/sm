@@ -156,6 +156,7 @@ function putScore()
 	global $DB, $TAGS, $KONSTANTS;
 
 	//var_dump($_REQUEST);
+	
 	$sql = "UPDATE entrants SET ScoredBy='".$DB->escapeString($_REQUEST['ScorerName'])."'";
 	
 	$sql .= ",ScoringNow=0";	// Score's being saved so probably not continuing to be scored
@@ -483,7 +484,7 @@ function scoreEntrant($showBlankForm = FALSE)
 				showCategory($i,$axisnames[$i]);
 		echo('</div>');
 	}
-	echo('<div id="scorex" class="hidescorex" data-show="0" ondblclick="sxprint();" ></div>');
+	echo('<div id="scorex" class="scorex" title="'.$TAGS['dblclickprint'][0].'" class="hidescorex" data-show="0" ondblclick="sxprint();" ></div>');
 	echo('</body></html>');
 }
 
@@ -787,7 +788,9 @@ else if (isset($_REQUEST['c']) && $_REQUEST['c'] == 'pickentrant')
 	showPicklist($_REQUEST['ord']);
 else if (isset($_REQUEST['ScorerName']))
 	showPicklist('EntrantID');
-else
+else if (rally_params_established())
 	inviteScorer();
+else
+	include("setup.php");
 exit;
 ?>

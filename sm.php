@@ -526,7 +526,7 @@ function triggerNewRow(obj)
 		echo('<th>'.$cat2label.'</th>');
 	if (count($cats3) > 0)
 		echo('<th>'.$cat3label.'</th>');
-echo('<th>'.$TAGS['CompulsoryBonus'][0].'</th>');
+	echo('<th>'.$TAGS['CompulsoryBonus'][0].'</th>');
 	echo('<th>'.$TAGS['DeleteEntryLit'][0].'</th>');
 	echo("</tr>\r\n");
 	echo('</thead><tbody>');
@@ -538,7 +538,7 @@ echo('<th>'.$TAGS['CompulsoryBonus'][0].'</th>');
 		echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
 	while ($rd = $R->fetchArray())
 	{
-		echo('<tr><td><input class="BonusID" type="text" readonly name="BonusID[]"  value="'.$rd['BonusID'].'"></td>');
+		echo('<tr class="hoverlite"><td><input class="BonusID" type="text" readonly name="BonusID[]"  value="'.$rd['BonusID'].'"></td>');
 		echo('<td><input class="BriefDesc" type="text" name="BriefDesc[]" value="'.$rd['BriefDesc'].'"></td>');
 		echo('<td><input type="number" name="Points[]" value="'.$rd['Points'].'"></td>');
 		if (count($cats1) > 0)
@@ -581,11 +581,11 @@ echo('<th>'.$TAGS['CompulsoryBonus'][0].'</th>');
 			$chk = " checked ";
 		else
 			$chk = "";
-		echo('<td><input type="checkbox"'.$chk.' name="Compulsory[]" value="'.$rd['BonusID'].'">');
-		echo('<td><input type="checkbox" name="DeleteEntry[]" value="'.$rd['BonusID'].'">');
+		echo('<td class="center"><input type="checkbox"'.$chk.' name="Compulsory[]" value="'.$rd['BonusID'].'">');
+		echo('<td class="center"><input type="checkbox" name="DeleteEntry[]" value="'.$rd['BonusID'].'">');
 		echo("</tr>\r\n");
 	}
-	echo('<tr class="newrow"><td><input type="text" name="BonusID[]" onchange="triggerNewRow(this)"></td>');
+	echo('<tr class="newrow"><td><input class="BonusID" type="text" name="BonusID[]" onchange="triggerNewRow(this)"></td>');
 	echo('<td><input type="text" name="BriefDesc[]"></td>');
 	echo('<td><input type="number" name="Points[]" value="'.$rd['Points'].'"></td>');
 	if (count($cats1) > 0)
@@ -690,9 +690,9 @@ function triggerNewRow(obj)
 		echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
 	while ($rd = $R->fetchArray())
 	{
-		echo('<tr><td><input type="number" name="Entry[]" readonly value="'.$rd['Cat'].'"></td>');
+		echo('<tr class="hoverlite"><td><input type="number" name="Entry[]" readonly value="'.$rd['Cat'].'"></td>');
 		echo('<td><input type="text" name="BriefDesc[]" value="'.$rd['BriefDesc'].'"></td>');
-		echo('<td><input type="checkbox" name="DeleteEntry[]" value="'.$rd['Cat'].'"></td>');
+		echo('<td class="center"><input type="checkbox" name="DeleteEntry[]" value="'.$rd['Cat'].'"></td>');
 		echo('</tr>');
 	}
 	echo('<tr><td><input type="number" name="Entry[]" onchange="triggerNewRow(this)"></td>');
@@ -767,7 +767,7 @@ function triggerNewRow(obj)
 		echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
 	while ($rd = $R->fetchArray())
 	{
-		echo('<tr><td><input class="ComboID" type="text" name="ComboID[]" readonly value="'.$rd['ComboID'].'"></td>');
+		echo('<tr class="hoverlite"><td><input class="ComboID" type="text" name="ComboID[]" readonly value="'.$rd['ComboID'].'"></td>');
 		echo('<td><input class="BriefDesc" type="text" name="BriefDesc[]" value="'.$rd['BriefDesc'].'"></td>');
 		echo('<td><select name="ScoreMethod[]">');
 		echo('<option value="0" '.($rd['ScoreMethod']<>1 ? 'selected="selected" ' : '').'>'.$TAGS['AddPoints'][0].'</option>');
@@ -775,7 +775,7 @@ function triggerNewRow(obj)
 		echo('</select></td>');
 		echo('<td><input class="ScorePoints" type="number" name="ScorePoints[]" value="'.$rd['ScorePoints'].'"></td>');
 		echo('<td><input class="Bonuses" type="text" name="Bonuses[]" value="'.$rd['Bonuses'].'" ></td>');
-		echo('<td><input type="checkbox" name="DeleteEntry[]" value="'.$rd['ComboID'].'">');
+		echo('<td class="center"><input type="checkbox" name="DeleteEntry[]" value="'.$rd['ComboID'].'">');
 		echo('</tr>');
 	}
 	echo('<tr class="newrow"><td><input type="text" name="ComboID[]" onchange="triggerNewRow(this)"></td>');
@@ -847,7 +847,7 @@ function triggerNewRow(obj)
 	
 	while ($rd = $R->fetchArray())
 	{
-		echo('<tr>');
+		echo('<tr class="hoverlite">');
 
 		echo('<td><input type="hidden" name="id[]" value="'.$rd['id'].'"><select onchange="enableSaveButton();" name="axis[]">');
 		for ($i=1;$i<=3;$i++)
@@ -1232,14 +1232,14 @@ function triggerNewRow(obj)
 		echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
 	while ($rd = $R->fetchArray())
 	{
-		echo('<tr><td><input class="SGroupName" type="text" name="GroupName[]" readonly value="'.$rd['GroupName'].'"></td>');
+		echo('<tr class="hoverlite"><td><input class="SGroupName" type="text" name="GroupName[]" readonly value="'.$rd['GroupName'].'"></td>');
 		echo('<td>');
 		echo('<select name="GroupType[]">');
 		echo('<option value="R"'.($rd['GroupType']=='R' ? ' selected ' : '').'>'.$TAGS['SGroupTypeR'][1].'</option>');
 		echo('<option value="C"'.($rd['GroupType']=='C' ? ' selected ' : '').'>'.$TAGS['SGroupTypeC'][1].'</option>');
 		echo('</select>');
 		echo('</td>');
-		echo('<td><input type="checkbox" name="DeleteEntry[]" value="'.$rd['GroupName'].'">');
+		echo('<td class="center"><input type="checkbox" name="DeleteEntry[]" value="'.$rd['GroupName'].'">');
 		echo('</tr>');
 	}
 	echo('<tr class="newrow"><td><input type="text" placeholder="'.$TAGS['NewPlaceholder'][0].'" name="GroupName[]" onchange="triggerNewRow(this)"></td>');
@@ -1310,7 +1310,7 @@ function triggerNewRow(obj)
 		echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
 	while ($rd = $R->fetchArray())
 	{
-		echo('<tr><td><input class="BonusID" type="text" name="BonusID[]" readonly value="'.$rd['BonusID'].'"></td>');
+		echo('<tr class="hoverlite"><td><input class="BonusID" type="text" name="BonusID[]" readonly value="'.$rd['BonusID'].'"></td>');
 		echo('<td><input class="BriefDesc" type="text" name="BriefDesc[]" value="'.$rd['BriefDesc'].'"></td>');
 		echo('<td><input class="GroupName" type="text" name="GroupName[]" value="'.$rd['GroupName'].'"></td>');
 		echo('<td><input class="Points" type="number" name="Points[]" value="'.$rd['Points'].'"></td>');
@@ -1319,8 +1319,8 @@ function triggerNewRow(obj)
 			$chk = " checked ";
 		else
 			$chk = "";
-		echo('<td><input type="checkbox"'.$chk.' name="Compulsory[]" value="'.$rd['BonusID'].'">');
-		echo('<td><input type="checkbox" name="DeleteEntry[]" value="'.$rd['BonusID'].'">');
+		echo('<td class="center"><input type="checkbox"'.$chk.' name="Compulsory[]" value="'.$rd['BonusID'].'">');
+		echo('<td class="center"><input type="checkbox" name="DeleteEntry[]" value="'.$rd['BonusID'].'">');
 		echo('</tr>');
 	}
 	echo('<tr class="newrow"><td><input type="text" name="BonusID[]" onchange="triggerNewRow(this)"></td>');
@@ -1386,7 +1386,7 @@ function triggerNewRow(obj)
 	
 	while ($rd = $R->fetchArray())
 	{
-		echo('<tr>');
+		echo('<tr class="hoverlite">');
 		echo('<td><input type="hidden" name="id[]" value="'.$rd['id'].'">');
 		$dtx = splitDatetime($rd['PenaltyStart']);
 		echo('<input type="date" name="PenaltyStartDate[]" value="'.$dtx[0].'"> ');
@@ -1405,7 +1405,7 @@ function triggerNewRow(obj)
 		}
 		echo('</select></td>');
 		echo('<td><input type="number" name="PenaltyFactor[]" value="'.$rd['PenaltyFactor'].'"></td>');
-		echo('<td><input type="checkbox" name="DeleteEntry[]" value="'.$rd['id'].'"></td>');
+		echo('<td class="center"><input type="checkbox" name="DeleteEntry[]" value="'.$rd['id'].'"></td>');
 		echo('</tr>');
 	}
 	echo('<tr class="newrow"><td><input type="hidden" name="id[]" value="">');

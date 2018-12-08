@@ -29,7 +29,7 @@
  */
 
 
-$PROGRAM = array("version" => "2.1",	"title"	=> "ScoreMaster");
+$PROGRAM = array("version" => "2.2",	"title"	=> "ScoreMaster");
 /*
  *	2.0	25May18	Used live at BBR18
  *
@@ -42,8 +42,14 @@ $PROGRAM = array("version" => "2.1",	"title"	=> "ScoreMaster");
  *				Programmable certificate sequence
  *				Accept/Reject claim handling
  *				Include ExtraData with finisher export
- *	2.1	
+ *	2.1	22Sep18	Live at Jorvic 18
  *
+ *	2.2			Accept zero miles as finisher, after min/max checks
+ *				Show entrant bonus arrays with same formatting as scoresheet
+ *				Ability to reject combos; Special/combo rejections report title
+ *		Issued to John Cunniffe
+ *	2.2.1		Programmable admin menus
+ *				Full display of entrant table with scorex and rejects
  */
 $HOME_URL = "admin.php";
 require_once("common.php");
@@ -67,12 +73,14 @@ function absolutePath($webfile)
 
 function showAbout()
 {
-	global $PROGRAM, $TAGS, $DBFILENAME;
+	global $PROGRAM, $TAGS, $DBFILENAME, $DB;
 	
 	startHtml();
 	
 	
 	$serveraddr = $_SERVER['HTTP_HOST'];
+
+	$serveraddr = gethostbynamel($_SERVER['SERVER_ADDR']);
 	if ($serveraddr=='')
 		$serveraddr = $_SERVER['LOCAL_ADDR'];
 	
@@ -81,14 +89,34 @@ function showAbout()
 	echo('<p class="slogan">'.$TAGS['SMDesc'][1].'</p>');
 	echo('<hr>');
 	echo('<dl class="main">');
-	echo('<dt title="'.$TAGS['abtHostname'][1].'">'.$TAGS['abtHostname'][0].'</dt><dd>'.php_uname('n').' [ '.$serveraddr.' ]</dd>');
+	if (is_array($serveraddr))
+	{
+		$serverdetail = '';
+		foreach($serveraddr as $ip)
+		{
+			if ($serverdetail != '')
+				$serverdetail .= ', ';
+			$serverdetail .= $ip;
+		}
+		$serverdetail = implode(',',$serveraddr);
+	}
+	else
+		$serverdetail = $serveraddr;
+	echo('<dt title="'.$TAGS['abtHostname'][1].'">'.$TAGS['abtHostname'][0].'</dt><dd>'.php_uname('n').' [ '.$serverdetail.' ]</dd>');
 	echo('<dt title="'.$TAGS['abtDatabase'][1].'">'.$TAGS['abtDatabase'][0].'</dt><dd>'.absolutePath($DBFILENAME).'</dd>');
 	echo('</dl><hr>');
 	echo('<dl class="techie">');
+	$R = $DB->query("SELECT DBVersion FROM rallyparams");
+	$rd = $R->fetchArray();
+	echo('<dt title="'.$TAGS['abtDBVersion'][1].'">'.$TAGS['abtDBVersion'][0].'</dt><dd>'.$rd['DBVersion'].'</dd>');
 	echo('<dt title="'.$TAGS['abtHostOS'][1].'">'.$TAGS['abtHostOS'][0].'</dt><dd>'.php_uname('s').' [ '.php_uname('v').' ]</dd>');
 	echo('<dt title="'.$TAGS['abtWebserver'][1].'">'.$TAGS['abtWebserver'][0].'</dt><dd>'.$_SERVER['SERVER_SOFTWARE'].'</dd>');
 	echo('<dt title="'.$TAGS['abtPHP'][1].'">'.$TAGS['abtPHP'][0].'</dt><dd>'.phpversion().'</dd>');
 	echo('<dt title="'.$TAGS['abtSQLite'][1].'">'.$TAGS['abtSQLite'][0].'</dt><dd>'.SQLite3::version()['versionString'].'</dd>');
+	$mk = ($KONSTANTS['BasicDistanceUnits'] == $KONSTANTS['DistanceIsMiles'] ? 'miles' : 'kilometres');
+	echo('<dt title="'.$TAGS['abtBasicDistance'][1].'">'.$TAGS['abtBasicDistance'][0].'</dt><dd>'.$mk.'</dd>');
+	$mk = ($KONSTANTS['DefaultKmsOdo'] == $KONSTANTS['OdoCountsMiles'] ? 'miles' : 'kilometres');
+	echo('<dt title="'.$TAGS['abtDefaultOdo'][1].'">'.$TAGS['abtDefaultOdo'][0].'</dt><dd>'.$mk.'</dd>');
 	echo('<dt title="'.$TAGS['abtAuthor'][1].'">'.$TAGS['abtAuthor'][0].'</dt><dd>Bob Stammers &lt;webmaster@ironbutt.co.uk&gt; on behalf of <span title="Iron Butt Association (UK)">IBAUK</span></dd>');
 	echo('</dl>');
 	echo("</div> <!-- helpabout -->\n");

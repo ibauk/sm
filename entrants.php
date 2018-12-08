@@ -273,10 +273,13 @@ function saveEntrantRecord()
 	
 }
 
-function showEntrantBonuses($bonuses)
+function showEntrantBonuses($bonuses,$rejections)
 {
 	global $DB, $TAGS, $KONSTANTS;
 
+	$ro = ' onclick="return false;" ';
+	echo('<p>'.$TAGS['ROUseScore'][1].'</p>');
+	$REJ = parseStringArray($rejections,',','=');
 	$BA = explode(',',','.$bonuses); // The leading comma means that the first element is index 1 not 0
 	$R = $DB->query('SELECT * FROM bonuses ORDER BY BonusID');
 	while ($rd = $R->fetchArray())
@@ -286,19 +289,157 @@ function showEntrantBonuses($bonuses)
 	foreach($BP as $bk => $b)
 	{
 		if ($bk <> '') {
-			echo('<span class="keep" title="'.htmlspecialchars($b).'">');
-			echo('<label for="B'.$bk.'">'.$bk.' </label>');
 			$chk = array_search($bk, $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
-			echo('<input type="checkbox"'.$chk.' name="BonusID[]" id="B'.$bk.'" value="'.$bk.'"> ');
+			echo('<span title="'.htmlspecialchars($b).'"');
+			if ($chk) echo(' class="keep checked"'); else if ($REJ['B'.$bk] != '') echo(' class="rejected"'); else echo(' class="keep"');
+			echo('><label for="B'.$bk.'">'.$bk.' </label>');
+			echo('<input '.$ro.' type="checkbox"'.$chk.' name="BonusID[]" id="B'.$bk.'" value="'.$bk.'"> ');
 			echo('</span>'."\r\n");
 		}
 	}
 }
 
+function parseStringArray($str,$delim1,$delim2)
+/*
+ * Takes a string containing one or more item, each comprising a key, value pair
+ *
+ */
+{
+	$xx = explode($delim1,$str);
+	$res = array();
+	foreach($xx as $x)
+	{
+		$kvp = explode($delim2,$x);
+		$res[$kvp[0]] = $kvp[1];
+	}
+	return $res;
+}
 
 
+function showEntrantRejectedClaims($rejections)
+{
+	global $DB, $TAGS, $KONSTANTS;
+
+	$R = $DB->query('SELECT RejectReasons FROM rallyparams');
+	$rd = $R->fetchArray();
+	
+	$RRlines = explode("\n",$rd['RejectReasons']);
+	//var_dump($RRlines);
+	//echo('<hr>');
+	//var_dump($rejections);
+	//$R->close();
+	$RR = array();
+	foreach($RRlines as $rrl)
+	{
+		//var_dump($rrl);
+		$x = explode('=',$rrl);
+		$RR[$x[0]] = $x[1];
+	}
+	$BA = explode(',',$rejections); // The leading comma means that the first element is index 1 not 0
+	
+	//var_dump($BA);
+
+	echo('<ul>');
+	foreach($BA as $r)
+	{
+		//echo(' # '.$r.' ## ');
+		$reject = explode('=',$r);
+		$bonustype = substr($reject[0],0,1);
+		$bonusid = substr($reject[0],1);
+		//echo(' [[ '.$r.' - '.$bonustype.' -- '.$bonusid.'  ]] ');
+		switch($bonustype)
+		{
+			case 'B':
+				$sql = "SELECT BonusID as bid, BriefDesc as bd FROM bonuses WHERE BonusID='$bonusid'";
+				break;
+			case 'C':
+				$sql = "SELECT ComboID as bd, BriefDesc as bid FROM combinations WHERE ComboID='$bonusid'";
+				break;
+			case 'S':
+				$sql = "SELECT BonusID as bd, BriefDesc as bid FROM specials WHERE BonusID='$bonusid'";
+				break;
+			case '':
+				continue 2; // next foreach
+			default:
+				echo('<p>OMG</p>');
+				var_dump($bonustype);
+				return; // don't know what's going on so give up
+		}
+		$x = $RR[$reject[1]];
+		if ($x == '')
+			continue;
+		$R = $DB->query($sql);
+		$rd = $R->fetchArray();
+		echo('<li title="'.$rd['bd'].'">');
+		echo($rd['bid'].' = '.htmlspecialchars($x).'; ');
+		echo('</li>');
+	}	
+	echo('</ul>');
+	
+}
 
 
+function showEntrantScorex($scorex)
+{
+	global $TAGS;
+	
+	echo('<div id="scorex" title="'.$TAGS['dblclickprint'][0].'" ondblclick="sxprint();" >');
+	echo($scorex);
+	echo('</div>');
+}
+
+
+function showAllScorex()
+{
+	global $DB, $TAGS, $KONSTANTS;
+
+	$R = $DB->query("SELECT RallyTitle FROM rallyparams");
+	$rd = $R->fetchArray();
+	$title = htmlspecialchars(preg_replace('/\[|\]|\|/','',$rd['RallyTitle']));
+
+	$sortspec = 'RiderLast ';
+	if (isset($_REQUEST['seq']))
+		$sortspec = $_REQUEST['seq'];
+	
+	$sql = "SELECT *,substr(RiderName,1,RiderPos-1) As RiderFirst";
+	$sql .= ",substr(RiderName,RiderPos+1) As RiderLast";
+	$sql .= " FROM (SELECT *,instr(RiderName,' ') As RiderPos FROM entrants) ";
+
+	$sql .= " WHERE EntrantStatus<>".$KONSTANTS['EntrantDNS'];
+	
+	$sql .= " AND ScoreX Is Not Null";
+
+	if (isset($_REQUEST['class']))
+		$sql .= ' AND Class In ('.$_REQUEST['class'].')';
+	if (isset($_REQUEST['entrant']))
+		$sql .= ' AND EntrantID In ('.$_REQUEST['entrant'].')';
+	$sql .= ' ORDER BY '.$sortspec;
+	$R = $DB->query($sql);
+?><!DOCTYPE html>
+<html>
+<head>
+<title>ScoreMaster:ScoreX</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" type="text/css" href="score.css?ver=<?= filemtime('score.css')?>">
+</head>
+<body>
+<?php
+	$n = 0;
+	while ($rd = $R->fetchArray())
+	{
+		echo('<h1>'.$title.'</h1>');
+		echo('<div class="scorex">');
+		echo($rd['ScoreX']);
+		echo('</div>');
+		$n++;
+	}
+	if ($n < 1)
+		echo('<p>'.$TAGS['NoScoreX2Print'][0].'</p>');
+?>
+</body>
+</html>
+<?php	
+}
 
 
 /* Check-in/check-out stuff */
@@ -432,10 +573,13 @@ function showEntrantChecks($rd)
 
 
 
-function showEntrantSpecials($specials)
+function showEntrantSpecials($specials,$rejections)
 {
 	global $DB, $TAGS, $KONSTANTS;
 
+	$ro = ' onclick="return false;" ';
+	echo('<p>'.$TAGS['ROUseScore'][1].'</p>');
+	$REJ = parseStringArray($rejections,',','=');
 	$BA = explode(',',','.$specials); // The leading comma means that the first element is index 1 not 0
 
 	$R = $DB->query('SELECT * FROM specials ORDER BY BonusID');
@@ -448,20 +592,25 @@ function showEntrantSpecials($specials)
 		foreach($BP as $bk => $b)
 		{
 			if ($bk <> '') {
-				echo('<span title="'.htmlspecialchars($bk).'">');
-				echo('<label for="S'.$bk.'">'.htmlspecialchars($b).' </label>');
 				$chk = array_search($bk, $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
-				echo('<input type="checkbox"'.$chk.' name="SpecialID[]" id="S'.$bk.'" value="'.$bk.'"> ');
+				echo('<span title="'.htmlspecialchars($bk).'"');
+				if ($chk) echo(' class="keep checked"'); else if ($REJ['S'.$bk] != '') echo(' class="rejected"'); else echo(' class="keep"');
+				echo('><label for="S'.$bk.'">'.htmlspecialchars($b).' </label>');
+				echo('<input '.$ro.' type="checkbox"'.$chk.' name="SpecialID[]" id="S'.$bk.'" value="'.$bk.'"> ');
 				echo(' &nbsp;&nbsp;</span>');
 			}
 		}
 }
 
-function showEntrantCombinations($Combos)
+function showEntrantCombinations($Combos,$rejections)
 {
 	global $DB, $TAGS, $KONSTANTS;
+	
+	$ro = ' onclick="return false;" ';
+	echo('<p>'.$TAGS['ROUseScore'][1].'</p>');
 
-	$BA = explode(',',','.$Combos); // The leading comma means that the first element is index 1 not 0
+	$REJ = parseStringArray($rejections,',','=');
+	$BAB = explode(',',','.$Combos); // The leading comma means that the first element is index 1 not 0
 	
 	$R = $DB->query('SELECT * FROM combinations ORDER BY ComboID');
 	while ($rd = $R->fetchArray())
@@ -469,13 +618,15 @@ function showEntrantCombinations($Combos)
 		$BA[$rd['ComboID']] = $rd['BriefDesc'];
 	}
 	echo('<span  class="xlabel" ></span>');
+	//var_dump($BA);
 	foreach($BA as $bk => $b)
 	{
 		if ($bk <> '') {
-			echo('<span title="'.htmlspecialchars($bk).'">');
-			echo('<label for="C'.$bk.'">'.htmlspecialchars($b).' </label>');
-			$chk = array_search($bk, $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
-			echo('<input type="checkbox"'.$chk.' name="ComboID[]" id="C'.$bk.'" value="'.$bk.'"> ');
+			$chk = array_search($bk, $BAB) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
+			echo('<span title="'.htmlspecialchars($bk).'"');
+			if ($chk) echo(' class="keep checked"'); else if ($REJ['C'.$bk] != '') echo(' class="rejected"'); else echo(' class="keep"');
+			echo('><label for="C'.$bk.'">'.htmlspecialchars($b).' </label>');
+			echo('<input '.$ro.' type="checkbox"'.$chk.' name="ComboID[]" id="C'.$bk.'" value="'.$bk.'"> ');
 			echo(' &nbsp;&nbsp;</span>');
 		}
 	}
@@ -486,11 +637,12 @@ function showEntrantRecord($rd)
 {
 	global $DB, $TAGS, $KONSTANTS;
 
+	$is_new_record = ($rd['EntrantID']=='');
 	echo('<form method="post" action="entrants.php">');
 
 	echo('<input type="hidden" name="c" value="entrants">');
 	echo('<span class="vlabel"  style="font-weight: bold;" title="'.$TAGS['EntrantID'][1].'"><label for="EntrantID">'.$TAGS['EntrantID'][0].' </label> ');
-	if ($rd['EntrantID']=='')
+	if ($is_new_record)
 		$ro = '';
 	else
 		$ro = ' readonly ';
@@ -500,9 +652,14 @@ function showEntrantRecord($rd)
 	echo('<li><a href="#tab_basic">'.$TAGS['BasicDetails'][0].'</a></li>');
 	echo('<li><a href="#tab_odo">'.$TAGS['Odometer'][0].'</a></li>');
 	echo('<li><a href="#tab_results">'.$TAGS['RallyResults'][0].'</a></li>');
-	echo('<li><a href="#tab_bonuses">'.$TAGS['BonusesLit'][0].'</a></li>');
-	echo('<li><a href="#tab_specials">'.$TAGS['SpecialsLit'][0].'</a></li>');
-	echo('<li><a href="#tab_combos">'.$TAGS['CombosLit'][0].'</a></li>');
+	if (!$is_new_record)
+	{
+		echo('<li><a href="#tab_bonuses">'.$TAGS['BonusesLit'][0].'</a></li>');
+		echo('<li><a href="#tab_specials">'.$TAGS['SpecialsLit'][0].'</a></li>');
+		echo('<li><a href="#tab_combos">'.$TAGS['CombosLit'][0].'</a></li>');
+		echo('<li><a href="#tab_rejects">'.$TAGS['RejectsLit'][0].'</a></li>');
+		echo('<li><a href="#tab_scorex">'.$TAGS['ScorexLit'][0].'</a></li>');
+	}
 	echo('</ul></div>');
 	
 	
@@ -636,16 +793,24 @@ function showEntrantRecord($rd)
 	
 	echo('</fieldset>');
 	
-	echo('<fieldset  class="tabContent" id="tab_bonuses"><legend>'.$TAGS['BonusesLit'][0].'</legend>');
-	showEntrantBonuses($rd['BonusesVisited']);
-	echo('<!-- B --> </fieldset>');
-	echo('<fieldset  class="tabContent" id="tab_specials"><legend>'.$TAGS['SpecialsLit'][0].'</legend>');
-	showEntrantSpecials($rd['SpecialsTicked']);
-	echo('</fieldset>');
-	echo('<fieldset  class="tabContent" id="tab_combos"><legend>'.$TAGS['CombosLit'][0].'</legend>');
-	showEntrantCombinations($rd['CombosTicked']);
-	echo('</fieldset>');
-	
+	if (!$is_new_record)
+	{
+		echo('<fieldset  class="tabContent" id="tab_bonuses"><legend>'.$TAGS['BonusesLit'][0].'</legend>');
+		showEntrantBonuses($rd['BonusesVisited'],$rd['RejectedClaims']);
+		echo('<!-- B --> </fieldset>');
+		echo('<fieldset  class="tabContent" id="tab_specials"><legend>'.$TAGS['SpecialsLit'][0].'</legend>');
+		showEntrantSpecials($rd['SpecialsTicked'],$rd['RejectedClaims']);
+		echo('</fieldset>');
+		echo('<fieldset  class="tabContent" id="tab_combos"><legend>'.$TAGS['CombosLit'][0].'</legend>');
+		showEntrantCombinations($rd['CombosTicked'],$rd['RejectedClaims']);
+		echo('</fieldset>');
+		echo('<fieldset  class="tabContent" id="tab_rejects"><legend>'.$TAGS['RejectsLit'][0].'</legend>');
+		showEntrantRejectedClaims($rd['RejectedClaims']);
+		echo('</fieldset>');
+		echo('<fieldset  class="tabContent" id="tab_scorex"><legend>'.$TAGS['ScorexLit'][0].'</legend>');
+		showEntrantScorex($rd['ScoreX']);
+		echo('</fieldset>');
+	}
 	if ($rd['RiderName'] <> '')
 		$dis = '';
 	else
@@ -686,6 +851,12 @@ function showNewEntrant()
 	
 	showEntrantRecord($rd);
 }
+
+	if (isset($_REQUEST['c']) && $_REQUEST['c']=='scorex')
+	{
+		showAllScorex();
+		exit;
+	}
 
 
 startHtml();

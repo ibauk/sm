@@ -39,7 +39,10 @@ $DBFILENAME = 'ScoreMaster.db';
 // DO NOT alter key names!
 $TAGS = array(
 	'abtAuthor'			=> array('Author','Who developed this application'),
+	'abtBasicDistance'	=> array('Basic distance unit','Miles or Kilometres'),
 	'abtDatabase'		=> array('Database file','Full path to the file containing the database'),
+	'abtDBVersion'		=> array('DB schema version',''),
+	'abtDefaultOdo'		=> array('Odo default','Odometers assumed to record miles or kilometres'),
 	'abtHostname'		=> array('Hostname','Name of the computer hosting this application'),
 	'abtHostOS'			=> array('HostOS','Details of the host\'s operating system'),
 	'abtPHP'			=> array('PHP version',''),
@@ -64,11 +67,15 @@ $TAGS = array(
 	'AdmMenuHeader'		=> array('Rally administration',''),
 	'AdmNewEntrant'		=> array('Setup new entrant','Add details of another entrant'),
 	'AdmPrintCerts'		=> array('Print finisher certificates','Print certificates for finishers'),
+	'AdmPrintScoreX'	=> array('Score explanations','Print score explanations for everyone not DNS'),
 	'AdmRallyParams'	=> array('Rally parameters','View/edit current rally parameters'),
 	'AdmRankEntries'	=> array('Rank finishers','Calculate and apply the rank of each finisher'),
+	'AdmSelectTag'		=> array('Search by keyword','Choose a tag to list relevant functions'),
 	'AdmSetupHeader'	=> array('Rally setup',''),
+	'AdmSetupWiz'		=> array('Setup wizard','Basic rally setup wizard'),
 	'AdmSGroups'		=> array('Specials groups','Maintain groups of specials'),
 	'AdmShowSetup'		=> array('Rally setup &amp; config','View/maintain rally configuration records'),
+	'AdmShowTagMatches'	=> array('Items matching ','Showing functions matching tag '),
 	'AdmSpecialTable'	=> array('Special bonuses','View/edit special bonuses'),
 	'AdmTimePenalties'	=> array('Time penalties','Maintain table of time penalties'),
 	
@@ -92,7 +99,12 @@ $TAGS = array(
 	'CategoryLit'		=> array('Category',''),
 	'CatEntry'			=> array('Category','The number of this category within the axis'),
 	'CatExplainer'		=> array('CatExplainer','You can amend the description of entries or delete them entirely. New entries must have an entry number which is unique within the axis.'),
+	
+	'CertExplainer'		=> array('Certificates are "web" documents comprising well-formed HTML and CSS parts.',
+									'Please carefully specify the certificate layout and content in the texts below.'),
+	
 	'CertificateHours'	=> array('Certificate hours','The duration of the rally in hours for the certificate'),
+	'CertTitle'			=> array('Title','Description of this certificate class'),
 	'Class'				=> array('Class #','The certificate class applicable'),
 	'ComboIDLit'		=> array('ComboID',''),
 	'ComboMaintHead'	=> array('Combination Bonuses','List of Combination bonuses'),
@@ -101,6 +113,7 @@ $TAGS = array(
 	'CompulsoryBonus'	=> array('Compulsory?','This bonus is required for Finisher status'),
 	'CorrectedMiles'	=> array('Miles ridden','Official rally mileage'),
 	'Country'			=> array('Country',"Entrant's home country"),
+	'dblclickprint'		=> array('Double-click to print',''),
 	'DeleteEntryLit'	=> array('Delete?',''),
 	'EntrantDNF'		=> array('DNF','Did not qualify as a finisher'),
 	'EntrantDNS'		=> array('DNS','Entrant failed to start the rally'),
@@ -115,11 +128,12 @@ $TAGS = array(
 	'EntrantStatusV'	=> array('array("0" => "DNS", "1" => "ok", "8" => "Finisher", "3" => "DNF");','array used for vertical tables'),
 	'ExcessMileage'		=> array('Excess miles',''),
 	'FetchCert'			=> array('Fetch certificate','Fetch the HTML, CSS &amp; options for this certificate'),
-	'FinishDate'		=> array('Finish date','The last day of the rally'),
+	'FinishDate'		=> array('Finish date','The last riding day of the rally.'),
 	'FinishersExported'	=> array('Finishers exported!','Finisher details exported to CSV'),
 	'FinishPosition'	=> array('Final place','Finisher ranking position',''),
-	'FinishTime'		=> array('Finish time','Official finish time'),
+	'FinishTime'		=> array('Finish time','Official finish time. Entrants finishing later are DNF'),
 	'gblMainMenu'		=> array('Main menu','Return to main menu'),
+	
 	'GroupNameLit'		=> array('Special group','Group used for presentation purposes'),
 	'HelpAbout'			=> array('About ScoreMaster',''),
 	'InsertNewCC'		=> array('Enter new compound calc',''),
@@ -132,9 +146,12 @@ $TAGS = array(
 	'MaxMilesFixedP'	=> array('Fixed points','Excess mileage incurs fixed points deduction'),
 	'MaxMilesPerMile'	=> array('Points per mile','Excess mileage incurs points deduction per excess mile'),
 	'MaxMilesPoints'	=> array('Points or Multipliers deducted','Number of points or multipliers for excess mileage'),
+	'MaxMilesUsed'		=> array('Tick if maximum miles used','Will entrants be DNF if they exceed a maximum distance?'),
 	'MilesPenaltyText'	=> array('Mileage penalty deduction',''),
-	'MinMiles'			=> array('Minimum miles','Minimum number of miles for finisher'),
+	'MinMiles'			=> array('Minimum miles','Minimum number of miles to qualify as a finisher'),
+	'MinMilesUsed'		=> array('Tick if minimum miles used','Will entrants need to ride a minimum distance in order to qualify as finishers?'),
 	'MinPoints'			=> array('Minimum points','Minimum points scored to be a finisher'),
+	'MinPointsUsed'		=> array('Tick if minimum points used','Will entrants need to score a minimum number of points in order to qualify as finishers?'),
 	'ModBonus0'			=> array('ModBonus0','Affects compound axis score'),
 	'ModBonus1'			=> array('ModBonus1','Modifies bonus score'),
 	'ModBonusLit'		=> array('Usage','1=This calc affects bonus value, 0=This calc affects axis score'),
@@ -146,12 +163,14 @@ $TAGS = array(
 	'NMethodLit'		=> array('NMethod','0=# entries per cat, 1=# of NZ cats, -1=record not used'),
 	'NMinLit'			=> array('NMin',''),
 	'NoCerts2Print'		=> array('Sorry, no certificates to print.',''),
+	'NoScoreX2Print'	=> array('Sorry, no score explanations to print.',''),
 	'nowlit'			=> array('Now','Record the current date/time'),
 	'NPowerLit'			=> array('NPower',''),
 	'OdoCheckFinish'	=> array('Odo check finish','The odometer reading at the end of the odo check'),
-	'OdoCheckMiles'		=> array('Odo check distance','The mileage used to check the accuracy of odometers'),
+	'OdoCheckMiles'		=> array('Odo check distance','The length of the route used to check the accuracy of odometers'),
 	'OdoCheckStart'		=> array('Odo check start','The reading at the start of the odometer check'),
 	'OdoCheckTrip'		=> array('Odo check trip','What distance did the trip meter record?'),
+	'OdoCheckUsed'		=> array('Tick if odo check used','Will entrants be required to ride an odometer check route?'),
 	'OdoKms'			=> array('Odo counts',''),
 	'OdoKmsK'			=> array('kilometres',''),
 	'OdoKmsM'			=> array('miles',''),
@@ -161,7 +180,7 @@ $TAGS = array(
 	'OdoScaleFactor'	=> array('Correction factor','The number to multiply odo readings to get true distance'),
 	'OfferScore'		=> array('OfferScore','Would you like to help score this rally? If so, please tell me your name'),
 	'PenaltyMaxMiles'	=> array('Max miles (penalties)','Mileage beyond this incurs penalties; 0=doesn\'t apply'),
-	'PenaltyMilesDNF'	=> array('DNF mileage','Miles beyond here result in DNF;0=doesn\'t apply'),
+	'PenaltyMilesDNF'	=> array('DNF mileage','Miles beyond here result in DNF; 0=doesn\'t apply'),
 	'PickAnEntrant'		=> array('Pick an entrant','Pick an entrant using the list below or by entering an Entrant number. Type a name to filter the list.'),
 	'PillionFirst'		=> array('Informal name',"Used for repeat mentions on finisher's certificate"),
 	'PillionIBA'		=> array('IBA #',"Pillion's IBA number if known"),
@@ -170,8 +189,8 @@ $TAGS = array(
 	'PointsMults0'		=> array('PointsMults0','Points'),
 	'PointsMults1'		=> array('PointsMults1','Multipliers'),
 	'RallyResults'		=> array('Rally results',''),
-	'RallySlogan'		=> array('Rally slogan','Brief description of the rally'),
-	'RallyTitle'		=> array('Rally title','Formal title of the rally. Surround an optional part with []; Use | for newlines'),
+	'RallySlogan'		=> array('Rally slogan','Brief description of the rally, usually shown on finisher certificates.'),
+	'RallyTitle'		=> array('Rally title','Formal title of the rally. Surround an optional part with [ ]; Use | for newlines'),
 	
 	// Used as 'clear' line in claim reject popup menu
 	'RejectReason0'		=> array('0=not rejected','Bonus claim is not rejected'),
@@ -187,9 +206,12 @@ $TAGS = array(
 	'RejectReason8'		=> array('8=Reason 8',''),
 	'RejectReason9'		=> array('9=Ask Rallymaster',''),
 	
+	'RejectsLit'		=> array('Rejections','Rejected bonus claims'),
+	
 	'RiderFirst'		=> array('Informal name',"Used for repeat mentions on finisher's certificate"),
 	'RiderIBA'			=> array('IBA #',"Rider's IBA number if known"),
 	'RiderName'			=> array('Rider name','The full name of the rider'),
+	'ROUseScore'		=> array('ReadOnly','These fields may not be changed here, use Scoring instead'),
 	'SaveCertificate'	=> array('Save certificate','Save the updated copy of this certificate'),
 	'SaveEntrantRecord' => array('Save entrant details',''),
 	'SaveNewCC'			=> array('Save new CC',''),
@@ -200,11 +222,18 @@ $TAGS = array(
 	'Scorer'			=> array('Scorer','Person doing the scoring'),
 	'ScoreSaved'		=> array('Scorecard saved','This screen matches the database, no changes yet'),
 	'ScoreThis'			=> array('Score this rider',''),
+	'ScorexLit'			=> array('ScoreX','Score explanation'),
 	'ScoringMethod'		=> array('Scoring method',''),
 	'ScoringMethodA'	=> array('Automatic','The system will figure it out'),
-	'ScoringMethodC'	=> array('Compound','Bonuses are ticked and point accrued by category'),
+	'ScoringMethodC'	=> array('Compound','Bonuses are ticked and points accrued by category'),
 	'ScoringMethodM'	=> array('Manual','Entrant scores are entered manually as number of points'),
 	'ScoringMethodS'	=> array('Simple','Bonuses are ticked and points added up'),
+	
+	// Texts for use in setup wizard
+	'ScoringMethodWA'	=> array('Automatic','The system chooses simple or compound depending on your other configuration choices'),
+	'ScoringMethodWC'	=> array('Compound scoring','Scoring makes use of bonus categories to modify point scores with/without multipliers'),
+	'ScoringMethodWM'	=> array('Manual scoring','Scores will be calculated manually and entered as a simple points value'),
+	'ScoringMethodWS'	=> array('Simple scoring','The rally uses only ordinary bonuses, special bonuses and combination bonuses'),
 	'ScoringNow'		=> array('Being scored now','Is this entrant being scored by someone right now?'),
 	'SGroupLit'			=> array('Specials Group','Specials group name'),
 	'SGroupMaintHead'	=> array('Specials Bonus Groups','List of groups for specials'),
@@ -221,8 +250,8 @@ $TAGS = array(
 	'SpecialMultLit'	=> array('Multipliers',''),
 	'SpecialPointsLit'	=> array('Points',''),
 	'SpecialsLit'		=> array('Specials','Special bonuses'),
-	'StartDate'			=> array('Start date','The first day of the rally'),
-	'StartTime'			=> array('Start time','Official start time'),
+	'StartDate'			=> array('Start date','The first day of the rally. Rally riding day as opposed to must arrive by day'),
+	'StartTime'			=> array('Start time','Official start time. Rally clock starts at this time.'),
 	'TeamID'			=> array('Team #','The team number this Entrant is a member of'),
 	'TeamRankingH'		=> array('Highest ranked member','Rank team as highest member'),
 	'TeamRankingI'		=> array('Individual placing','Rank each team member separately'),
@@ -256,6 +285,18 @@ $TAGS = array(
 	'UploadEntrantsH1'	=> array('Uploading Entrants','Upload Entrants data from spreadsheet'),
 	'UploadForce'		=> array('Force overwrite','Overwrite existing Entrant records'),
 	'UploadPickFile'	=> array('Pick a file','Please select the input file'),
+	
+	'WizNextPage'		=> array('Next','Save and move to the next page of the wizard'),
+	'WizPrevPage'		=> array('Previous','Save and return to the previous wizard page'),
+	'WizFinish'			=> array('Finish','Save and finish the wizard'),
+	
+	// This one's different; both entries are pure text blobs, each presented as an HTML paragraph
+	'WizFinishText'		=> array('You have now completed the basic setup of the rally. <span style="font-size: 2em;">&#9786;</span>',
+									'When you click [Finish] the main rally setup menu is presented and you can<ul><li>enter the details ' .
+									'of ordinary and special bonuses</li><li>alter the text and layout of finisher certificates</li><li>load or enter details ' .
+									'of rally entrants</li></ul> and maintain all other aspects of the rally configuration.'),
+
+	'WizTitle'			=> array('This rally needs to be configured, please fill in the blanks',''),
 	
 	'xlsImporting'		=> array('Importing','Importing entrants data from spreadsheet'),
 	'xlsNoSpecfile'		=> array('!specfile','No "specfile" parameter supplied'),
@@ -313,6 +354,7 @@ $KONSTANTS['TiesSplitByMiles'] = 1;
 $KONSTANTS['TeamRankIndividuals'] = 0;
 $KONSTANTS['TeamRankHighest'] = 1;
 $KONSTANTS['TeamRankLowest'] = 2;
+
 // Beware, these next two used for combinations & catcompounds
 $KONSTANTS['ComboScoreMethodPoints'] = 0;
 $KONSTANTS['ComboScoreMethodMults'] = 1;
@@ -435,215 +477,7 @@ function startHtml($otherInfo = '')
 <title>ScoreMaster</title>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<style>
-body, input, select		{ 
-    font-family: Arial, Helvetica, sans-serif; font-size: calc(14pt + 1vmin);  background-color: #11E3FF; /*color: #B25D00;*/ }
-
-input,select			{ color: #000; font-weight: bold; }
-input[type="number"], .number	{ width:4em; }
-input[type="date"]		{ width: 10em; }
-
-/* Format ready for blank form */
-#FinishTime { width: 4em; }
-#FinishDate	{ width: 10em; }
-
-input:read-only			{ border: none; }
-input:-moz-read-only	{ border: none; }
-input.wide				{ width: 12em; }
-input[type='submit']	{
-	background-color: #00ff48;
-    border: none;
-    border-radius: 10px;
-    color: #b20000;
-    padding: 7px 7px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 0.6em;
-	font-weight: bold;
-    margin: 4px 2px;
-    cursor: pointer;
-    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
-}
-input[type='submit']:disabled	{
-	background-color: #1EB206;
-    border: none;
-    border-radius: 10px;
-    color: #b20000;
-    padding: 7px 7px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 0.6em;
-	font-weight: bold;
-    margin: 4px 2px;
-    cursor: pointer;
-    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
-}
-
-label 					{ white-space: nowrap; }
-caption					{ margin-bottom: 1em; }
-span.vlabel				{ display: block; padding-top: 1em;}
-span.vlabel label		{ text-align: right; width: 8em; display: inline-block; }
-span.vlabel label.wide	{ text-align: right; width: 12em; display: inline-block; }
-span.xlabel:before		{ content: '\A\A'; white-space: pre; }
-input[name="BikeReg"]	{ width: 6em; }
-select[name="EntrantStatus"]	{ margin-bottom: 1em; }
-fieldset				{ margin-bottom: 1em; }
-input[name=FinishPosition]	{ width: 3em; }
-.link:hover				{ cursor: pointer; background-color: lightgray;}
-
-/* Tabbed interface */
-ul#tabs { list-style-type: none; margin: 30px 0 0 0; padding: 0 0 0.3em 0; }
-ul#tabs li { display: inline; }
-ul#tabs li a { color: #42454a; background-color: #dedbde; border: 1px solid #c9c3ba; border-bottom: none; padding: 0.3em; text-decoration: none;  
-
-	border-top-left-radius: 10px; border-top-right-radius: 10px;
-
-    background:      -o-linear-gradient(to top, #ECECEC 50%, #D1D1D1 100%);
-    background:     -ms-linear-gradient(to top, #ECECEC 50%, #D1D1D1 100%);
-    background:    -moz-linear-gradient(to top, #ECECEC 50%, #D1D1D1 100%);
-    background: -webkit-linear-gradient(to top, #ECECEC 50%, #D1D1D1 100%);
-    background: linear-gradient(to top, #ECECEC 50%, #D1D1D1 100%);
-    box-shadow: 0 3px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 #FFF;
-    text-shadow: 0 1px #FFF;
-    margin: 0 5px;
-    padding: 0 2px;
-
-
-
-}
-ul#tabs li a:hover { background-color: #f1f0ee; }
-ul#tabs li a.selected { color: #000; background-color: #f1f0ee; font-weight: bold; padding: 0.7em 0.3em 0.38em 0.3em; }
-.tabContent { border: 10px solid #c9c3ba;  padding: 0.5em;  display:inherit; }
-.tabContenthide { display: none; }
-.tabcell	{ display: table-cell; }
-
-.compulsory		{ font-weight: bold; }
-.techie			{ font-size: .6em; } /* For largely uninteresting items */
-.slogan			{ font-size: .8em; font-style: italic; text-align: center; }
-
-#header			{ background-color: lightgray; border-bottom: solid; }
-#hdrRallyTitle 	{ padding-left: 1em; }
-#hdrOtherInfo 	{ padding-right: 1em; float: right; }
-#frontpage		{ margin-top: 3em; margin-left: 3em; font-size: 1.3em; }
-#ScoreHeader 	{ margin-top: 1em; padding-bottom: .5em; border-bottom: solid;  max-width: 100%; }
-#ScoreHeader span { margin-left: 1em; margin-right: 1em; white-space: nowrap; }
-
-#ScoreHeader.manualscoring span:before
-				{ content: '\A\A'; white-space: pre; }
-
-span.keep		{ white-space: nowrap; display: inline-block; }
-
-#footer			{ background-color: lightgray; border-top: solid; position: fixed; bottom: 0; margin-bottom: .1em; width: 98%;}
-#ftrAdminMenu	{ padding-left: 1em; padding-right: 1em; float: right; }
-
-.menulist		{ list-style-type: none; }
-
-#sgroups		{ margin-top: 2em; }
-#sgroups td		{ padding-bottom: 2em; padding-right: 2em; }
-
-#adminMM		{ margin-left: auto; margin-right: auto; width: 12em;}
-#adminMM *		{ display: inline-block; width: 100%; text-align: center; margin-left: auto; margin-right: auto; padding-left: 0; padding-right: 0; }
-#adminMM a		{ text-decoration: none; }
-#adminMM a:hover{ background: lightgray; }
-#adminMM a:visited { color: #b20000; /* #FF0076; */ }
-#adminMM a:link	{
-	background-color: #00ff48; /*#2BFF2F;*/
-    border: none;
-    border-radius: 10px;
-    color: #b20000;
-    padding: 7px 7px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 0.6em;
-	font-weight: bold;
-    margin: 4px 2px;
-    cursor: pointer;
-    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
-}
-
-table#entrants	th.EntrantID	{ text-align: left; }
-table#entrants	td.EntrantID	{ text-align: center; }
-table#entrants	.RiderName,.PillionName,.Bike	{ text-align: left; }
-table#entrants	.FinishPosition,.TotalPoints,.CorrectedMiles	{ text-align: center; }
-
-
-#header a		{ text-decoration: none; }
-#header a:link	{ color: black; }
-#header a:visited	{ color: black; }
-
-#footer a		{ text-decoration: none; }
-#footer a:link	{ color: black; }
-#footer a:visited	{ color: black; }
-
-/* Use different background colour for output only items */
-#tab_combos		{ background-color: #66D2FF; margin-top: .8em; } 
-
-#cat_results	{ background-color: #66D2FF; }
-#cat_results td.catdesc { width: 6em; text-align: right; padding-right: .5em; }
-#cat_results caption { border-bottom: solid; margin-bottom: .1em; font-style: italic; }
-#cat1			{ background-color: inherit; float:left; display: block; padding-left: .5em; padding-right: .5em; font-size:.8em; }
-#cat2			{ margin-left: .2em; background-color: inherit; float:left; display: block; padding-left: .1em; padding-right: .5em;  font-size:.8em; }
-#cat3			{ margin-left: .2em; background-color: inherit; float:left; display: block; padding-left: .1em; padding-right: .5em;  font-size:.8em; }
-
-/* Score explanation */
-#scorex			{  }
-#scorex table,caption	{ background-color: #66D2FF; margin-left: auto; margin-right: auto; }
-#scorex	caption	{ border: solid; padding: .5em; }
-#scorex	tr:last-of-type td 	{ border-top: solid; }
-#scorex .bp		{ padding-left:1em; padding-right:.3em; text-align: right; }
-#scorex .bm		{ padding-left:1em; padding-right:.3em; text-align: right; }
-#scorex .tp		{ padding-left:1em; padding-right:.3em; text-align: right; }
-.hidescorex		{ display:none; }
-.showscorex		{ display:inherit; }
-
-.hide			{ display:none; } /* General purpose content hider */
-
-.clickme		{ cursor: pointer; }
-
-/* Help about */
-
-#helpabout		{ margin-left: auto; margin-right: auto; max-width: 40em; border: solid; padding:.2em; margin-top:1em; background-color: white; font-size:.8em;}
-#helpabout h1	{ text-align:center; }
-#helpabout dd	{ font-weight: bold; }
-
-
-
-/* Right-click claim reject menu */
-#rcmenu { 
-	border:solid 1px #CCC; 
-	position: absolute; 
-	z-index: 10; 
-	background-color: lightgray; 
-	width: 8em; 
-}
-#rcmenu ul { list-style-type: none; margin: 0; padding: 0; font-size: .75em; }
-#rcmenu li { border-bottom:solid 1px #CCC; }
-#rcmenu li:last-child { border:none; }
-#rcmenu li a {
-    display:block;
-    text-decoration:none;
-    color:blue;
-	 padding-left: .5em; padding-right: .5em; 
-}
-#rcmenu li a:hover {
-    background:blue;
-	cursor: pointer; 
-    color:#FFF;
-}
-
-/* Used to specifically style three bonus states */
-.showbonus		{ white-space: nowrap; display: inline-block; padding-left: 2px; padding-right: 2px; }
-.rejected,.rejected > *		{background-color: red; color: white; }
-.checked,.checked > * 		{background-color: #31ad16; color: white; }
-.unchecked,.unchecked > * 	{background-color: inherited; color: inherited; }
-
-@media print {
-.noprint		{ display: none !important; }
-}
-</style>
+<link rel="stylesheet" type="text/css" href="score.css?ver=<?= filemtime('score.css')?>">
 <script src="score.js?ver=<?= filemtime('score.js')?>" defer="defer"></script>
 </head>
 <body onload="bodyLoaded();">
@@ -671,5 +505,16 @@ function showFooter()
 	echo('<span id="ftrAdminMenu" title="'.$TAGS['AdminMenu'][1].'"><a href="admin.php">'.$TAGS['AdminMenu'][0].'</a></span></div>');
 	echo('</body></html>');
 }
+
+function rally_params_established()
+{
+	global $DB;
+	
+	$sql = "SELECT DBState FROM rallyparams";
+	$R = $DB->query($sql);
+	$rd = $R->fetchArray();
+	return ($rd['DBState'] > 0);
+}
+
 ?>
 

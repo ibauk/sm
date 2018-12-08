@@ -58,6 +58,7 @@ const CFGERR_MethodNIY = "Error: compoundCalcRuleMethod {0} not implemented yet"
 const CFGERR_NotBonuses = "Error: compoundCalcRuleType {0} not applicable to bonuses";
 
 const CLAIM_REJECTED = "Claim rejected";
+const FINISHERS_EXPORTED = "Finishers Exported!";
 
 // No translateable literals below here
 
@@ -629,7 +630,7 @@ function calcScore(enableSave)
 		else
 			TPS = calcSimpleScore(res);
 		if (debug) alert("calcScore[2]");
-		sxappend('',RPT_Total,TPS,0,TPS);
+		sxappend('',RPT_Total,'',0,TPS);
 		document.getElementById('TotalPoints').value = TPS;
 		document.getElementById('TotalPoints').setAttribute('title',res.reason);
 	}
@@ -910,7 +911,10 @@ function reportRejectedClaim(bonusid,reason)
 		if (R[i].getAttribute('data-code') == reason)
 		{
 			//alert("Reporting " + bonusid + " for " + R[i].value);
-			sxappend(B.getAttribute('id'),B.parentNode.getAttribute("title").replace(/\[.+\]/,""),'X','','');
+			if (B.name != 'BonusID[]')
+				sxappend(B.getAttribute('id'),B.parentNode.firstChild.innerHTML.replace(/\[.+\]/,""),'X','','');
+			else
+				sxappend(B.getAttribute('id'),B.parentNode.getAttribute("title").replace(/\[.+\]/,""),'X','','');
 			sxappend('',CLAIM_REJECTED + ' - ' + R[i].value,'','','');
 		}
 	if (reason == 0)
@@ -1001,8 +1005,7 @@ function setFinisherStatus()
 		if (BL[i].getAttribute('data-reqd')==COMPULSORYBONUS && !BL[i].checked)
 			return SFS(EntrantDNF,DNF_MISSEDCOMPULSORY);
 	
-	if (CM > 0)
-		SFS(EntrantFinisher,'');
+	SFS(EntrantFinisher,'');
 	
 }
 
@@ -1126,6 +1129,12 @@ function showPopup(obj)
 /* Call when score submit button is clicked */
 function submitScore()
 {
+	/* Enable any combos so they'll be saved */
+	var cmbs = document.getElementsByName('ComboID[]');
+	for (var i = 0; i < cmbs.length; i++ )
+	{
+		cmbs[i].disabled = false;
+	}
 	
 	/* Save the score explanation as part of the form
 	 * so that it can be saved to the entrant record
@@ -1189,10 +1198,13 @@ function sxprint()
 	var hdrtitle = document.getElementById('hdrRallyTitle').innerHTML;
 	
     mywindow.document.write('<html><head><title>' + document.title  + '</title>');
+	mywindow.document.write('<link rel="stylesheet" type="text/css" href="score.css">');
+
     mywindow.document.write('</head><body >');
     mywindow.document.write('<h1>' + hdrtitle  + '</h1>');
+	mywindow.document.write('<div class="scorex">');
     mywindow.document.write(document.getElementById(SX_id).innerHTML);
-    mywindow.document.write('</body></html>');
+    mywindow.document.write('</div></body></html>');
 
     mywindow.document.close(); // necessary for IE >= 10
     mywindow.focus(); // necessary for IE >= 10*/
@@ -1318,7 +1330,8 @@ function tickCombos()
 					break;
 				}
 			}
-		document.getElementById(cmbs[i].getAttribute('id')).checked = tick;
+		document.getElementById(cmbs[i].getAttribute('id')).checked = tick && 
+					(document.getElementById(cmbs[i].getAttribute('id')).getAttribute('data-rejected') < 1);
 	}
 }
 

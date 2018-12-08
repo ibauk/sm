@@ -1,0 +1,249 @@
+/*
+ *
+ * I B A U K   -   S C O R E M A S T E R
+ *
+ * I am written for readability rather than efficiency, please keep me that way.
+ *
+ *
+ * Copyright (c) 2018 Bob Stammers
+ *
+ *
+ * This file is part of IBAUK-SCOREMASTER.
+ *
+ */
+
+@page {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+body, input, select		{ 
+    font-family: Arial, Helvetica, sans-serif; font-size: calc(14pt + 1vmin);  background-color: #11E3FF; /*color: #B25D00;*/ }
+
+input,select			{ color: #000; font-weight: bold; }
+input[type="number"], .number	{ width:4em; }
+
+.center					{ text-align: center; }
+.hoverlite :hover				{ background-color: lightgray; }
+
+input:read-only			{ border: none; }
+input:-moz-read-only	{ border: none; }
+input.wide				{ width: 12em; }
+input[type='submit'], input[type='button']	{
+	background-color: #00ff48;
+    border: none;
+    border-radius: 10px;
+    color: #b20000;
+    padding: 7px 7px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 0.6em;
+	font-weight: bold;
+    margin: 4px 2px;
+    cursor: pointer;
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+}
+input[type='submit']:disabled	{
+	background-color: #1EB206;
+    border: none;
+    border-radius: 10px;
+    color: #b20000;
+    padding: 7px 7px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 0.6em;
+	font-weight: bold;
+    margin: 4px 2px;
+    cursor: pointer;
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+}
+
+
+label 					{ white-space: nowrap; }
+caption					{ margin-bottom: 1em; }
+span.vlabel				{ display: block; padding-top: 1em;}
+span.vlabel label		{ text-align: right; width: 8em; display: inline-block; }
+span.vlabel label.wide	{ text-align: right; width: 12em; display: inline-block; }
+span.xlabel:before		{ content: '\A\A'; white-space: pre; }
+input[name="BikeReg"]	{ width: 6em; }
+select[name="EntrantStatus"]	{ margin-bottom: 1em; }
+fieldset				{ margin-bottom: 1em; }
+input[name="FinishPosition"]	{ width: 3em; }
+input[name="BonusID[]"]	{ width: 3em; }
+input[name="OdoCheckMiles"]	{ width:3em; }
+input.smallnumber		{ width: 3em; }
+.link:hover				{ cursor: pointer; background-color: lightgray;}
+
+/* Tabbed interface */
+ul#tabs { list-style-type: none; margin: 30px 0 0 0; padding: 0 0 0.3em 0; }
+ul#tabs li { display: inline; }
+ul#tabs li a { color: #42454a; background-color: #dedbde; border: 1px solid #c9c3ba; border-bottom: none; padding: 0.3em; text-decoration: none;  
+
+	border-top-left-radius: 10px; border-top-right-radius: 10px;
+
+    background:      -o-linear-gradient(to top, #ECECEC 50%, #D1D1D1 100%);
+    background:     -ms-linear-gradient(to top, #ECECEC 50%, #D1D1D1 100%);
+    background:    -moz-linear-gradient(to top, #ECECEC 50%, #D1D1D1 100%);
+    background: -webkit-linear-gradient(to top, #ECECEC 50%, #D1D1D1 100%);
+    background: linear-gradient(to top, #ECECEC 50%, #D1D1D1 100%);
+    box-shadow: 0 3px 3px rgba(0, 0, 0, 0.4), inset 0 1px 0 #FFF;
+    text-shadow: 0 1px #FFF;
+    margin: 0 5px;
+    padding: 0 2px;
+
+
+
+}
+ul#tabs li a:hover { background-color: #f1f0ee; }
+ul#tabs li a.selected { color: #000; background-color: #f1f0ee; font-weight: bold; padding: 0.7em 0.3em 0.38em 0.3em; }
+.tabContent { border: 10px solid #c9c3ba;  padding: 0.5em;  display:inherit; }
+.tabContenthide { display: none; }
+.tabcell	{ display: table-cell; }
+
+.compulsory		{ font-weight: bold; }
+.techie			{ font-size: .6em; } /* For largely uninteresting items */
+.slogan			{ font-size: .8em; font-style: italic; text-align: center; }
+
+#header			{ background-color: lightgray; border-bottom: solid; }
+#hdrRallyTitle 	{ padding-left: 1em; }
+#hdrOtherInfo 	{ padding-right: 1em; float: right; }
+#frontpage		{ margin-top: 3em; margin-left: 3em; font-size: 1.3em; }
+#ScoreHeader 	{ margin-top: 1em; padding-bottom: .5em; border-bottom: solid;  max-width: 100%; }
+#ScoreHeader span { margin-left: 1em; margin-right: 1em; white-space: nowrap; }
+
+#ScoreHeader.manualscoring span:before
+				{ content: '\A\A'; white-space: pre; }
+
+span.keep		{ white-space: nowrap; display: inline-block; }
+
+#footer			{ background-color: lightgray; border-top: solid; position: fixed; bottom: 0; margin-bottom: .1em; width: 98%;}
+#ftrAdminMenu	{ padding-left: 1em; padding-right: 1em; float: right; }
+
+.menulist		{ list-style-type: none; }
+
+#sgroups		{ margin-top: 2em; }
+#sgroups td		{ padding-bottom: 2em; padding-right: 2em; }
+
+#adminMM		{ margin-left: auto; margin-right: auto; width: 12em;}
+#adminMM *		{ display: inline-block; width: 100%; text-align: center; margin-left: auto; margin-right: auto; padding-left: 0; padding-right: 0; }
+#adminMM a		{ text-decoration: none; }
+#adminMM a:hover{ background: lightgray; }
+#adminMM a:visited { color: #b20000; /* #FF0076; */ }
+#adminMM a:link	{
+	background-color: #00ff48; /*#2BFF2F;*/
+    border: none;
+    border-radius: 10px;
+    color: #b20000;
+    padding: 7px 7px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 0.6em;
+	font-weight: bold;
+    margin: 4px 2px;
+    cursor: pointer;
+    box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+}
+
+table#entrants	th.EntrantID	{ text-align: left; }
+table#entrants	td.EntrantID	{ text-align: center; }
+table#entrants	.RiderName,.PillionName,.Bike	{ text-align: left; }
+table#entrants	.FinishPosition,.TotalPoints,.CorrectedMiles	{ text-align: center; }
+
+
+#header a		{ text-decoration: none; }
+#header a:link	{ color: black; }
+#header a:visited	{ color: black; }
+
+#footer a		{ text-decoration: none; }
+#footer a:link	{ color: black; }
+#footer a:visited	{ color: black; }
+
+/* Use different background colour for output only items */
+#tab_combos		{ background-color: #66D2FF; margin-top: .8em; } 
+
+#cat_results	{ background-color: #66D2FF; }
+#cat_results td.catdesc { width: 6em; text-align: right; padding-right: .5em; }
+#cat_results caption { border-bottom: solid; margin-bottom: .1em; font-style: italic; }
+#cat1			{ background-color: inherit; float:left; display: block; padding-left: .5em; padding-right: .5em; font-size:.8em; }
+#cat2			{ margin-left: .2em; background-color: inherit; float:left; display: block; padding-left: .1em; padding-right: .5em;  font-size:.8em; }
+#cat3			{ margin-left: .2em; background-color: inherit; float:left; display: block; padding-left: .1em; padding-right: .5em;  font-size:.8em; }
+
+/* Score explanation */
+.scorex			{  }
+.scorex table,caption	{ background-color: #66D2FF; margin-left: auto; margin-right: auto; }
+.scorex	caption	{ border: solid; padding: .5em; }
+.scorex	tr:last-of-type td 	{ border-top: solid; }
+.scorex .bp		{ padding-left:1em; padding-right:.3em; text-align: right; }
+.scorex .bm		{ padding-left:1em; padding-right:.3em; text-align: right; }
+.scorex .tp		{ padding-left:1em; padding-right:.3em; text-align: right; }
+.hidescorex		{ display:none; }
+.showscorex		{ display:inherit; }
+
+.hide			{ display:none; } /* General purpose content hider */
+
+.clickme		{ cursor: pointer; }
+
+/* Help about */
+
+#helpabout		{ margin-left: auto; margin-right: auto; max-width: 40em; border: solid; padding:.2em; margin-top:1em; background-color: white; font-size:.8em;}
+#helpabout h1	{ text-align:center; }
+#helpabout dd	{ font-weight: bold; }
+
+
+
+/* Right-click claim reject menu */
+#rcmenu { 
+	border:solid 1px #CCC; 
+	position: absolute; 
+	z-index: 10; 
+	background-color: lightgray; 
+	width: 8em; 
+}
+#rcmenu ul { list-style-type: none; margin: 0; padding: 0; font-size: .75em; }
+#rcmenu li { border-bottom:solid 1px #CCC; }
+#rcmenu li:last-child { border:none; }
+#rcmenu li a {
+    display:block;
+    text-decoration:none;
+    color:blue;
+	 padding-left: .5em; padding-right: .5em; 
+}
+#rcmenu li a:hover {
+    background:blue;
+	cursor: pointer; 
+    color:#FFF;
+}
+
+/* Used to specifically style three bonus states */
+.showbonus		{ white-space: nowrap; display: inline-block; padding-left: 2px; padding-right: 2px; }
+.rejected,.rejected > *		{background-color: red; color: white; }
+.checked,.checked > * 		{background-color: #31ad16; color: white; }
+.unchecked,.unchecked > * 	{background-color: inherited; color: inherited; }
+
+#setupwiz	{ 
+	background-color: white;
+	max-width: 40em; 
+	margin: 3em auto 3em;
+	padding: .5em;
+	border: solid; 
+}
+.wizitem	{
+	border-bottom: dotted;
+	padding-bottom: .5em;
+	display:block;
+}
+.wizhide	{
+	display:none;
+}
+
+.wizbutton	{
+	font-size: 1.1em !important;
+}
+
+@media print {
+.noprint		{ display: none !important; }
+.scorex			{ page-break-after: always; }
+}
