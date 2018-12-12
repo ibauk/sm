@@ -243,12 +243,14 @@ function showAdminMenu()
 {
 	global $DB;
 
-	$R = $DB->query("SELECT DBState FROM rallyparams");
+	if ($R = $DB->query("SELECT DBState FROM rallyparams"))
+	{
 	$rd = $R->fetchArray();
 	if ($rd['DBState'] == 0) // Database is in initial virgin state
 	{
 		include("setup.php");
 		exit;
+	}
 	}
 	show_menu('admin');
 	
@@ -324,7 +326,7 @@ function show_menu($menuid)
 	$menulbl = $rd['menulbl'];
 	$functions = explode(',',$rd['menufuncs']);
 	echo('<div id="adminMM">');
-	echo('<h4 title="'.$TAGS[$menulbl][1].'">'.$TAGS[$menulbl][0].$menubl.'</h4>');
+	echo('<h4 title="'.$TAGS[$menulbl][1].'">'.$TAGS[$menulbl][0].'</h4>');
 	echo('<ul class="menulist">');
 	foreach($functions as $f)
 	{

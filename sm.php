@@ -510,6 +510,8 @@ function triggerNewRow(obj)
 	}
 	//print_r($cats1);
 	
+	$showclaimsbutton = (getValueFromDB("SELECT count(*) As rex FROM entrants","rex",0)>0);
+	
 	echo('<input type="hidden" name="c" value="bonuses">');
 	echo('<input type="hidden" name="menu" value="setup">');
 	echo("\r\n");
@@ -528,6 +530,8 @@ function triggerNewRow(obj)
 		echo('<th>'.$cat3label.'</th>');
 	echo('<th>'.$TAGS['CompulsoryBonus'][0].'</th>');
 	echo('<th>'.$TAGS['DeleteEntryLit'][0].'</th>');
+	if ($showclaimsbutton)
+		echo('<th class="ClaimsCount">'.$TAGS['ShowClaimsCount'][0].'</th>');
 	echo("</tr>\r\n");
 	echo('</thead><tbody>');
 	
@@ -581,13 +585,21 @@ function triggerNewRow(obj)
 			$chk = " checked ";
 		else
 			$chk = "";
-		echo('<td class="center"><input type="checkbox"'.$chk.' name="Compulsory[]" value="'.$rd['BonusID'].'">');
-		echo('<td class="center"><input type="checkbox" name="DeleteEntry[]" value="'.$rd['BonusID'].'">');
+		echo('<td class="center"><input type="checkbox"'.$chk.' name="Compulsory[]" value="'.$rd['BonusID'].'"></td>');
+		echo('<td class="center"><input type="checkbox" name="DeleteEntry[]" value="'.$rd['BonusID'].'"></td>');
+		if ($showclaimsbutton)
+		{
+			$rex = getValueFromDB("SELECT count(*) As rex FROM entrants WHERE ',' || BonusesVisited || ',' LIKE '%,".$rd['BonusID'].",%'","rex",0);
+			echo('<td class="ClaimsCount" title="'.$TAGS['ShowClaimsButton'][1].'">');
+			if ($rex > 0)
+				echo('<a href='."'entrants.php?c=entrants&mode=bonus&bonus=".$rd['BonusID']."'".'> '.$rex.' </a>');
+			echo('</td>');
+		}
 		echo("</tr>\r\n");
 	}
 	echo('<tr class="newrow"><td><input class="BonusID" type="text" name="BonusID[]" onchange="triggerNewRow(this)"></td>');
 	echo('<td><input type="text" name="BriefDesc[]"></td>');
-	echo('<td><input type="number" name="Points[]" value="'.$rd['Points'].'"></td>');
+	echo('<td><input type="number" name="Points[]" value="'.$rd['Points'].'</td>');
 	if (count($cats1) > 0)
 	{
 		echo('<td><select name="Cat1Entry[]">');
@@ -725,6 +737,7 @@ function showCombinations()
 	global $DB, $TAGS, $KONSTANTS;
 	
 
+	$showclaimsbutton = (getValueFromDB("SELECT count(*) As rex FROM entrants","rex",0)>0);
 	
 	$R = $DB->query('SELECT * FROM combinations ORDER BY ComboID');
 	if (!$rd = $R->fetchArray())
@@ -757,6 +770,8 @@ function triggerNewRow(obj)
 	echo('<th>'.$TAGS['PointsMults'][0].'</th>');
 	echo('<th>'.$TAGS['BonusListLit'][0].'</th>');
 	echo('<th>'.$TAGS['DeleteEntryLit'][0].'</th>');
+	if ($showclaimsbutton)
+		echo('<th class="ClaimsCount">'.$TAGS['ShowClaimsCount'][0].'</th>');
 	echo('</tr>');
 	echo('</thead><tbody>');
 	
@@ -776,6 +791,14 @@ function triggerNewRow(obj)
 		echo('<td><input class="ScorePoints" type="number" name="ScorePoints[]" value="'.$rd['ScorePoints'].'"></td>');
 		echo('<td><input class="Bonuses" type="text" name="Bonuses[]" value="'.$rd['Bonuses'].'" ></td>');
 		echo('<td class="center"><input type="checkbox" name="DeleteEntry[]" value="'.$rd['ComboID'].'">');
+		if ($showclaimsbutton)
+		{
+			$rex = getValueFromDB("SELECT count(*) As rex FROM entrants WHERE ',' || CombosTicked || ',' LIKE '%,".$rd['ComboID'].",%'","rex",0);
+			echo('<td class="ClaimsCount" title="'.$TAGS['ShowClaimsButton'][1].'">');
+			if ($rex > 0)
+				echo('<a href='."'entrants.php?c=entrants&mode=combo&bonus=".$rd['ComboID']."'".'> '.$rex.' </a>');
+			echo('</td>');
+		}
 		echo('</tr>');
 	}
 	echo('<tr class="newrow"><td><input type="text" name="ComboID[]" onchange="triggerNewRow(this)"></td>');
@@ -849,7 +872,7 @@ function triggerNewRow(obj)
 	{
 		echo('<tr class="hoverlite">');
 
-		echo('<td><input type="hidden" name="id[]" value="'.$rd['id'].'"><select onchange="enableSaveButton();" name="axis[]">');
+		echo('<td title="'.$TAGS['AxisLit'][1].'"><input type="hidden" name="id[]" value="'.$rd['id'].'"><select onchange="enableSaveButton();" name="axis[]">');
 		for ($i=1;$i<=3;$i++)
 		{
 			echo("<option value=\"$i\"");
@@ -860,7 +883,7 @@ function triggerNewRow(obj)
 		echo('</select></td>');
 		
 		echo('</select></td>');
-		echo('<td><select onchange="enableSaveButton();" name="ModBonus[]">');
+		echo('<td title="'.$TAGS['ModBonusLit'][1].'"><select onchange="enableSaveButton();" name="ModBonus[]">');
 		for ($i=0;$i<=1;$i++)
 		{
 			echo("<option value=\"$i\"");
@@ -870,7 +893,7 @@ function triggerNewRow(obj)
 		}
 		
 		echo('</select></td>');
-		echo('<td><select onchange="enableSaveButton();" name="NMethod[]">');
+		echo('<td title="'.$TAGS['NMethodLit'][1].'"><select onchange="enableSaveButton();" name="NMethod[]">');
 		for ($i=-1;$i<=1;$i++)
 		{
 			echo("<option value=\"$i\"");
@@ -878,8 +901,8 @@ function triggerNewRow(obj)
 				echo(' selected');
 			echo('>'.$TAGS['NMethod'.$i][1].'</option>');
 		}
-		echo('<td><input onchange="enableSaveButton();" type="number" name="NMin[]" value="'.$rd['NMin'].'"></td>');
-		echo('<td><select onchange="enableSaveButton();" name="PointsMults[]">');
+		echo('<td title="'.$TAGS['NMinLit'][1].'"><input onchange="enableSaveButton();" type="number" name="NMin[]" value="'.$rd['NMin'].'"></td>');
+		echo('<td title="'.$TAGS['PointsMults'][1].'"><select onchange="enableSaveButton();" name="PointsMults[]">');
 		for ($i=0;$i<=1;$i++)
 		{
 			echo("<option value=\"$i\"");
@@ -888,7 +911,7 @@ function triggerNewRow(obj)
 			echo('>'.$TAGS['PointsMults'.$i][1].'</option>');
 		}
 		echo('</select>');
-		echo('<td><input onchange="enableSaveButton();" type="number" name="NPower[]"  value="'.$rd['NPower'].'"></td>');
+		echo('<td title="'.$TAGS['NPowerLit'][1].'"><input onchange="enableSaveButton();" type="number" name="NPower[]"  value="'.$rd['NPower'].'"></td>');
 		echo('<td><input onchange="enableSaveButton();" type="checkbox" name="DeleteEntry[]" value="'.$rd['id'].'">');
 		echo('</tr>');
 	}
@@ -930,7 +953,7 @@ function showNewCompoundCalc()
 	echo('<input type="hidden" name="c" value="catcalcs">');
 	echo('<input type="hidden" name="menu" value="setup">');
 	echo('<input type="hidden" name="newcc" value="1">');
-	echo('<span class="vlabel">');
+	echo('<span class="vlabel" title="'.$TAGS['AxisLit'][1].'">');
 	echo('<label for="axis">'.$TAGS['AxisLit'][0].'</label> ');
 	echo('<select id="axis" name="axis">');
 	for ($i=1;$i<=3;$i++)
@@ -943,7 +966,7 @@ function showNewCompoundCalc()
 	echo('</select> ');
 	echo('</span>');
 		
-	echo('<span class="vlabel">');
+	echo('<span class="vlabel" title="'.$TAGS['ModBonusLit'][1].'">');
 	echo('<label for="ModBonus">'.$TAGS['ModBonusLit'][0].'</label> ');
 	echo('<select name="ModBonus">');
 	for ($i=0;$i<=1;$i++)
@@ -956,7 +979,7 @@ function showNewCompoundCalc()
 	echo('</select>');
 	echo('</span>');
 	
-	echo('<span class="vlabel">');
+	echo('<span class="vlabel" title="'.$TAGS['NMethodLit'][1].'">');
 	echo('<label for="NMethod">'.$TAGS['NMethodLit'][0].'</label> ');
 	echo('<select name="NMethod">');
 	echo('<option value="0" selected>'.$TAGS['NMethod0'][1].'</option>');
@@ -965,12 +988,12 @@ function showNewCompoundCalc()
 	echo('</select> ');
 	echo('</span>');
 	
-	echo('<span class="vlabel">');
+	echo('<span class="vlabel" title="'.$TAGS['NMinLit'][1].'">');
 	echo('<label for="NMin">'.$TAGS['NMinLit'][0].'</label> ');
 	echo('<input type="number" name="NMin" value="1">');
 	echo('</span>');
 	
-	echo('<span class="vlabel">');
+	echo('<span class="vlabel" title"'.$TAGS['PointsMults'][1].'">');
 	echo('<label for="PointsMults">'.$TAGS['PointsMults'][0].'</label> ');
 	echo('<select name="PointsMults">');
 	for ($i=0;$i<=1;$i++)
@@ -983,7 +1006,7 @@ function showNewCompoundCalc()
 	echo('</select>');
 	echo('</span>');
 	
-	echo('<span class="vlabel">');
+	echo('<span class="vlabel" title="'.$TAGS['NPowerLit'][1].'">');
 	echo('<label for="NPower">'.$TAGS['NPowerLit'][0].'</label> ');
 	echo('<input type="number" name="NPower"  value="0">');
 	echo('</span>');
@@ -1267,6 +1290,7 @@ function showSpecials()
 	global $DB, $TAGS, $KONSTANTS;
 	
 
+	$showclaimsbutton = (getValueFromDB("SELECT count(*) As rex FROM entrants","rex",0)>0);
 	
 	$R = $DB->query('SELECT * FROM specials ORDER BY BonusID');
 	if (!$rd = $R->fetchArray())
@@ -1300,6 +1324,8 @@ function triggerNewRow(obj)
 	echo('<th>'.$TAGS['SpecialMultLit'][0].'</th>');
 	echo('<th>'.$TAGS['CompulsoryBonus'][0].'</th>');
 	echo('<th>'.$TAGS['DeleteEntryLit'][0].'</th>');
+	if ($showclaimsbutton)
+		echo('<th class="ClaimsCount">'.$TAGS['ShowClaimsCount'][0].'</th>');
 	echo('</tr>');
 	echo('</thead><tbody>');
 	
@@ -1321,6 +1347,14 @@ function triggerNewRow(obj)
 			$chk = "";
 		echo('<td class="center"><input type="checkbox"'.$chk.' name="Compulsory[]" value="'.$rd['BonusID'].'">');
 		echo('<td class="center"><input type="checkbox" name="DeleteEntry[]" value="'.$rd['BonusID'].'">');
+		if ($showclaimsbutton)
+		{
+			$rex = getValueFromDB("SELECT count(*) As rex FROM entrants WHERE ',' || SpecialsTicked || ',' LIKE '%,".$rd['BonusID'].",%'","rex",0);
+			echo('<td class="ClaimsCount" title="'.$TAGS['ShowClaimsButton'][1].'">');
+			if ($rex > 0)
+				echo('<a href='."'entrants.php?c=entrants&mode=special&bonus=".$rd['BonusID']."'".'> '.$rex.' </a>');
+			echo('</td>');
+		}
 		echo('</tr>');
 	}
 	echo('<tr class="newrow"><td><input type="text" name="BonusID[]" onchange="triggerNewRow(this)"></td>');

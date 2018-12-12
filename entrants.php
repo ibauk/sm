@@ -55,7 +55,7 @@ function fetchShowEntrant()
 	$R = $DB->query($sql);
 	
 	if ($rd = $R->fetchArray())
-		if ($_REQUEST['mode']=='full')
+		if ($_REQUEST['mode']!='check')
 			showEntrantRecord($rd);
 		else
 			showEntrantChecks($rd);
@@ -76,6 +76,22 @@ function listEntrants($ord = "EntrantID")
 	$sql = "SELECT *,substr(RiderName,1,RiderPos-1) As RiderFirst";
 	$sql .= ",substr(RiderName,RiderPos+1) As RiderLast";
 	$sql .= " FROM (SELECT *,instr(RiderName,' ') As RiderPos FROM entrants) ";
+	$bonus = '';
+	if ($_REQUEST['mode']=='bonus')
+	{
+		$bonus = $_REQUEST['bonus'];
+		$sql .= " WHERE ',' || BonusesVisited || ',' LIKE '%,$bonus,%'";
+	}
+	if ($_REQUEST['mode']=='special')
+	{
+		$bonus = $_REQUEST['bonus'];
+		$sql .= " WHERE ',' || SpecialsTicked || ',' LIKE '%,$bonus,%'";
+	}
+	if ($_REQUEST['mode']=='combo')
+	{
+		$bonus = $_REQUEST['bonus'];
+		$sql .= " WHERE ',' || CombosTicked || ',' LIKE '%,$bonus,%'";
+	}
 	if ($ord <> '')
 		$sql .= " ORDER BY $ord";
 	//echo('<br>listEntrants: '.$sql.'<br>');
@@ -85,11 +101,17 @@ function listEntrants($ord = "EntrantID")
 		$_REQUEST['mode'] = 'full';
 
 	echo('<table id="entrants">');
+	$eltag = "EntrantList".ucfirst($_REQUEST['mode']);
+	echo('<caption title="'.htmlentities($TAGS[$eltag][1]).'">'.htmlentities($TAGS[$eltag][0]).' '.$bonus.'</caption>');
+	/**
 	if ($_REQUEST['mode']=='full')
 		echo('<caption title="'.htmlentities($TAGS['EntrantListFull'][1]).'">'.htmlentities($TAGS['EntrantListFull'][0]).'</caption>');
+	else if ($_REQUEST['mode']=='bonus')
+		echo('<caption title="'.htmlentities($TAGS['EntrantListBonus'][1]).'">'.htmlentities($TAGS['EntrantListBonus'][0]).' '.$bonus.'</caption>');
 	else
 		echo('<caption title="'.htmlentities($TAGS['EntrantListCheck'][1]).'">'.htmlentities($TAGS['EntrantListCheck'][0]).'</caption>');
-		
+	**/
+	
 	echo('<thead><tr><th class="EntrantID"><a href="entrants.php?c=entrants&amp;ord=EntrantID&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['EntrantID'][0].'</a></th>');
 	if ($ord == 'RiderName' || $ord == 'RiderFirst')
 		$riderord = 'RiderLast';
@@ -101,7 +123,7 @@ function listEntrants($ord = "EntrantID")
 	if ($ShowTeamCol && $_REQUEST['mode']=='full')
 		echo('<th class="TeamID"><a href="entrants.php?c=entrants&amp;ord=TeamID&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['TeamID'][0].'</a></th>');
 	echo('<th class="EntrantStatus"><a href="entrants.php?c=entrants&amp;ord=EntrantStatus&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['EntrantStatus'][0].'</a></th>');
-	if ($_REQUEST['mode']=='full')
+	if ($_REQUEST['mode']!='check')
 	{
 		echo('<th class="FinishPosition"><a href="entrants.php?c=entrants&amp;ord=EntrantStatus DESC,FinishPosition&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['FinishPosition'][0].'</a></th>');
 		echo('<th class="TotalPoints"><a href="entrants.php?c=entrants&amp;ord=TotalPoints&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['TotalPoints'][0].'</a></th>');
@@ -117,7 +139,7 @@ function listEntrants($ord = "EntrantID")
 		echo('<td class="RiderName">'.$rd['RiderName'].'</td>');
 		echo('<td class="PillionName">'.$rd['PillionName'].'</td>');
 		echo('<td class="Bike">'.$rd['Bike'].'</td>');
-		if ($ShowTeamCol && $_REQUEST['mode']=='full')
+		if ($ShowTeamCol && $_REQUEST['mode']!='check')
 		{
 			echo('<td class="TeamID">');
 			if ($rd['TeamID'] <> 0)
@@ -646,7 +668,11 @@ function showEntrantRecord($rd)
 		$ro = '';
 	else
 		$ro = ' readonly ';
-	echo('<input type="text"  onchange="enableSaveButton();"  class="number"  '.$ro.' name="EntrantID" id="EntrantID" value="'.$rd['EntrantID'].'">'.' '.htmlspecialchars($rd['RiderName']).'</span>');
+	echo('<input type="text"  onchange="enableSaveButton();"  class="number"  '.$ro.' name="EntrantID" id="EntrantID" value="'.$rd['EntrantID'].'">');
+	echo(' '.htmlspecialchars($rd['RiderName']).' ');
+	echo('<input title="'.$TAGS['ScoreNow'][1].'" id="ScoreNowButton" type="button" value="'.$TAGS['ScoreNow'][0].'"');
+	echo(' onclick="window.open('."'score.php?c=score&amp;EntrantID=".$rd['EntrantID']."','score'".')">');
+	echo('</span> ');
 	
 	echo('<div class="tabs_area" style="display:inherit"><ul id="tabs">');
 	echo('<li><a href="#tab_basic">'.$TAGS['BasicDetails'][0].'</a></li>');

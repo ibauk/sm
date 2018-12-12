@@ -73,7 +73,7 @@ function absolutePath($webfile)
 
 function showAbout()
 {
-	global $PROGRAM, $TAGS, $DBFILENAME, $DB;
+	global $PROGRAM, $TAGS, $DBFILENAME, $DB, $KONSTANTS;
 	
 	startHtml();
 	
@@ -106,9 +106,28 @@ function showAbout()
 	echo('<dt title="'.$TAGS['abtDatabase'][1].'">'.$TAGS['abtDatabase'][0].'</dt><dd>'.absolutePath($DBFILENAME).'</dd>');
 	echo('</dl><hr>');
 	echo('<dl class="techie">');
-	$R = $DB->query("SELECT DBVersion FROM rallyparams");
-	$rd = $R->fetchArray();
-	echo('<dt title="'.$TAGS['abtDBVersion'][1].'">'.$TAGS['abtDBVersion'][0].'</dt><dd>'.$rd['DBVersion'].'</dd>');
+	echo('<dt title="'.$TAGS['abtOnlineDoc'][1].'">'.$TAGS['abtOnlineDoc'][0].'</dt>');
+	echo('<dd>');
+	echo('<span class="dox" title="'.$TAGS['abtDocAdminGuide'][1].'">');
+	echo('<a href="https://docs.google.com/document/d/1SFTU79AvWniOubc6psYkj55m3JCwlYJp1QkSMSJzij4/edit" target="smdox">'.$TAGS['abtDocAdminGuide'][0].'</a>');
+	echo('</span>');
+	echo('<span class="dox" title="'.$TAGS['abtDocDBSpec'][1].'">');
+	echo('<a href="https://docs.google.com/document/d/1oRSSBPdAJdHNgKaB3ZlFlFsqYm-PtBxjBkM7-QwG9xo/edit" target="smdox">'.$TAGS['abtDocDBSpec'][0].'</a>');
+	echo('</span>');
+	echo('<span class="dox" title="'.$TAGS['abtDocTechRef'][1].'">');
+	echo('<a href="https://docs.google.com/document/d/1IUiCZhgov1RSNxQ26CvoiSGEdEyFchIaFsXWaLnvUjM/edit" target="smdox">'.$TAGS['abtDocTechRef'][0].'</a>');
+	echo('</span>');
+	echo('</dd>');
+	echo('</dl><hr>');
+	echo('<dl class="techie">');
+	$dbversion = 0;
+	if ($R = $DB->query("SELECT DBVersion FROM rallyparams"))
+	{
+		$rd = $R->fetchArray();
+		$dbversion = $rd['DBVersion'];
+	}
+	echo('<dt title="'.$TAGS['abtDBVersion'][1].'">'.$TAGS['abtDBVersion'][0].'</dt><dd>'.$dbversion.'</dd>');
+	
 	echo('<dt title="'.$TAGS['abtHostOS'][1].'">'.$TAGS['abtHostOS'][0].'</dt><dd>'.php_uname('s').' [ '.php_uname('v').' ]</dd>');
 	echo('<dt title="'.$TAGS['abtWebserver'][1].'">'.$TAGS['abtWebserver'][0].'</dt><dd>'.$_SERVER['SERVER_SOFTWARE'].'</dd>');
 	echo('<dt title="'.$TAGS['abtPHP'][1].'">'.$TAGS['abtPHP'][0].'</dt><dd>'.phpversion().'</dd>');

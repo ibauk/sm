@@ -105,6 +105,8 @@ ul#tabs li a.selected { color: #000; background-color: #f1f0ee; font-weight: bol
 .compulsory		{ font-weight: bold; }
 .techie			{ font-size: .6em; } /* For largely uninteresting items */
 .slogan			{ font-size: .8em; font-style: italic; text-align: center; }
+.ClaimsCount	{ padding-left: 1em; text-align: right; }
+#ScoreNowButton	{ background-color: white; color: black; margin-left: 3em;}
 
 #header			{ background-color: lightgray; border-bottom: solid; }
 #hdrRallyTitle 	{ padding-left: 1em; }
@@ -192,7 +194,7 @@ table#entrants	.FinishPosition,.TotalPoints,.CorrectedMiles	{ text-align: center
 #helpabout h1	{ text-align:center; }
 #helpabout dd	{ font-weight: bold; }
 
-
+.dox			{ margin-left: 1em; } /* documentation links in HelpAbout */
 
 /* Right-click claim reject menu */
 #rcmenu { 
