@@ -60,17 +60,23 @@ function savePage($page_number)
 				$sql_fields .= "'".$DB->escapeString($rv)."'";
 				break;
 			case 'StartTime':
-				$sql_fields .= "'".$DB->escapeString($_REQUEST['StartDate']).'T'.$DB->escapeString($_REQUEST['StartTime']);
+				if ($_REQUEST['StartDate'] != '' && $_REQUEST['StartTime'] != '')
+					$sql_fields .= "'".$DB->escapeString($_REQUEST['StartDate']).'T'.$DB->escapeString($_REQUEST['StartTime'])."'";
 				break;
 			case 'FinishTime':
-				$sql_fields .= "'".$DB->escapeString($_REQUEST['FinishDate']).'T'.$DB->escapeString($_REQUEST['FinishTime']);
+				if ($_REQUEST['FinishDate'] != '' && $_REQUEST['FinishTime'] != '')
+					$sql_fields .= "'".$DB->escapeString($_REQUEST['FinishDate']).'T'.$DB->escapeString($_REQUEST['FinishTime'])."'";
 				break;
 			default:
 				$sql_fields .= $rv;
 		}
 	}
 	//echo($sql.$sql_fields);
-	$DB->exec($sql.$sql_fields);
+	if ($DB->exec($sql.$sql_fields)==FALSE)
+	{
+		echo("OMG! - ".$DB->lastErrorMsg());
+	}
+	
 }
 
 
@@ -98,7 +104,7 @@ function showPage($page_number)
 			echo('<h2>'.$TAGS['WizTitle'][0].'</h2>');
 			echo('<div class="wizitem"><p>'.$TAGS['RallyTitle'][1].'</p>');
 			echo('<label for "RallyTitle">'.$TAGS['RallyTitle'][0].'</label> ');
-			echo('<input type="text" name="RallyTitle" id="RallyTitle" value="'.$rd['RallyTitle'].'">');
+			echo('<input autofocus type="text" name="RallyTitle" id="RallyTitle" value="'.$rd['RallyTitle'].'">');
 			echo('</div>');
 			echo('<div class="wizitem"><p>'.$TAGS['RallySlogan'][1].'</p>');
 			echo('<label for "RallySlogan">'.$TAGS['RallySlogan'][0].'</label> ');
@@ -110,10 +116,15 @@ function showPage($page_number)
 			echo('</div>');
 			break;
 		case 2:
+			if ($rd['StartTime']=='')
+			{
+				$rd['StartTime'] = date("Y-m-d 09:00");
+				$rd['FinishTime'] = date("Y-m-d 18:00");
+			}
 			$dt = splitDatetime($rd['StartTime']); 
 			echo('<div class="wizitem"><p>'.$TAGS['StartDate'][1].'</p>');
 			echo('<label for "StartDate">'.$TAGS['StartDate'][0].'</label> ');
-			echo('<input type="date" name="StartDate" id="StartDate" value="'.$dt[0].'">');
+			echo('<input autofocus type="date" name="StartDate" id="StartDate" value="'.$dt[0].'">');
 			echo('</div>');
 			echo('<div class="wizitem"><p>'.$TAGS['StartTime'][1].'</p>');
 			echo('<label for "StartTime">'.$TAGS['StartTime'][0].'</label> ');
@@ -133,7 +144,7 @@ function showPage($page_number)
 			echo('<div class="wizitem"><p>'.$TAGS['OdoCheckUsed'][1].'</p>');
 			echo('<label for "OdoCheckUsed">'.$TAGS['OdoCheckUsed'][0].'</label> ');
 			$js = "document.getElementById('ocmDiv').className=(document.getElementById('OdoCheckUsed').checked?'':'wizhide');";
-			echo('<input type="checkbox" name="OdoCheckUsed" id="OdoCheckUsed" '.isChecked($rd['OdoCheckMiles']).' onchange="'.$js.'">');
+			echo('<input autofocus type="checkbox" name="OdoCheckUsed" id="OdoCheckUsed" '.isChecked($rd['OdoCheckMiles']).' onchange="'.$js.'">');
 			
 			$wclss = (isChecked($rd['OdoCheckMiles'])!= '' ? '' : 'wizhide');
 			echo(' &nbsp;&nbsp;&nbsp;<span id="ocmDiv" class="'.$wclss.'" title="'.$TAGS['OdoCheckMiles'][1].'">');

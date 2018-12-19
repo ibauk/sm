@@ -89,7 +89,7 @@ function editCertificate()
 {
 	global $DB, $TAGS, $KONSTANTS;
 
-	$EntrantID = intval($_REQUEST['EntrantID']);
+	$EntrantID = (isset($_REQUEST['EntrantID']) ? intval($_REQUEST['EntrantID']) : 0);
 	$class = 0;
 	if (isset($_REQUEST['Class']))
 		$class = $_REQUEST['Class'];
@@ -510,6 +510,7 @@ function isZapDBCommand()
 	
 }
 
+global $TAGS;
 
 startHtml('<a href="about.php" class="techie" title="'.$TAGS['HelpAbout'][1].'">'.$TAGS['HelpAbout'][0].'</a>');
 //var_dump($_REQUEST);

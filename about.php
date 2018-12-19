@@ -80,7 +80,8 @@ function showAbout()
 	
 	$serveraddr = $_SERVER['HTTP_HOST'];
 
-	$serveraddr = gethostbynamel($_SERVER['SERVER_ADDR']);
+	if (isset($_SERVER['SERVER_ADDR']))
+		$serveraddr = gethostbynamel($_SERVER['SERVER_ADDR']);
 	if ($serveraddr=='')
 		$serveraddr = $_SERVER['LOCAL_ADDR'];
 	

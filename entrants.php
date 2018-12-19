@@ -29,7 +29,7 @@
  */
 
 
-$HOME_URL = 'admin.php';
+$HOME_URL = 'admin.php?menu=entrant';
 
 /*
  *
@@ -77,20 +77,23 @@ function listEntrants($ord = "EntrantID")
 	$sql .= ",substr(RiderName,RiderPos+1) As RiderLast";
 	$sql .= " FROM (SELECT *,instr(RiderName,' ') As RiderPos FROM entrants) ";
 	$bonus = '';
-	if ($_REQUEST['mode']=='bonus')
+	if (isset($_REQUEST['mode']))
 	{
-		$bonus = $_REQUEST['bonus'];
-		$sql .= " WHERE ',' || BonusesVisited || ',' LIKE '%,$bonus,%'";
-	}
-	if ($_REQUEST['mode']=='special')
-	{
-		$bonus = $_REQUEST['bonus'];
-		$sql .= " WHERE ',' || SpecialsTicked || ',' LIKE '%,$bonus,%'";
-	}
-	if ($_REQUEST['mode']=='combo')
-	{
-		$bonus = $_REQUEST['bonus'];
-		$sql .= " WHERE ',' || CombosTicked || ',' LIKE '%,$bonus,%'";
+		if ($_REQUEST['mode']=='bonus')
+		{
+			$bonus = $_REQUEST['bonus'];
+			$sql .= " WHERE ',' || BonusesVisited || ',' LIKE '%,$bonus,%'";
+		}
+		else if ($_REQUEST['mode']=='special')
+		{
+			$bonus = $_REQUEST['bonus'];
+			$sql .= " WHERE ',' || SpecialsTicked || ',' LIKE '%,$bonus,%'";
+		}
+		else if ($_REQUEST['mode']=='combo')
+		{
+			$bonus = $_REQUEST['bonus'];
+			$sql .= " WHERE ',' || CombosTicked || ',' LIKE '%,$bonus,%'";
+		}
 	}
 	if ($ord <> '')
 		$sql .= " ORDER BY $ord";
@@ -102,7 +105,14 @@ function listEntrants($ord = "EntrantID")
 
 	echo('<table id="entrants">');
 	$eltag = "EntrantList".ucfirst($_REQUEST['mode']);
-	echo('<caption title="'.htmlentities($TAGS[$eltag][1]).'">'.htmlentities($TAGS[$eltag][0]).' '.$bonus.'</caption>');
+	echo('<caption title="'.htmlentities($TAGS[$eltag][1]).'">'.htmlentities($TAGS[$eltag][0]).' '.$bonus);
+	switch($_REQUEST['mode'])
+	{
+		case 'full':
+		case 'check':
+			echo(' <input type="button" value="'.$TAGS['AdmNewEntrant'][0].'" onclick="window.location='."'entrants.php?c=newentrant'".'">');
+	}
+	echo('</caption>');
 	/**
 	if ($_REQUEST['mode']=='full')
 		echo('<caption title="'.htmlentities($TAGS['EntrantListFull'][1]).'">'.htmlentities($TAGS['EntrantListFull'][0]).'</caption>');
@@ -172,7 +182,7 @@ function saveEntrantRecord()
 				'Bike','BikeReg','TeamID','Country','OdoKms','OdoCheckStart','OdoCheckFinish',
 				'OdoScaleFactor','OdoRallyStart','OdoRallyFinish','CorrectedMiles','FinishTime',
 				'BonusesVisited','SpecialsTicked','CombosTicked','TotalPoints','FinishPosition',
-				'EntrantStatus','ScoredBy','StartTime','Class');
+				'EntrantStatus','ScoredBy','StartTime','Class','OdoCheckTrip');
 
 	$fab = array('BonusesVisited' => 'BonusID','SpecialsTicked' => 'SpecialID', 'CombosTicked' => 'ComboID');
 	
@@ -182,7 +192,7 @@ function saveEntrantRecord()
 	//if (isset($_REQUEST['BonusID']))
 		//echo(" BonusID ");
 
-	$adding = $_REQUEST['EntrantID']=='';
+	$adding = !isset($_REQUEST['updaterecord']);
 	
 	if ($adding)
 	{
@@ -304,6 +314,7 @@ function showEntrantBonuses($bonuses,$rejections)
 	$REJ = parseStringArray($rejections,',','=');
 	$BA = explode(',',','.$bonuses); // The leading comma means that the first element is index 1 not 0
 	$R = $DB->query('SELECT * FROM bonuses ORDER BY BonusID');
+	$BP = array();
 	while ($rd = $R->fetchArray())
 	{
 		$BP[$rd['BonusID']] = $rd['BriefDesc'];
@@ -313,7 +324,7 @@ function showEntrantBonuses($bonuses,$rejections)
 		if ($bk <> '') {
 			$chk = array_search($bk, $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
 			echo('<span title="'.htmlspecialchars($b).'"');
-			if ($chk) echo(' class="keep checked"'); else if ($REJ['B'.$bk] != '') echo(' class="rejected"'); else echo(' class="keep"');
+			if ($chk) echo(' class="keep checked"'); else if (isset($REJ['B'.$bk]) && $REJ['B'.$bk] != '') echo(' class="rejected"'); else echo(' class="keep"');
 			echo('><label for="B'.$bk.'">'.$bk.' </label>');
 			echo('<input '.$ro.' type="checkbox"'.$chk.' name="BonusID[]" id="B'.$bk.'" value="'.$bk.'"> ');
 			echo('</span>'."\r\n");
@@ -332,7 +343,8 @@ function parseStringArray($str,$delim1,$delim2)
 	foreach($xx as $x)
 	{
 		$kvp = explode($delim2,$x);
-		$res[$kvp[0]] = $kvp[1];
+		if (count($kvp) > 1)
+			$res[$kvp[0]] = $kvp[1];
 	}
 	return $res;
 }
@@ -635,6 +647,7 @@ function showEntrantCombinations($Combos,$rejections)
 	$BAB = explode(',',','.$Combos); // The leading comma means that the first element is index 1 not 0
 	
 	$R = $DB->query('SELECT * FROM combinations ORDER BY ComboID');
+	$BA = array();
 	while ($rd = $R->fetchArray())
 	{
 		$BA[$rd['ComboID']] = $rd['BriefDesc'];
@@ -670,8 +683,12 @@ function showEntrantRecord($rd)
 		$ro = ' readonly ';
 	echo('<input type="text"  onchange="enableSaveButton();"  class="number"  '.$ro.' name="EntrantID" id="EntrantID" value="'.$rd['EntrantID'].'">');
 	echo(' '.htmlspecialchars($rd['RiderName']).' ');
-	echo('<input title="'.$TAGS['ScoreNow'][1].'" id="ScoreNowButton" type="button" value="'.$TAGS['ScoreNow'][0].'"');
-	echo(' onclick="window.open('."'score.php?c=score&amp;EntrantID=".$rd['EntrantID']."','score'".')">');
+	if (!$is_new_record)
+	{
+		echo('<input type="hidden" name="updaterecord" value="'.$rd['EntrantID'].'">');
+		echo('<input title="'.$TAGS['ScoreNow'][1].'" id="ScoreNowButton" type="button" value="'.$TAGS['ScoreNow'][0].'"');
+		echo(' onclick="window.open('."'score.php?c=score&amp;EntrantID=".$rd['EntrantID']."','score'".')">');
+	}
 	echo('</span> ');
 	
 	echo('<div class="tabs_area" style="display:inherit"><ul id="tabs">');
@@ -749,6 +766,9 @@ function showEntrantRecord($rd)
 	echo('<span  title="'.$TAGS['OdoCheckFinish'][1].' "><label for="OdoCheckFinish">'.$TAGS['OdoCheckFinish'][0].' </label> ');
 	echo('<input  onchange="odoAdjust();" type="number" step="any" name="OdoCheckFinish" id="OdoCheckFinish" value="'.$rd['OdoCheckFinish'].'"> </span>');
 	
+	echo('<span  title="'.$TAGS['OdoCheckTrip'][1].' "><label for="OdoCheckTrip">'.$TAGS['OdoCheckTrip'][0].' </label> ');
+	echo('<input  onchange="odoAdjust(true);" type="number" step="any" name="OdoCheckTrip" id="OdoCheckTrip" value="'.$rd['OdoCheckTrip'].'"> </span>');
+
 	echo('<span  class="xlabel" title="'.$TAGS['OdoScaleFactor'][1].'"><label for="OdoScaleFactor">'.$TAGS['OdoScaleFactor'][0].' </label> ');
 	echo('<input type="number" step="any" name="OdoScaleFactor" id="OdoScaleFactor" value="'.$rd['OdoScaleFactor'].'"> </span>');
 	

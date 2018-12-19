@@ -118,7 +118,12 @@ function defaultFinishTime()
 		}
 	}
 	// Make it one minute earlier
-	$finishTime = date_sub(DateTime::createFromFormat('Y-m-d\TH:i',$finishTime),new DateInterval('PT1M'))->format('Y-m-d H:i');
+	if ($finishTime != '')
+	{
+		//echo("<br>\r\nFinishTime={".$finishTime."} ");
+		$finishTime = date_sub(DateTime::createFromFormat('Y-m-d\TH:i',$finishTime),new DateInterval('PT1M'))->format('Y-m-d H:i');
+	}
+	
 	$res = splitDatetime($finishTime);
 
 	return $res;
@@ -237,7 +242,7 @@ function scoreEntrant($showBlankForm = FALSE)
 			showPicklist('EntrantID');
 			exit;
 		}
-		$ScorerName = $_REQUEST['ScorerName'];
+		$ScorerName = (isset($_REQUEST['ScorerName']) ? $_REQUEST['ScorerName'] : '');
 	}
 	else
 	{
@@ -283,7 +288,7 @@ function scoreEntrant($showBlankForm = FALSE)
 	if ($ShowMults == $KONSTANTS['AutoShowMults'])
 		$ShowMults = chooseShowMults($ScoringMethod);
 	
-	updateScoringFlags($_REQUEST['EntrantID']);
+	updateScoringFlags((isset($_REQUEST['EntrantID']) ? $_REQUEST['EntrantID'] : 0));
 	
 	echo("\r\n");
 	echo('<div id="rcmenu" style="display:none;">');
@@ -301,7 +306,7 @@ function scoreEntrant($showBlankForm = FALSE)
 	
 	echo("\r\n");
 	echo('<form method="post" action="score.php" onsubmit="submitScore();">');
-	echo('<input type="hidden" name="ScorerName" value="'.htmlspecialchars($_REQUEST['ScorerName']).'">');
+	echo('<input type="hidden" name="ScorerName" value="'.htmlspecialchars((isset($_REQUEST['ScorerName']) ? $_REQUEST['ScorerName'] : '')).'">');
 	echo('<input type="hidden" id="MinPoints" value="'.$rd['MinPoints'].'">');
 	echo('<input type="hidden" id="MinMiles" value="'.$rd['MinMiles'].'">');
 	echo('<input type="hidden" id="PenaltyMaxMiles" value="'.$rd['PenaltyMaxMiles'].'">');
@@ -484,7 +489,7 @@ function scoreEntrant($showBlankForm = FALSE)
 				showCategory($i,$axisnames[$i]);
 		echo('</div>');
 	}
-	echo('<div id="scorex" class="scorex" title="'.$TAGS['dblclickprint'][0].'" class="hidescorex" data-show="0" ondblclick="sxprint();" ></div>');
+	echo('<div id="scorex" title="'.$TAGS['dblclickprint'][0].'" class="hidescorex scorex" data-show="0" ondblclick="sxprint();" ></div>');
 	echo('</body></html>');
 }
 
@@ -493,6 +498,7 @@ function showBonuses($bonuses)
 	global $DB, $TAGS, $KONSTANTS;
 
 	$BA = explode(',',','.$bonuses); // The leading comma means that the first element is index 1 not 0
+	$BP = [];
 	$R = $DB->query('SELECT * FROM bonuses ORDER BY BonusID');
 	while ($rd = $R->fetchArray())
 	{
@@ -746,12 +752,12 @@ function updateScoringFlags($EntrantID=0)
 	
 	$DB->exec('BEGIN TRANSACTION');
 	// Clear records being scored by this scorer
-	$sql = "UPDATE entrants SET ScoringNow=0 WHERE ScoredBy='".$DB->escapeString($_REQUEST['ScorerName'])."'";
+	$sql = "UPDATE entrants SET ScoringNow=0 WHERE ScoredBy='".$DB->escapeString((isset($_REQUEST['ScorerName']) ? $_REQUEST['ScorerName'] : ''))."'";
 	$DB->exec($sql);
 	if ($EntrantID <> 0)
 	{
 		// Mark this one as being scored now
-		$sql = "UPDATE entrants SET ScoringNow=1, ScoredBy='".$DB->escapeString($_REQUEST['ScorerName'])."' WHERE EntrantID=".$EntrantID;
+		$sql = "UPDATE entrants SET ScoringNow=1, ScoredBy='".$DB->escapeString((isset($_REQUEST['ScorerName']) ? $_REQUEST['ScorerName'] : ''))."' WHERE EntrantID=".$EntrantID;
 		$DB->exec($sql);
 	}
 	$DB->exec('COMMIT TRANSACTION');

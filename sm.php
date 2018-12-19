@@ -284,21 +284,27 @@ function saveSGroups()
 	$DB->query('BEGIN TRANSACTION');
 	for ($i=0; $i < count($arr); $i++)
 	{
-		$sql = "INSERT OR REPLACE INTO sgroups (GroupName,GroupType) VALUES(";
-		$sql .= "'".$DB->escapeString($_REQUEST['GroupName'][$i])."'";
-		$sql .= ",'".$DB->escapeString($_REQUEST['GroupType'][$i])."'";
-		$sql .= ")";
-		if ($_REQUEST['GroupName'][$i]<>'')
+		if (isset($_REQUEST['GroupName'][$i]) && isset($_REQUEST['GroupType'][$i]))
 		{
-			//echo($sql.'<br>');			
-			$DB->exec($sql);
+			$sql = "INSERT OR REPLACE INTO sgroups (GroupName,GroupType) VALUES(";
+			$sql .= "'".$DB->escapeString($_REQUEST['GroupName'][$i])."'";
+			$sql .= ",'".$DB->escapeString($_REQUEST['GroupType'][$i])."'";
+			$sql .= ")";
+			if ($_REQUEST['GroupName'][$i]<>'')
+			{
+				//echo($sql.'<br>');			
+				$DB->exec($sql);
+			}
 		}
 	}
-	$arr = $_REQUEST['DeleteEntry'];
-	for ($i=0; $i < count($arr); $i++)
+	if (isset($_REQUEST['DeleteEntry']))
 	{
-		$sql = "DELETE FROM sgroups WHERE GroupName='".$DB->escapeString($_REQUEST['DeleteEntry'][$i])."'";
-		$DB->exec($sql);
+		$arr = $_REQUEST['DeleteEntry'];
+		for ($i=0; $i < count($arr); $i++)
+		{
+			$sql = "DELETE FROM sgroups WHERE GroupName='".$DB->escapeString($_REQUEST['DeleteEntry'][$i])."'";
+			$DB->exec($sql);
+		}
 	}
 	$DB->query('COMMIT TRANSACTION');
 	if (isset($_REQUEST['menu'])) 
@@ -332,7 +338,7 @@ function saveRallyConfig()
 	$sql .= ",PenaltyMilesDNF=".intval($_REQUEST['PenaltyMilesDNF']);
 	$sql .= ",ScoringMethod=".intval($_REQUEST['ScoringMethod']);
 	$sql .= ",ShowMultipliers=".intval($_REQUEST['ShowMultipliers']);
-	$sql .= ",TiedPointsRanking=0".intval($_REQUEST['TiedPointsRanking']);
+	$sql .= ",TiedPointsRanking=0".(isset($_REQUEST['TiedPointsRanking']) ? intval($_REQUEST['TiedPointsRanking']) : 0);
 	$sql .= ",TeamRanking=".intval($_REQUEST['TeamRanking']);
 	$sql .= ",Cat1Label='".$DB->escapeString($_REQUEST['Cat1Label'])."'";
 	$sql .= ",Cat2Label='".$DB->escapeString($_REQUEST['Cat2Label'])."'";
@@ -599,7 +605,7 @@ function triggerNewRow(obj)
 	}
 	echo('<tr class="newrow"><td><input class="BonusID" type="text" name="BonusID[]" onchange="triggerNewRow(this)"></td>');
 	echo('<td><input type="text" name="BriefDesc[]"></td>');
-	echo('<td><input type="number" name="Points[]" value="'.$rd['Points'].'</td>');
+	echo('<td><input type="number" name="Points[]" value="'.$rd['Points'].'"</td>');
 	if (count($cats1) > 0)
 	{
 		echo('<td><select name="Cat1Entry[]">');
@@ -789,7 +795,7 @@ function triggerNewRow(obj)
 		echo('<option value="1" '.($rd['ScoreMethod']==1 ? 'selected="selected" ' : '').'>'.$TAGS['AddMults'][0].'</option>');
 		echo('</select></td>');
 		echo('<td><input class="ScorePoints" type="number" name="ScorePoints[]" value="'.$rd['ScorePoints'].'"></td>');
-		echo('<td><input class="Bonuses" type="text" name="Bonuses[]" value="'.$rd['Bonuses'].'" ></td>');
+		echo('<td><input title="'.$TAGS['BonusListLit'][1].'" class="Bonuses" type="text" name="Bonuses[]" value="'.$rd['Bonuses'].'" ></td>');
 		echo('<td class="center"><input type="checkbox" name="DeleteEntry[]" value="'.$rd['ComboID'].'">');
 		if ($showclaimsbutton)
 		{
@@ -808,7 +814,7 @@ function triggerNewRow(obj)
 	echo('<option value="1" >'.$TAGS['AddMults'][0].'</option>');
 	echo('</select></td>');
 	echo('<td><input class="ScorePoints" type="number" name="ScorePoints[]" ></td>');
-	echo('<td><input class="Bonuses" type="text" name="Bonuses[]" placeholder="'.$TAGS['CommaSeparated'][0].'"></td>');
+	echo('<td><input title="'.$TAGS['BonusListLit'][1].'" class="Bonuses" type="text" name="Bonuses[]" placeholder="'.$TAGS['CommaSeparated'][0].'"></td>');
 	echo('</tr>');
 	
 	echo('</tbody></table>');
@@ -1267,8 +1273,8 @@ function triggerNewRow(obj)
 	}
 	echo('<tr class="newrow"><td><input type="text" placeholder="'.$TAGS['NewPlaceholder'][0].'" name="GroupName[]" onchange="triggerNewRow(this)"></td>');
 		echo('<td><select class="newGroupType" name="GroupType[]" disabled>');
-		echo('<option value="R" selected>'.$TAGS['SGroupTypeR'][1].'</option>');
-		echo('<option value="C">'.$TAGS['SGroupTypeC'][1].'</option>');
+		echo('<option value="R">'.$TAGS['SGroupTypeR'][1].'</option>');
+		echo('<option value="C" selected>'.$TAGS['SGroupTypeC'][1].'</option>');
 		echo('</select>');
 		echo('</td>');
 	echo('</tr>');
@@ -1289,7 +1295,14 @@ function showSpecials()
 {
 	global $DB, $TAGS, $KONSTANTS;
 	
-
+	$R = $DB->query("SELECT GroupName FROM sgroups ORDER BY GroupName");
+	$SG = array(''=>'');
+	while ($rd = $R->fetchArray())
+	{
+		$SG[$rd['GroupName']] = $rd['GroupName'];
+	}
+	$groups_used = count($SG) > 1;
+	
 	$showclaimsbutton = (getValueFromDB("SELECT count(*) As rex FROM entrants","rex",0)>0);
 	
 	$R = $DB->query('SELECT * FROM specials ORDER BY BonusID');
@@ -1319,7 +1332,8 @@ function triggerNewRow(obj)
 	echo('<caption title="'.htmlentities($TAGS['SpecialMaintHead'][1]).'">'.htmlentities($TAGS['SpecialMaintHead'][0]).'</caption>');
 	echo('<thead><tr><th>'.$TAGS['BonusIDLit'][0].'</th>');
 	echo('<th>'.$TAGS['BriefDescLit'][0].'</th>');
-	echo('<th>'.$TAGS['GroupNameLit'][0].'</th>');
+	if ($groups_used)
+		echo('<th>'.$TAGS['GroupNameLit'][0].'</th>');
 	echo('<th>'.$TAGS['SpecialPointsLit'][0].'</th>');
 	echo('<th>'.$TAGS['SpecialMultLit'][0].'</th>');
 	echo('<th>'.$TAGS['CompulsoryBonus'][0].'</th>');
@@ -1338,7 +1352,18 @@ function triggerNewRow(obj)
 	{
 		echo('<tr class="hoverlite"><td><input class="BonusID" type="text" name="BonusID[]" readonly value="'.$rd['BonusID'].'"></td>');
 		echo('<td><input class="BriefDesc" type="text" name="BriefDesc[]" value="'.$rd['BriefDesc'].'"></td>');
-		echo('<td><input class="GroupName" type="text" name="GroupName[]" value="'.$rd['GroupName'].'"></td>');
+		if ($groups_used)
+		{
+			echo('<td><select class="GroupName" name="GroupName[]">');
+			foreach ($SG As $G => $gv)
+			{
+				echo('<option value="'.$G.'"');
+				if ($G == $rd['GroupName'])
+					echo(' selected');
+				echo('>'.$G.'</option>');
+			}
+			echo('</select></td>');
+		}
 		echo('<td><input class="Points" type="number" name="Points[]" value="'.$rd['Points'].'"></td>');
 		echo('<td><input class="MultFactor" type="number" name="MultFactor[]" value="'.$rd['MultFactor'].'"></td>');
 		if ($rd['Compulsory']==1)
@@ -1359,7 +1384,16 @@ function triggerNewRow(obj)
 	}
 	echo('<tr class="newrow"><td><input type="text" name="BonusID[]" onchange="triggerNewRow(this)"></td>');
 	echo('<td><input type="text" name="BriefDesc[]"></td>');
-	echo('<td><input type="text" name="GroupDesc[]"></td>');
+		if ($groups_used)
+		{
+			echo('<td><select class="GroupName" name="GroupName[]">');
+			foreach ($SG As $G => $gv)
+			{
+				echo('<option value="'.$G.'"');
+				echo('>'.$G.'</option>');
+			}
+			echo('</select></td>');
+		}
 	echo('<td><input type="number" name="Points[]"></td>');
 	echo('<td><input type="number" name="MultFactor[]"></td>');
 	echo('</tr>');
