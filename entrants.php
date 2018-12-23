@@ -423,6 +423,81 @@ function showEntrantScorex($scorex)
 }
 
 
+function showFinisherList()
+/*
+ * quick & dirty list of finishers only
+ *
+ */
+{
+
+	global $DB, $TAGS, $KONSTANTS;
+
+	$sortspec = 'FinishPosition ';
+	if (isset($_REQUEST['seq']))
+		$sortspec = $_REQUEST['seq'];
+	
+	$sql = "SELECT *,substr(RiderName,1,RiderPos-1) As RiderFirst";
+	$sql .= ",substr(RiderName,RiderPos+1) As RiderLast";
+	$sql .= " FROM (SELECT *,instr(RiderName,' ') As RiderPos FROM entrants) ";
+
+	$sql .= " WHERE EntrantStatus==".$KONSTANTS['EntrantFinisher'];
+	
+	if (isset($_REQUEST['class']))
+		$sql .= ' AND Class In ('.$_REQUEST['class'].')';
+	$sql .= ' ORDER BY '.$sortspec;
+	$R = $DB->query($sql);
+?><!DOCTYPE html>
+<html>
+<head>
+<title>ScoreMaster:Finishers</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" type="text/css" href="score.css?ver=<?= filemtime('score.css')?>">
+</head>
+<body>
+<?php
+	echo('<table class="qdfinishers">');
+	echo('<thead><tr>');
+	echo('<th>'.$TAGS['qPlace'][0].'</th>');
+	echo('<th>'.$TAGS['qName'][0].'</th>');
+	echo('<th>'.$TAGS['qMiles'][0].'</th>');
+	echo('<th>'.$TAGS['qPoints'][0].'</th>');
+	
+	echo('</tr></thead><tbody>');
+	$n = 0;
+	while ($rd = $R->fetchArray())
+	{
+		echo('<tr>');
+		echo('<td>'.$rd['FinishPosition'].'</td>');
+		echo('<td>'.$rd['RiderName'].'</td>');
+		echo('<td>'.$rd['CorrectedMiles'].'</td>');
+		echo('<td>'.$rd['TotalPoints'].'</td>');
+		echo('</tr>');
+		$n++;
+	}
+	echo('</tbody></table>');
+	if ($n < 1)
+		echo('<p>'.$TAGS['NoCerts2Print'][0].'</p>');
+?>
+</body>
+</html>
+<?php	
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 function showAllScorex()
 {
 	global $DB, $TAGS, $KONSTANTS;
@@ -681,7 +756,7 @@ function showEntrantRecord($rd)
 		$ro = '';
 	else
 		$ro = ' readonly ';
-	echo('<input type="text"  onchange="enableSaveButton();"  class="number"  '.$ro.' name="EntrantID" id="EntrantID" value="'.$rd['EntrantID'].'">');
+	echo('<input type="text" onchange="enableSaveButton();"  class="number"  '.$ro.' name="EntrantID" id="EntrantID" value="'.$rd['EntrantID'].'">');
 	echo(' '.htmlspecialchars($rd['RiderName']).' ');
 	if (!$is_new_record)
 	{
@@ -708,8 +783,9 @@ function showEntrantRecord($rd)
 	
 	
 	echo('<fieldset class="tabContent" id="tab_basic"><legend>'.$TAGS['BasicDetails'][0].'</legend>');
-	echo('<span  class="xlabel" title="'.$TAGS['RiderName'][1].'"><label for="RiderName">'.$TAGS['RiderName'][0].' </label> ');
-	echo('<input type="text" onchange="enableSaveButton();" name="RiderName" id="RiderName" value="'.htmlspecialchars($rd['RiderName']).'"> </span>');
+	echo('<span class="xlabel" title="'.$TAGS['RiderName'][1].'"><label for="RiderName">'.$TAGS['RiderName'][0].' </label> ');
+	$blurJS = "var f=document.getElementById('RiderFirst');if (f.value=='') {var n=document.getElementById('RiderName').value.split(' ');f.value=n[0];}";
+	echo('<input autofocus type="text" onchange="enableSaveButton();" onblur="'.$blurJS.'" name="RiderName" id="RiderName" value="'.htmlspecialchars($rd['RiderName']).'"> </span>');
 	echo('<span  title="'.$TAGS['RiderFirst'][1].'"><label for="RiderFirst">'.$TAGS['RiderFirst'][0].' </label> ');
 	echo('<input type="text" onchange="enableSaveButton();"  name="RiderFirst" id="RiderFirst" value="'.htmlspecialchars($rd['RiderFirst']).'"> </span>');
 	
@@ -901,6 +977,12 @@ function showNewEntrant()
 	if (isset($_REQUEST['c']) && $_REQUEST['c']=='scorex')
 	{
 		showAllScorex();
+		exit;
+	}
+
+	if (isset($_REQUEST['c']) && $_REQUEST['c']=='qlist')
+	{
+		showFinisherList();
 		exit;
 	}
 

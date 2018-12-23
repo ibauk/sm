@@ -71,6 +71,7 @@ $TAGS = array(
 	'AdmMenuHeader'		=> array('Rally administration',''),
 	'AdmNewEntrant'		=> array('Setup new entrant','Add details of another entrant'),
 	'AdmPrintCerts'		=> array('Print finisher certificates','Print certificates for finishers'),
+	'AdmPrintQlist'		=> array('Finisher quicklist','Print quick list of finishers'),
 	'AdmPrintScoreX'	=> array('Score explanations','Print score explanations for everyone not DNS'),
 	'AdmRallyParams'	=> array('Rally parameters','View/edit current rally parameters'),
 	'AdmRankEntries'	=> array('Rank finishers','Calculate and apply the rank of each finisher'),
@@ -198,6 +199,13 @@ $TAGS = array(
 	'PointsMults'		=> array('Points/Mults','The value of this is either points or multipliers'),
 	'PointsMults0'		=> array('PointsMults0','Points'),
 	'PointsMults1'		=> array('PointsMults1','Multipliers'),
+	
+	// Quick dirty list headings
+	'qPlace'			=> array('Rank',''),
+	'qName'				=> array('Name',''),
+	'qMiles'			=> array('Miles',''),
+	'qPoints'			=> array('Points',''),
+	
 	'RallyResults'		=> array('Rally results',''),
 	'RallySlogan'		=> array('Rally slogan','Brief description of the rally, usually shown on finisher certificates.'),
 	'RallyTitle'		=> array('Rally title','Formal title of the rally. Surround an optional part with [ ]; Use | for newlines'),

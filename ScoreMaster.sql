@@ -235,8 +235,9 @@ INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (21,'AdmCat
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (22,'AdmCompoundCalcs','sm.php?c=catcalcs',NULL,'params,category,compound');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (23,'AdmSetupWiz','setup.php',NULL,'params,category,compound');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (24,'AdmPrintScoreX','entrants.php?c=scorex','window.open(''entrants.php?c=scorex'',''scorex'');return false;','entrant,score,finisher');
+INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (25,'AdmPrintQlist','entrants.php?c=qlist','window.open(''entrants.php?c=qlist'',''qlist'');return false;','entrant,rank,finisher');
 
-INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('admin','AdmMenuHeader','1,2,3,4,24,5,6');
+INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('admin','AdmMenuHeader','1,2,3,4,24,5,6,25');
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('setup','AdmSetupHeader','16,17,18,19,20,21,22');
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('entrant','AdmEntrantsHeader','1,11,12,2,13,15,24');
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('bonus','AdmBonusHeader','7,8,9,10');
@@ -267,7 +268,7 @@ body {
 	color: #000;
 }
 .certificate
-{	/* 
+{	/*                                     BBR / Jorvic - preprinted
 	 *	A4 is 210 x 297
 	 *	Less standard .5in margins = 185 x 272
 	 *
@@ -306,7 +307,7 @@ sup
 }
 p.main
 {
-                    text-align: justify;
+    text-align: justify;
 }
 p.rules
 {

@@ -51,6 +51,8 @@ function formattedDateRange($daterange)
 	$dts = explode(';',$daterange);
 	try
 	{
+		if (is_null($daterange))
+			return '';
 		$dt = explode('T',$dts[0]);
 		$dt1 = DateTime::createFromFormat('Y-m-d',$dt[0]);
 		$dt = explode('T',$dts[1]);
