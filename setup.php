@@ -188,6 +188,14 @@ function showPage($page_number)
 			break;
 		case 4:
 			$sm = intval($rd['ScoringMethod']);
+			echo('<div class="wizitem"><p>'.$TAGS['ScoringMethodWA'][1].'</p>');
+			echo('<label for "ScoringMethodWA">'.$TAGS['ScoringMethodWA'][0].'</label> ');
+			echo('<input type="radio" name="ScoringMethod" id="ScoringMethodWA" '.isChecked($rd['ScoringMethod']==$KONSTANTS['AutoScoring']).' value="'.$KONSTANTS['AutoScoring'].'">');
+			echo('</div>');
+			echo('<div class="wizitem"><p>'.$TAGS['ScoringMethodWM'][1].'</p>');
+			echo('<label for "ScoringMethodWM">'.$TAGS['ScoringMethodWM'][0].'</label> ');
+			echo('<input type="radio" name="ScoringMethod" id="ScoringMethodWM" '.isChecked($rd['ScoringMethod']==$KONSTANTS['ManualScoring']).' value="'.$KONSTANTS['ManualScoring'].'">');
+			echo('</div>');
 			echo('<div class="wizitem"><p>'.$TAGS['ScoringMethodWS'][1].'</p>');
 			echo('<label for "ScoringMethodWS">'.$TAGS['ScoringMethodWS'][0].'</label> ');
 			echo('<input type="radio" name="ScoringMethod" id="ScoringMethodWS" '.isChecked($rd['ScoringMethod']==$KONSTANTS['SimpleScoring']).' value="'.$KONSTANTS['SimpleScoring'].'">');
@@ -195,14 +203,6 @@ function showPage($page_number)
 			echo('<div class="wizitem"><p>'.$TAGS['ScoringMethodWC'][1].'</p>');
 			echo('<label for "ScoringMethodWC">'.$TAGS['ScoringMethodWC'][0].'</label> ');
 			echo('<input type="radio" name="ScoringMethod" id="ScoringMethodWC" '.isChecked($rd['ScoringMethod']==$KONSTANTS['CompoundScoring']).' value="'.$KONSTANTS['CompoundScoring'].'">');
-			echo('</div>');
-			echo('<div class="wizitem"><p>'.$TAGS['ScoringMethodWM'][1].'</p>');
-			echo('<label for "ScoringMethodWM">'.$TAGS['ScoringMethodWM'][0].'</label> ');
-			echo('<input type="radio" name="ScoringMethod" id="ScoringMethodWM" '.isChecked($rd['ScoringMethod']==$KONSTANTS['ManualScoring']).' value="'.$KONSTANTS['ManualScoring'].'">');
-			echo('</div>');
-			echo('<div class="wizitem"><p>'.$TAGS['ScoringMethodWA'][1].'</p>');
-			echo('<label for "ScoringMethodWA">'.$TAGS['ScoringMethodWA'][0].'</label> ');
-			echo('<input type="radio" name="ScoringMethod" id="ScoringMethodWA" '.isChecked($rd['ScoringMethod']==$KONSTANTS['AutoScoring']).' value="'.$KONSTANTS['AutoScoring'].'">');
 			echo('</div>');
 			break;
 			

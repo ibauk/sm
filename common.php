@@ -85,6 +85,7 @@ $TAGS = array(
 	'AdmTimePenalties'	=> array('Time penalties','Maintain table of time penalties'),
 	
 	'AskEnabledSave'	=> array('Save this scoresheet?',''),
+	'AskPoints'			=> array('Variable?','Ask for points value during scoring'),
 	'AxisLit'			=> array('Axis','The set of categories this rule applies to'),
 	'BasicDetails'		=> array('Basic',''),
 	'BasicRallyConfig'	=> array('Basic','Basic rally configuration fields'),
@@ -116,7 +117,9 @@ $TAGS = array(
 	'CombosLit'			=> array('Combinations','Combination bonuses'),
 	'CommaSeparated'	=> array('Comma separated list',''),
 	'CompulsoryBonus'	=> array('Compulsory?','This bonus is required for Finisher status'),
-	'CorrectedMiles'	=> array('Miles ridden','Official rally mileage'),
+	
+	'CorrectedMiles'	=> array('Miles ridden','Official rally mileage'),	// Miles/Kms
+	
 	'Country'			=> array('Country',"Entrant's home country"),
 	'dblclickprint'		=> array('Double-click to print',''),
 	'DeleteEntryLit'	=> array('Delete?',''),
@@ -134,7 +137,9 @@ $TAGS = array(
 	
 							// Careful! this is executed as PHP, get it right.
 	'EntrantStatusV'	=> array('array("0" => "DNS", "1" => "ok", "8" => "Finisher", "3" => "DNF");','array used for vertical tables'),
-	'ExcessMileage'		=> array('Excess miles',''),
+	
+	'ExcessMileage'		=> array('Excess miles',''),						// Miles/Kms
+	
 	'FetchCert'			=> array('Fetch certificate','Fetch the HTML, CSS &amp; options for this certificate'),
 	'FinishDate'		=> array('Finish date','The last riding day of the rally.'),
 	'FinishersExported'	=> array('Finishers exported!','Finisher details exported to CSV'),
@@ -150,14 +155,16 @@ $TAGS = array(
 	'LegendTeams'		=> array('Teams'),
 	'login'				=> array('login','Go on, log me in then!'),
 	'LogoutScorer'		=> array('Logout','Log the named scorer off this terminal'),
-	'MaxMilesFixedM'	=> array('Multiplier','Excess mileage incurs deduction of multipliers'),
-	'MaxMilesFixedP'	=> array('Fixed points','Excess mileage incurs fixed points deduction'),
-	'MaxMilesPerMile'	=> array('Points per mile','Excess mileage incurs points deduction per excess mile'),
-	'MaxMilesPoints'	=> array('Points or Multipliers deducted','Number of points or multipliers for excess mileage'),
-	'MaxMilesUsed'		=> array('Tick if maximum miles used','Will entrants be DNF if they exceed a maximum distance?'),
-	'MilesPenaltyText'	=> array('Mileage penalty deduction',''),
-	'MinMiles'			=> array('Minimum miles','Minimum number of miles to qualify as a finisher'),
-	'MinMilesUsed'		=> array('Tick if minimum miles used','Will entrants need to ride a minimum distance in order to qualify as finishers?'),
+	
+	'MaxMilesFixedM'	=> array('Multiplier','Excess mileage incurs deduction of multipliers'),							// Miles/Kms
+	'MaxMilesFixedP'	=> array('Fixed points','Excess mileage incurs fixed points deduction'),							// Miles/Kms
+	'MaxMilesPerMile'	=> array('Points per mile','Excess mileage incurs points deduction per excess mile'),				// Miles/Kms
+	'MaxMilesPoints'	=> array('Points or Multipliers deducted','Number of points or multipliers for excess mileage'),	// Miles/Kms
+	'MaxMilesUsed'		=> array('Tick if maximum miles used','Will entrants be DNF if they exceed a maximum distance?'),	// Miles/Kms
+	'MilesPenaltyText'	=> array('Mileage penalty deduction',''),															// Miles/Kms
+	'MinMiles'			=> array('Minimum miles','Minimum number of miles to qualify as a finisher'),						// Miles/Kms
+	'MinMilesUsed'		=> array('Tick if minimum miles used','Will entrants need to ride a minimum distance in order to qualify as finishers?'), // Miles/Kms
+	
 	'MinPoints'			=> array('Minimum points','Minimum points scored to be a finisher'),
 	'MinPointsUsed'		=> array('Tick if minimum points used','Will entrants need to score a minimum number of points in order to qualify as finishers?'),
 	'ModBonus0'			=> array('ModBonus0','Affects compound axis score'),
@@ -177,21 +184,25 @@ $TAGS = array(
 											"If bonus rule &amp; this > 0, R=bonuspoints(this^(N-1))\n".
 											"If axis rule &amp; this is 0, R=N\n".
 											"If axis rule &amp; this > 0, R=this value"),
-	'OdoCheckFinish'	=> array('Odo check finish','The odometer reading at the end of the odo check'),
-	'OdoCheckMiles'		=> array('Odo check distance','The length of the route used to check the accuracy of odometers'),
-	'OdoCheckStart'		=> array('Odo check start','The reading at the start of the odometer check'),
-	'OdoCheckTrip'		=> array('Odo check trip','What distance did the trip meter record?'),
-	'OdoCheckUsed'		=> array('Tick if odo check used','Will entrants be required to ride an odometer check route?'),
-	'OdoKms'			=> array('Odo counts',''),
-	'OdoKmsK'			=> array('kilometres',''),
-	'OdoKmsM'			=> array('miles',''),
-	'Odometer'			=> array('Odo readings',''),
-	'OdoRallyStart'		=> array('Start of rally','The reading at the start of the rally'),
-	'OdoRallyFinish'	=> array('At end of rally','The odometer reading at the end of the rally'),
-	'OdoScaleFactor'	=> array('Correction factor','The number to multiply odo readings to get true distance'),
+											
+	'OdoCheckFinish'	=> array('Odo check finish','The odometer reading at the end of the odo check'),					// Miles/Kms
+	'OdoCheckMiles'		=> array('Odo check distance','The length of the route used to check the accuracy of odometers'),	// Miles/Kms
+	'OdoCheckStart'		=> array('Odo check start','The reading at the start of the odometer check'),						// Miles/Kms
+	'OdoCheckTrip'		=> array('Odo check trip','What distance did the trip meter record?'),								// Miles/Kms
+	'OdoCheckUsed'		=> array('Tick if odo check used','Will entrants be required to ride an odometer check route?'),	// Miles/Kms
+	'OdoKms'			=> array('Odo counts',''),																			// Miles/Kms
+	'OdoKmsK'			=> array('kilometres',''),																			// Miles/Kms
+	'OdoKmsM'			=> array('miles',''),																				// Miles/Kms
+	'Odometer'			=> array('Odo readings',''),																		// Miles/Kms
+	'OdoRallyStart'		=> array('Start of rally','The reading at the start of the rally'),									// Miles/Kms
+	'OdoRallyFinish'	=> array('At end of rally','The odometer reading at the end of the rally'),							// Miles/Kms
+	'OdoScaleFactor'	=> array('Correction factor','The number to multiply odo readings to get true distance'),			// Miles/Kms
+	
 	'OfferScore'		=> array('OfferScore','Would you like to help score this rally? If so, please tell me your name'),
-	'PenaltyMaxMiles'	=> array('Max miles (penalties)','Mileage beyond this incurs penalties; 0=doesn\'t apply'),
-	'PenaltyMilesDNF'	=> array('DNF mileage','Miles beyond here result in DNF; 0=doesn\'t apply'),
+	
+	'PenaltyMaxMiles'	=> array('Max miles (penalties)','Mileage beyond this incurs penalties; 0=doesn\'t apply'),			// Miles/Kms
+	'PenaltyMilesDNF'	=> array('DNF mileage','Miles beyond here result in DNF; 0=doesn\'t apply'),						// Miles/Kms
+	
 	'PickAnEntrant'		=> array('Pick an entrant','Pick an entrant using the list below or by entering an Entrant number. Type a name to filter the list.'),
 	'PillionFirst'		=> array('Informal name',"Used for repeat mentions on finisher's certificate"),
 	'PillionIBA'		=> array('IBA #',"Pillion's IBA number if known"),
@@ -203,7 +214,9 @@ $TAGS = array(
 	// Quick dirty list headings
 	'qPlace'			=> array('Rank',''),
 	'qName'				=> array('Name',''),
-	'qMiles'			=> array('Miles',''),
+	
+	'qMiles'			=> array('Miles',''),						// Miles/Kms
+	
 	'qPoints'			=> array('Points',''),
 	
 	'RallyResults'		=> array('Rally results',''),
@@ -249,9 +262,9 @@ $TAGS = array(
 	'ScoringMethodS'	=> array('Simple','Bonuses are ticked and points added up'),
 	
 	// Texts for use in setup wizard
-	'ScoringMethodWA'	=> array('Automatic','The system chooses simple or compound depending on your other configuration choices'),
-	'ScoringMethodWC'	=> array('Compound scoring','Scoring makes use of bonus categories to modify point scores with/without multipliers'),
-	'ScoringMethodWM'	=> array('Manual scoring','Scores will be calculated manually and entered as a simple points value'),
+	'ScoringMethodWA'	=> array('Automatic','The system takes care of scoring method decisions based on your other configuration choices. This is probably the setting you should use.'),
+	'ScoringMethodWC'	=> array('Compound scoring','Scoring makes use of categories to modify bonus scores or provide an extra layer of scoring with/without multipliers'),
+	'ScoringMethodWM'	=> array('Manual scoring','Scores will be calculated manually by the scorers and entered as a simple points value'),
 	'ScoringMethodWS'	=> array('Simple scoring','The rally uses only ordinary bonuses, special bonuses and combination bonuses'),
 	'ScoringNow'		=> array('Being scored now','Is this entrant being scored by someone right now?'),
 	'SGroupLit'			=> array('Specials Group','Specials group name'),
@@ -278,7 +291,9 @@ $TAGS = array(
 	'TeamRankingI'		=> array('Individual placing','Rank each team member separately'),
 	'TeamRankingL'		=> array('Lowest ranked member','Rank team as lowest member'),
 	'TeamRankingText'	=> array('Teams are ranked according to',''),
-	'TiedPointsRanking'	=> array('Split ties by mileage','In the event of a tie entrants will be ranked by mileage'),
+	
+	'TiedPointsRanking'	=> array('Split ties by mileage','In the event of a tie entrants will be ranked by mileage'),	// Miles/Kms
+	
 	'TimepMaintHead'	=> array('Time Penalties','List of time penalty entries'),
 
 	// time penalties
@@ -410,12 +425,19 @@ $KONSTANTS['BasicDistanceUnits'] = $KONSTANTS['DistanceIsMiles'];
 $KONSTANTS['DefaultKmsOdo'] = $KONSTANTS['OdoCountsMiles']; 
 // $KONSTANTS['DefaultKmsOdo'] = $KONSTANTS['OdoCountsKilometres'];
 
-$KONSTANTS['DefaultOdoScaleFactor'] = 1;
+
+// Used when setting up new entrants onscreen
+
 $KONSTANTS['DefaultCountry'] = 'UK';
+
+
+
+$KONSTANTS['DefaultOdoScaleFactor'] = 1;
 $KONSTANTS['DefaultEntrantStatus'] = $KONSTANTS['EntrantOK'];
 
 
 
+// Common subroutines below here; nothing translateable below
 	
 	
 // Open the database	

@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS `rallyparams` (
 	`MaxMilesPoints`	INTEGER DEFAULT 0,
 	`PenaltyMilesDNF`	INTEGER DEFAULT 0,
 	`MinPoints`	INTEGER DEFAULT 0,
-	`ScoringMethod`	INTEGER DEFAULT 1,
+	`ScoringMethod`	INTEGER DEFAULT 3,
 	`ShowMultipliers`	INTEGER DEFAULT 2,
 	`TiedPointsRanking`	INTEGER DEFAULT 0,
 	`TeamRanking`	INTEGER DEFAULT 0,
@@ -105,6 +105,7 @@ CREATE TABLE IF NOT EXISTS `specials` (
 	`Points`	INTEGER DEFAULT 0,
 	`MultFactor`	INTEGER DEFAULT 0,
 	`Compulsory`	INTEGER DEFAULT 0,
+	`AskPoints`		INTEGER DEFAULT 0,
 	PRIMARY KEY(`BonusID`)
 );
 CREATE TABLE IF NOT EXISTS `sgroups` (

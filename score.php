@@ -210,6 +210,7 @@ function putScore()
 
 function saveSpecials()
 {
+//	print_r($_REQUEST);
 	if (isset($_REQUEST['SpecialID']))
 		$sv = implode(',',$_REQUEST['SpecialID']);
 	else
@@ -222,6 +223,14 @@ function saveSpecials()
 		if (isset($_REQUEST['SpecialID'.'_'.$g]))
 			$sv .= implode($_REQUEST['SpecialID'.'_'.$g]);
 	}
+	$TickedSpecials = explode(',',$sv);
+	foreach ($TickedSpecials as $ts)
+		if (isset($_REQUEST['apS'.$ts]))
+		{
+			array_push($TickedSpecials,$ts.'='.$_REQUEST['apS'.$ts]);
+			unset($TickedSpecials[$ts]);
+		}
+	$sv = implode(',',$TickedSpecials);
 	return ",SpecialsTicked='".$sv."'";
 }
 
@@ -322,9 +331,9 @@ function scoreEntrant($showBlankForm = FALSE)
 	while ($rd = $R->fetchArray())
 		echo('<input type="hidden" name="TimePenalty[]" data-start="'.$rd['PenaltyStart'].'" data-end="'.$rd['PenaltyFinish'].'" data-factor="'.$rd['PenaltyFactor'].'" data-method="'.$rd['PenaltyMethod'].'">');
 
-	$R = $DB->query('SELECT rowid AS id,Axis,NMethod,ModBonus,NMin,PointsMults,NPower FROM catcompound ORDER BY Axis,NMin DESC');
+	$R = $DB->query('SELECT rowid AS id,Axis,Cat,NMethod,ModBonus,NMin,PointsMults,NPower FROM catcompound ORDER BY Axis,NMin DESC');
 	while ($rd = $R->fetchArray())
-		echo('<input type="hidden" name="catcompound[]" data-cat="'.$rd['Axis'].'" data-method="'.$rd['NMethod'].'" data-mb="'.$rd['ModBonus'].'" data-min="'.$rd['NMin'].'" data-pm="'.$rd['PointsMults'].'" data-power="'.$rd['NPower'].'">');
+		echo('<input type="hidden" name="catcompound[]" data-axis="'.$rd['Axis'].'" data-cat="'.$rd['Cat'].'" data-method="'.$rd['NMethod'].'" data-mb="'.$rd['ModBonus'].'" data-min="'.$rd['NMin'].'" data-pm="'.$rd['PointsMults'].'" data-power="'.$rd['NPower'].'">');
 	
 	$sql = 'SELECT * FROM entrants';
 	if ($showBlankForm) 
@@ -581,6 +590,10 @@ function showCombinations($Combos)
 function showPicklist($ord)
 {
 	global $DB, $TAGS, $KONSTANTS, $HOME_URL;
+	
+
+	$minEntrant = getValueFromDB("SELECT min(EntrantID) as MaxID FROM entrants","MaxID",1);
+	$maxEntrant = getValueFromDB("SELECT max(EntrantID) as MaxID FROM entrants","MaxID",$minEntrant);
 
 	$R = $DB->query('SELECT * FROM entrants ORDER BY '.$ord);
 	
@@ -646,7 +659,7 @@ function filterByName(x)
 	echo('<p>'.$TAGS['PickAnEntrant'][1].'</p>');
 	echo('<form id="entrantpick" method="post" action="score.php">');
 	echo('<label for="EntrantID">'.$TAGS['EntrantID'][0].'</label> ');
-	echo('<input oninput="showPickedName();" type="number" autofocus id="EntrantID" name="EntrantID"> '); 
+	echo('<input oninput="showPickedName();" type="number" autofocus id="EntrantID" name="EntrantID" min="'.$minEntrant.'" max="'.$maxEntrant.'"> '); 
 	echo('<input type="hidden" name="c" value="score">');
 	echo('<input type="hidden" name="ScorerName" value="'.htmlspecialchars($_REQUEST['ScorerName']).'">');
 	echo('<label for="NameFilter">'.$TAGS['NameFilter'][0].' </label>');
@@ -688,11 +701,24 @@ function showSpecials($specials)
 	$R = $DB->query('SELECT specials.*,sgroups.GroupType FROM specials LEFT JOIN sgroups ON specials.GroupName=sgroups.GroupName ORDER BY GroupName,BonusID');
 	while ($rd = $R->fetchArray())
 	{
-		$BP[$rd['BonusID']] = array($rd['BriefDesc'],$rd['Points'],$rd['MultFactor'],$rd['Compulsory'],$rd['GroupName'],$rd['GroupType']);
+		$BP[$rd['BonusID']] = array($rd['BriefDesc'],$rd['Points'],$rd['MultFactor'],$rd['Compulsory'],$rd['GroupName'],$rd['GroupType'],$rd['AskPoints']);
 	}
 	echo('<input type="hidden" name="update_specials" value="1" />');
 	$lastSpecialGroup = '';
 	$SGroupsUsed = '';
+	$AP = array();
+	foreach ($BA as $bk)
+	{
+		if (strpos($bk,'=')>0)
+		{
+			$x = explode('=',$bk);
+			if (count($x)==2)
+			{
+				$AP[$x[0]] = $x[1];
+			}
+		}
+	}
+	//print_r($AP);
 	$firstRadio = ' checked="checked" ';
 	foreach($BP as $bk => $b)
 	{
@@ -717,8 +743,17 @@ function showSpecials($specials)
 			if ($b[3]<>0)
 				echo(' compulsory ');
 			echo('" ');
+			$specialid = str_replace(' ','_',$bk);
+			$points = $b[1];
+			$onchange = 'calcScore(true);';
+			if ($b[6]==1)
+			{
+				$onchange='askPoints(this);';
+				if (isset($AP[$specialid]))
+					$points = $AP[$specialid];
+			}
 			echo('title="'.htmlspecialchars($bk).' [ ');
-			echo($b[1]); // points value
+			echo($points); // points value
 			if ($b[2]<>0)
 				echo(' x'.$b[2]);
 			echo(' ]" ');
@@ -733,8 +768,10 @@ function showSpecials($specials)
 			echo('<input type="'.$optType.'"'.$chk.' name="SpecialID');
 			if ($lastSpecialGroup <> '')
 				echo("_".$lastSpecialGroup);
-			echo('[]" id="S'.str_replace(' ','_',$bk).'" value="'.$bk.'"  onchange="calcScore(true)"');
-			echo(' data-points="'.$b[1].'" data-mult="'.$b[2].'" data-reqd="'.$b[3].'"> ');
+			echo('[]" id="S'.$specialid.'" value="'.$bk.'"');
+			echo(' onchange="'.$onchange.'"');
+			
+			echo(' data-points="'.$points.'" data-mult="'.$b[2].'" data-reqd="'.$b[3].'"> ');
 			echo(' &nbsp;&nbsp;</span>');
 			echo("\r\n");
 	}
@@ -742,6 +779,12 @@ function showSpecials($specials)
 	if ($lastSpecialGroup <> '')
 		echo('</fieldset>');
 	echo("\r\n");
+	echo('<span id="apspecials">');
+	foreach ($APs as $b => $p)
+	{
+		echo('<input type="hidden" name=ap'.$b.'" id="ap'.$b.'" value="'.$p.'">');
+	}
+	echo('</span>');
 	echo('<input type="hidden" name="SGroupsUsed" id="SGroupsUsed" value="'.$SGroupsUsed.'"/>');
 	
 }

@@ -225,8 +225,9 @@ function saveCompoundCalcs()
 	
 	if (isset($_REQUEST['newcc']))
 	{
-		$sql = "INSERT INTO catcompound (Axis,NMethod,ModBonus,NMin,PointsMults,NPower) VALUES(";
+		$sql = "INSERT INTO catcompound (Axis,Cat,ModBonus,NMin,PointsMults,NPower) VALUES(";
 		$sql .= intval($_REQUEST['axis']);
+		$sql .= intval($_REQUEST['Cat']);
 		$sql .= ",".intval($_REQUEST['NMethod']);
 		$sql .= ",".intval($_REQUEST['ModBonus']);
 		$sql .= ",".intval($_REQUEST['NMin']);
@@ -246,6 +247,7 @@ function saveCompoundCalcs()
 		$sql = "UPDATE catcompound SET "; //(id,Cat,NMethod,ModBonus,NMin,PointsMults,NPower) VALUES(";
 		//$sql .= "".intval($_REQUEST['id'][$i]);
 		$sql .= "Axis=".intval($_REQUEST['axis'][$i]);
+		$sql .= ",Cat=".intval($_REQUEST['Cat'][$i]);
 		$sql .= ",NMethod=".intval($_REQUEST['NMethod'][$i]);
 		$sql .= ",ModBonus=".intval($_REQUEST['ModBonus'][$i]);
 		$sql .= ",NMin=".intval($_REQUEST['NMin'][$i]);
@@ -385,6 +387,15 @@ function saveSpecials()
 		for ($i = 0 ; $i < count($arr) ; $i++ )
 		{
 			$sql = "UPDATE specials SET Compulsory=1 WHERE BonusID='".$DB->escapeString($_REQUEST['Compulsory'][$i])."'";
+			$DB->exec($sql);
+		}
+	}
+	if (isset($_REQUEST['AskPoints']))
+	{
+		$arr = $_REQUEST['AskPoints'];
+		for ($i = 0 ; $i < count($arr) ; $i++ )
+		{
+			$sql = "UPDATE specials SET AskPoints=1 WHERE BonusID='".$DB->escapeString($_REQUEST['AskPoints'][$i])."'";
 			$DB->exec($sql);
 		}
 	}
@@ -529,11 +540,20 @@ function triggerNewRow(obj)
 	echo('<th>'.$TAGS['BriefDescLit'][0].'</th>');
 	echo('<th>'.$TAGS['BonusPoints'][0].'</th>');
 	if (count($cats1) > 0)
+	{
+		$cats1[0] = '';
 		echo('<th>'.$cat1label.'</th>');
+	}
 	if (count($cats2) > 0)
+	{
+		$cats2[0] = '';
 		echo('<th>'.$cat2label.'</th>');
+	}
 	if (count($cats3) > 0)
+	{
+		$cats3[0] = '';
 		echo('<th>'.$cat3label.'</th>');
+	}
 	echo('<th>'.$TAGS['CompulsoryBonus'][0].'</th>');
 	echo('<th>'.$TAGS['DeleteEntryLit'][0].'</th>');
 	if ($showclaimsbutton)
@@ -648,6 +668,7 @@ function triggerNewRow(obj)
 	echo('</tr>');
 	
 	echo('</tbody></table>');
+	echo('<input type="submit" name="savedata" value="'.$TAGS['UpdateBonuses'][0].'"> ');
 	echo('</form>');
 	
 	
@@ -839,7 +860,7 @@ function showCompoundCalcs()
 			$AxisLabels['Cat'.$i.'Label']="$i (not used)";
 		else
 			$AxisLabels['Cat'.$i.'Label']="$i ".$AxisLabels['Cat'.$i.'Label'];
-	$R = $DB->query('SELECT rowid as id,Axis,NMethod,ModBonus,NMin,PointsMults,NPower FROM catcompound ORDER BY Axis,NMin DESC');
+	$R = $DB->query('SELECT rowid as id,Cat,Axis,NMethod,ModBonus,NMin,PointsMults,NPower FROM catcompound ORDER BY Axis,Cat,NMin DESC');
 	if ($DB->lastErrorCode() <> 0)
 		echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
 	if (!$rd = $R->fetchArray())
@@ -865,6 +886,7 @@ function triggerNewRow(obj)
 	echo('<table id="catcalcs">');
 	echo('<caption title="'.htmlentities($TAGS['CalcMaintHead'][1]).'">'.htmlentities($TAGS['CalcMaintHead'][0]).'</caption>');
 	echo('<thead><tr><th>'.$TAGS['AxisLit'][0].'</th>');
+	echo('<th>'.$TAGS['CatEntry'][0].'</th>');
 	echo('<th>'.$TAGS['ModBonusLit'][0].'</th>');
 	echo('<th>'.$TAGS['NMethodLit'][0].'</th>');
 	echo('<th>'.$TAGS['NMinLit'][0].'</th>');
@@ -887,7 +909,11 @@ function triggerNewRow(obj)
 			echo('>'.$AxisLabels['Cat'.$i.'Label'].'</option>');
 		}
 		echo('</select></td>');
-		
+		echo('<td title="'.$TAGS['CatEntry'][1].'">');
+		echo('<input type="number"  onchange="enableSaveButton();" name="Cat[]" value="');
+		echo($rd['Cat']);
+		echo('">');
+		echo('</td>');
 		echo('</select></td>');
 		echo('<td title="'.$TAGS['ModBonusLit'][1].'"><select onchange="enableSaveButton();" name="ModBonus[]">');
 		for ($i=0;$i<=1;$i++)
@@ -971,7 +997,10 @@ function showNewCompoundCalc()
 	}
 	echo('</select> ');
 	echo('</span>');
-		
+	echo('<span class="vlabel" title="'.$TAGS['CatEntry'][1].'">');
+	echo('<label for="Cat">'.$TAGS['CatEntry'][0].'</label> ');
+	echo('<input type="number" name="Cat" id="Cat" value="0">');
+	echo('</span>');
 	echo('<span class="vlabel" title="'.$TAGS['ModBonusLit'][1].'">');
 	echo('<label for="ModBonus">'.$TAGS['ModBonusLit'][0].'</label> ');
 	echo('<select name="ModBonus">');
@@ -1328,6 +1357,7 @@ function triggerNewRow(obj)
 	
 	echo('<input type="hidden" name="c" value="specials">');
 	echo('<input type="hidden" name="menu" value="setup">');
+	echo('<input type="submit" name="savedata" value="'.$TAGS['UpdateBonuses'][0].'"> ');
 	echo('<table id="bonuses">');
 	echo('<caption title="'.htmlentities($TAGS['SpecialMaintHead'][1]).'">'.htmlentities($TAGS['SpecialMaintHead'][0]).'</caption>');
 	echo('<thead><tr><th>'.$TAGS['BonusIDLit'][0].'</th>');
@@ -1337,6 +1367,7 @@ function triggerNewRow(obj)
 	echo('<th>'.$TAGS['SpecialPointsLit'][0].'</th>');
 	echo('<th>'.$TAGS['SpecialMultLit'][0].'</th>');
 	echo('<th>'.$TAGS['CompulsoryBonus'][0].'</th>');
+	echo('<th>'.$TAGS['AskPoints'][0].'</th>');
 	echo('<th>'.$TAGS['DeleteEntryLit'][0].'</th>');
 	if ($showclaimsbutton)
 		echo('<th class="ClaimsCount">'.$TAGS['ShowClaimsCount'][0].'</th>');
@@ -1371,6 +1402,11 @@ function triggerNewRow(obj)
 		else
 			$chk = "";
 		echo('<td class="center"><input type="checkbox"'.$chk.' name="Compulsory[]" value="'.$rd['BonusID'].'">');
+		if ($rd['AskPoints']==1)
+			$chk = " checked ";
+		else
+			$chk = "";
+		echo('<td class="center"><input type="checkbox"'.$chk.' name="AskPoints[]" value="'.$rd['BonusID'].'">');
 		echo('<td class="center"><input type="checkbox" name="DeleteEntry[]" value="'.$rd['BonusID'].'">');
 		if ($showclaimsbutton)
 		{

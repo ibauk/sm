@@ -36,6 +36,7 @@
  *	2.1	Accept/Reject claim handling; 
  *	2.1 kms/mile, mile/kms handling
  *	2.1 Odo check trip reading - used though not stored
+ *  2.2	Variable specials
  *
  */
  
@@ -57,6 +58,7 @@ const RPT_Total 	= "TOTAL";
 const CFGERR_MethodNIY = "Error: compoundCalcRuleMethod {0} not implemented yet";
 const CFGERR_NotBonuses = "Error: compoundCalcRuleType {0} not applicable to bonuses";
 
+const ASK_POINTS = "Please enter the points for";
 const CLAIM_REJECTED = "Claim rejected";
 const FINISHERS_EXPORTED = "Finishers Exported!";
 
@@ -150,24 +152,40 @@ function areYouSure(question)
 	return window.confirm(question);
 }
 
-function walkBonusArrays(f)
+function askPoints(inp)
 {
-	var bt = "BonusID[],SpecialID[]";
-	var sgObj = document.getElementById('SGroupsUsed');
-	if (sgObj != null)
+	if (inp.checked)
 	{
-		var sg = sgObj.value.split(',');
-		for (var i = 0; i < sg.length; i++)
-			bt += ',SpecialID_' + sg[i] + '[]';
+		var par = inp.parentNode;
+		var id = inp.getAttribute('id');
+		var val = document.getElementById('ap'+id);
+		if (!val)
+		{
+			var aps = document.getElementById('apspecials');
+			if (aps)
+			{
+				val = document.createElement('input');
+				val.setAttribute('name','ap'+id);
+				val.setAttribute('id','ap'+id);
+				aps.appendChild(val);
+			}
+		}
+		var lbl = par.firstChild.innerHTML;
+		var pts = inp.getAttribute('data-points');
+	
+		var npts = window.prompt(ASK_POINTS+' '+lbl,pts);
+		if (npts != null)
+			pts = parseInt(npts);
+		
+		inp.setAttribute('data-points',pts);
+		if (val)
+			val.setAttribute('value',pts);
+		var tit = par.getAttribute('title');
+		var p = tit.indexOf('[');
+		if (p >= 0)
+			par.setAttribute('title',tit.substr(0,p + 1) + ' ' + pts + ' ]');
 	}
-	bt += ',ComboID[]';
-	var bta = bt.split(',');
-	for (var i = 0; i < bta.length; i++)
-	{
-		var ba = document.getElementsByName(bta[i]);
-		for (var j = 0; j < ba.length; j++)
-			f(ba[j].id);
-	}
+	calcScore(true);
 }
 
 function bodyLoaded()
@@ -250,7 +268,8 @@ function calcComplexScore(res)
 			{
 				if (compoundCalcRules[j].getAttribute('data-mb') == CAT_ModifyBonusScore)
 				{
-					var axis = parseInt(compoundCalcRules[j].getAttribute('data-cat'));  // 1, 2 or 3
+					var axis = parseInt(compoundCalcRules[j].getAttribute('data-axis'));  // 1, 2 or 3
+					var matchcat = parseInt(compoundCalcRules[j].getAttribute('data-cat'));
 					var axisScore = axisScores[axis - 1];
 					var cat = parseInt(bonuses[i].getAttribute('data-cat'+axis));
 					var minBonusesPerCat = parseInt(compoundCalcRules[j].getAttribute('data-min'));
@@ -276,7 +295,7 @@ function calcComplexScore(res)
 						default:
 							alert(String.format(CFGERR_MethodNIY,compoundCalcRules[j].getAttribute('data-method')));
 					}
-					if (np >= minBonusesPerCat) 
+					if ( (matchcat == 0 || matchcat == cat) && (np >= minBonusesPerCat) )
 					{
 						switch (parseInt(compoundCalcRules[j].getAttribute('data-pm')))
 						{
@@ -327,7 +346,7 @@ function calcComplexScore(res)
 	{
 		if (compoundCalcRules[i].getAttribute('data-method') == CAT_NumNZCatsPerAxisMethod && compoundCalcRules[i].getAttribute('data-mb') == CAT_ModifyAxisScore)
 		{
-			var axis = parseInt(compoundCalcRules[i].getAttribute('data-cat'));  // 1, 2 or 3
+			var axis = parseInt(compoundCalcRules[i].getAttribute('data-axis'));  // 1, 2 or 3
 			var axisScore = axisScores[axis - 1];
 			if (axis > lastAxis) // We want to process each axis only once at this stage
 			{
@@ -366,14 +385,17 @@ function calcComplexScore(res)
 			lastAxis = -1;
 			for (var k = 0; k < compoundCalcRules.length; k++)
 			{
-				var axis = parseInt(compoundCalcRules[k].getAttribute('data-cat'));  // 1, 2 or 3
+				var axis = parseInt(compoundCalcRules[k].getAttribute('data-axis'));  // 1, 2 or 3
 				if (axis == i && typeof(catCounts[i][j]) != 'undefined')
 				{
 					var catCount = catCounts[i][j];
 					
+					var matchcat = parseInt(compoundCalcRules[k].getAttribute('data-cat'));
+					
 					if (catCount >= parseInt(compoundCalcRules[k].getAttribute('data-min')) && 
 							compoundCalcRules[k].getAttribute('data-method') == CAT_NumBonusesPerCatMethod && 
-							compoundCalcRules[k].getAttribute('data-mb') == CAT_ModifyAxisScore)
+							compoundCalcRules[k].getAttribute('data-mb') == CAT_ModifyAxisScore &&
+							(matchcat == 0 || matchcat == j))
 					{
 						//if (axis == 1) alert("ccs5.1; i=" + i + "; j=" + j + "; k =" + k + "; axis=" + axis + "; catCount=" + catCount);
 						var scoreFactor = parseInt(compoundCalcRules[k].getAttribute('data-power'));
@@ -488,9 +510,7 @@ function calcComplexScore(res)
 		for (var j = 0; j < cb.length; j++)
 		{
 			var bid = 'B' + cb[j];
-			var bok = document.getElementById(bid).checked;
-			//alert('Checking combination - ' + bid + ' == ' + bok);
-			if (!document.getElementById(bid).checked)
+			if (!document.getElementById(bid) || !document.getElementById(bid).checked)
 				bonuses[i].checked = false;
 		}
 		if (bonuses[i].checked)
@@ -959,8 +979,8 @@ function setFinisherStatus()
 			sxappend(document.getElementById('EntrantStatus').options[status].text,x,0,0,0);
 	}
 	var CS = parseInt(document.getElementById('EntrantStatus').value);
-	if (CS != EntrantOK && CS != EntrantFinisher)
-		return;
+	//if (CS != EntrantOK && CS != EntrantFinisher)
+		//return;
 	var TS = parseInt(document.getElementById('TotalPoints').value);
 	var MP = parseInt(document.getElementById('MinPoints').value);
 	if (TS < MP)
@@ -976,7 +996,7 @@ function setFinisherStatus()
 
 	var DT = document.getElementById('FinishTimeDNF').value;
 	var FT = document.getElementById('FinishDate').value + 'T' + document.getElementById('FinishTime').value;
-	if (FT > DT)
+	if (FT != 'T' && FT > DT)
 		return SFS(EntrantDNF,DNF_FINISHEDTOOLATE);
 	
 	var BL = document.getElementsByName('BonusID[]');
@@ -1189,7 +1209,7 @@ function sxappend(id,desc,bp,bm,tp)
 function sxhide()
 {
 	var sx = document.getElementById(SX_id);	
-	sx.className = 'hidescorex';
+	sx.className = 'hidescorex scorex';
 	sx.setAttribute('data-show','0');
 }
 function sxprint()
@@ -1217,7 +1237,7 @@ function sxprint()
 function sxshow()
 {
 	var sx = document.getElementById(SX_id);	
-	sx.className = 'showscorex';
+	sx.className = 'showscorex scorex';
 	sx.setAttribute('data-show','1');
 }	
 function sxstart()
@@ -1332,6 +1352,26 @@ function tickCombos()
 			}
 		document.getElementById(cmbs[i].getAttribute('id')).checked = tick && 
 					(document.getElementById(cmbs[i].getAttribute('id')).getAttribute('data-rejected') < 1);
+	}
+}
+
+function walkBonusArrays(f)
+{
+	var bt = "BonusID[],SpecialID[]";
+	var sgObj = document.getElementById('SGroupsUsed');
+	if (sgObj != null)
+	{
+		var sg = sgObj.value.split(',');
+		for (var i = 0; i < sg.length; i++)
+			bt += ',SpecialID_' + sg[i] + '[]';
+	}
+	bt += ',ComboID[]';
+	var bta = bt.split(',');
+	for (var i = 0; i < bta.length; i++)
+	{
+		var ba = document.getElementsByName(bta[i]);
+		for (var j = 0; j < ba.length; j++)
+			f(ba[j].id);
 	}
 }
 
