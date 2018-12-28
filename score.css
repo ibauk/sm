@@ -196,6 +196,28 @@ table#entrants	.FinishPosition,.TotalPoints,.CorrectedMiles	{ text-align: center
 
 .dox			{ margin-left: 1em; } /* documentation links in HelpAbout */
 
+
+
+table.qdfinishers {
+	display: inline-block;
+	margin: 1em;
+	padding: 1em;
+	background-color: white;
+	color: black;
+	border: none;
+	border-collapse: collapse;
+}
+
+table.qdfinishers td {
+	border: 1px solid black;
+	padding: 0.5em 1em 0 1em;
+}
+
+table.qdfinishers th {
+	border: 1px solid black;
+	padding: 0 1em 0 1em;
+}
+
 /* Right-click claim reject menu */
 #rcmenu { 
 	border:solid 1px #CCC; 
