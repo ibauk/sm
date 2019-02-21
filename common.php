@@ -237,6 +237,8 @@ $TAGS = array(
 	'RejectReason8'		=> array('8=Reason 8',''),
 	'RejectReason9'		=> array('9=Ask Rallymaster',''),
 	
+	'RejectReasons'		=> array('RejectReasons','Reasons for rejection'),
+	
 	'RejectsLit'		=> array('Rejections','Rejected bonus claims'),
 	
 	'RiderFirst'		=> array('Informal name',"Used for repeat mentions on finisher's certificate"),

@@ -324,7 +324,15 @@ function saveSGroups()
 function saveRallyConfig()
 {
 	global $DB;
-	
+
+	$RejectReasons = "";
+	$k = count($_REQUEST['RejectReason']);
+	for ($i =  0; $i < $k; $i++) {
+		$ix = $i + 1;
+		$v = $_REQUEST['RejectReason'][$i];
+		$RejectReasons .= "$ix=$v\n";
+	}
+	echo("$k === $RejectReasons");
 	$sql = "UPDATE rallyparams SET ";
 	$sql .= "RallyTitle='".$DB->escapeString($_REQUEST['RallyTitle'])."'";
 	$sql .= ",RallySlogan='".$DB->escapeString($_REQUEST['RallySlogan'])."'";
@@ -345,6 +353,7 @@ function saveRallyConfig()
 	$sql .= ",Cat1Label='".$DB->escapeString($_REQUEST['Cat1Label'])."'";
 	$sql .= ",Cat2Label='".$DB->escapeString($_REQUEST['Cat2Label'])."'";
 	$sql .= ",Cat3Label='".$DB->escapeString($_REQUEST['Cat3Label'])."'";
+	$sql .= ",RejectReasons='".$DB->escapeString($RejectReasons)."'";
 	//echo($sql.'<hr>');
 	$DB->exec($sql);
 	//echo("Rally configuration saved ".$DB->lastErrorCode().' ['.$DB->lastErrorMsg().']<hr>');
@@ -1074,6 +1083,7 @@ function showRallyConfig()
 	echo('<li><a href="#tab_basic">'.$TAGS['BasicRallyConfig'][0].'</a></li>');
 	echo('<li><a href="#tab_scoring">'.$TAGS['ScoringMethod'][0].'</a></li>');
 	echo('<li><a href="#tab_penalties">'.$TAGS['ExcessMileage'][0].'</a></li>');
+	echo('<li><a href="#tab_rejections">'.$TAGS['RejectReasons'][0].'</a></li>');
 	echo('</ul></div>');
 	
 	
@@ -1238,6 +1248,20 @@ function showRallyConfig()
 
 	echo('</fieldset>');
 
+	echo('<fieldset id="tab_rejections" class="tabContent"><legend>'.$TAGS['RejectReasons'][0].'</legend>');
+	echo('<ol>');
+	$rejectreasons = explode("\n",$rd['RejectReasons']);
+	foreach($rejectreasons as $rrline)
+	{
+		$rr = explode('=',$rrline);
+		if (count($rr)==2 && intval($rr[0])>0 && intval($rr[0])<10)
+			echo('<li>');
+			echo('<input type="text" name="RejectReason[]" data-code="'.$rr[0].'" value="'.$rr[1].'">');
+			echo('</li>');
+	}
+	echo('</ol>');
+	echo('</fieldset>');
+	
 	echo('<input type="submit" name="savedata" value="'.$TAGS['SaveRallyConfig'][0].'">');
 	echo('</form>');
 	//showFooter();
