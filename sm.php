@@ -332,7 +332,7 @@ function saveRallyConfig()
 		$v = $_REQUEST['RejectReason'][$i];
 		$RejectReasons .= "$ix=$v\n";
 	}
-	echo("$k === $RejectReasons");
+
 	$sql = "UPDATE rallyparams SET ";
 	$sql .= "RallyTitle='".$DB->escapeString($_REQUEST['RallyTitle'])."'";
 	$sql .= ",RallySlogan='".$DB->escapeString($_REQUEST['RallySlogan'])."'";
