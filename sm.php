@@ -1254,10 +1254,11 @@ function showRallyConfig()
 	foreach($rejectreasons as $rrline)
 	{
 		$rr = explode('=',$rrline);
-		if (count($rr)==2 && intval($rr[0])>0 && intval($rr[0])<10)
+		if (count($rr)==2 && intval($rr[0])>0 && intval($rr[0])<10) {
 			echo('<li>');
 			echo('<input type="text" name="RejectReason[]" data-code="'.$rr[0].'" value="'.$rr[1].'">');
 			echo('</li>');
+		}		
 	}
 	echo('</ol>');
 	echo('</fieldset>');
