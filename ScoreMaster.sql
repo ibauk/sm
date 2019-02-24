@@ -6,7 +6,7 @@
  * I am written for readability rather than efficiency, please keep me that way.
  *
  *
- * Copyright (c) 2018 Bob Stammers
+ * Copyright (c) 2019 Bob Stammers
  *
  *
  * This file is part of IBAUK-SCOREMASTER.
@@ -48,15 +48,15 @@ CREATE TABLE IF NOT EXISTS `rallyparams` (
 	`Cat1Label`	TEXT DEFAULT 'Cat1',
 	`Cat2Label`	TEXT DEFAULT 'Cat2',
 	`Cat3Label`	TEXT DEFAULT 'Cat3',
-	`RejectReasons`	TEXT DEFAULT "1=Photo missing
-2=Photo wrong
-3=Photo unclear
-4=Out of hours
-5=Wrong info
-6=Reason 6
-7=Reason 7
-8=Reason 8
-9=RallyMaster",
+	`RejectReasons`	TEXT DEFAULT "1=No/wrong photo
+2=Photo unclear
+3=Out of hours
+4=Face not in photo
+5=Bike not in photo
+6=Flag not in photo
+7=Missing rider/pillion
+8=Missing receipt
+9=Rallymaster!",
 	`DBState` INTEGER NOT NULL DEFAULT 0,
 	`DBVersion` INTEGER NOT NULL DEFAULT 1
 );
@@ -237,6 +237,9 @@ INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (22,'AdmCom
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (23,'AdmSetupWiz','setup.php',NULL,'params,category,compound');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (24,'AdmPrintScoreX','entrants.php?c=scorex','window.open(''entrants.php?c=scorex'',''scorex'');return false;','entrant,score,finisher');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (25,'AdmPrintQlist','entrants.php?c=qlist','window.open(''entrants.php?c=qlist'',''qlist'');return false;','entrant,rank,finisher');
+INSERT INTO `functions` (functionid,menulbl,url,onclick,tags) VALUES (26,'UtlFolderMaker','utils.php','window.open(''utils.php'',''utils'');return false;','entrant,bonus,folder,directory,script');
+INSERT INTO `functions` (functionid,menulbl,url,onclick,tags) VALUES (27,'UtlDeleteEntrant','entrants.php?c=delentrant',NULL,'entrant,delete entrant');
+INSERT INTO `functions` (functionid,menulbl,url,onclick,tags) VALUES (28,'UtlRenumEntrant','entrants.php?c=moveentrant',NULL,'entrant,renumber entrant,entrant number,number');
 
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('admin','AdmMenuHeader','1,2,3,4,24,5,6,25');
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('setup','AdmSetupHeader','16,17,18,19,20,21,22');

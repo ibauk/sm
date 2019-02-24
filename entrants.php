@@ -8,7 +8,7 @@
  * I am written for readability rather than efficiency, please keep me that way.
  *
  *
- * Copyright (c) 2018 Bob Stammers
+ * Copyright (c) 2019 Bob Stammers
  *
  *
  * This file is part of IBAUK-SCOREMASTER.
@@ -44,6 +44,23 @@ require_once('common.php');
 
 // Alphabetic order below
 
+
+function deleteEntrant()
+{
+	global $DB, $TAGS, $KONSTANTS;
+
+	$entrantid = $_POST['entrantid'];
+	if ($entrantid == '')
+		return;
+	if ($_POST['rusure'] != $KONSTANTS['AreYouSureYes'])
+		return;
+	$DB->exec("DELETE FROM entrants WHERE EntrantID=$entrantid");
+	if ($DB->lastErrorCode()<>0) {
+		echo("SQL ERROR: ".$DB->lastErrorMsg().'<hr>'.$sql.'<hr>');
+		exit;
+	}
+
+}
 
 function fetchShowEntrant()
 {
@@ -349,6 +366,26 @@ function parseStringArray($str,$delim1,$delim2)
 	return $res;
 }
 
+function renumberEntrant()
+{
+	global $DB, $TAGS, $KONSTANTS;
+
+	$entrantid = $_POST['entrantid'];
+	if ($entrantid == '')
+		return;
+	$newnumber = $_POST['newnumber'];
+	if ($newnumber == '' || $newnumber == $entrantid)
+		return;
+	if (getValueFromDB("SELECT EntrantID FROM entrants WHERE EntrantID=$newnumber","EntrantID",0) != 0)
+		return;
+	$DB->exec("UPDATE entrants SET EntrantID=$newnumber WHERE EntrantID=$entrantid");
+	if ($DB->lastErrorCode()<>0) {
+		echo("SQL ERROR: ".$DB->lastErrorMsg().'<hr>'.$sql.'<hr>');
+		exit;
+	}
+
+}
+
 
 function showEntrantRejectedClaims($rejections)
 {
@@ -551,6 +588,65 @@ function showAllScorex()
 }
 
 
+function showDeleteEntrant()
+{
+	global $DB, $TAGS, $KONSTANTS;
+
+	echo('<div class="maindiv">');
+	echo('<form method="post" action="entrants.php">');
+	echo('<input type="hidden" name="c" value="kill">');
+	echo('<span class="vlabel" title="'.$TAGS['ChooseEntrant'][1].'">');
+	echo('<select id="entrantid" name="entrantid">');
+	echo('<option value="">'.$TAGS['ChooseEntrant'][0].'</option>');
+	$R = $DB->query("SELECT * FROM entrants ORDER BY EntrantID");
+	while ($rd = $R->fetchArray())
+	{
+		echo('<option value="'.$rd['EntrantID'].'">'.$rd['EntrantID'].' - '.$rd['RiderName'].'</option>');
+	}
+	echo('</select>');
+	echo('</span>');
+	echo('<span class="vlabel" title="'.$TAGS['ConfirmDelEntrant'][1].'">');
+	echo('<label class="wide" for="rusure">'.$TAGS['ConfirmDelEntrant'][0].'</label> ');
+	echo('<input type="checkbox" id="rusure" name="rusure" value="'.$KONSTANTS['AreYouSureYes'].'">');
+	echo('</span>');
+	echo('<span class="vlabel">');
+	echo('<input type="submit" onclick="'."alert('hello sailor')".' name="killer" value="'.$TAGS['DeleteEntrant'][0].'">');
+	echo('</span>');
+	echo('</form>');
+	echo('</div>');
+}
+
+function showRenumberEntrant()
+{
+	global $DB, $TAGS, $KONSTANTS;
+
+	echo('<div class="maindiv">');
+	echo('<form method="post" action="entrants.php">');
+	echo('<input type="hidden" name="c" value="renumentrant">');
+	echo('<span class="vlabel" title="'.$TAGS['ChooseEntrant'][1].'">');
+	echo('<select id="entrantid" name="entrantid">');
+	echo('<option value="">'.$TAGS['ChooseEntrant'][0].'</option>');
+	$R = $DB->query("SELECT * FROM entrants ORDER BY EntrantID");
+	while ($rd = $R->fetchArray())
+	{
+		echo('<option value="'.$rd['EntrantID'].'">'.$rd['EntrantID'].' - '.$rd['RiderName'].'</option>');
+	}
+	echo('</select>');
+	echo('</span>');
+	
+	echo('<span class="vlabel" title="'.$TAGS['NewEntrantNum'][1].'">');
+	echo('<label for="newnumber">'.$TAGS['NewEntrantNum'][0].'</label> ');
+	echo('<input type="number" id="newnumber" name="newnumber" value="">');
+	echo('</span>');
+	echo('<span class="vlabel">');
+	echo('<input type="submit" name="killer" value="'.$TAGS['RenumberGo'][0].'">');
+	echo('</span>');
+	echo('</form>');
+	echo('</div>');
+}
+
+
+
 /* Check-in/check-out stuff */
 function showEntrantChecks($rd)
 {
@@ -562,7 +658,11 @@ function showEntrantChecks($rd)
 	echo('<input type="hidden" name="mode" value="check">');
 	
 	echo('<span class="vlabel"  style="font-weight: bold;" title="'.$TAGS['EntrantID'][1].'"><label for="EntrantID">'.$TAGS['EntrantID'][0].' </label> ');
-	echo('<input type="text" class="number"  readonly name="EntrantID" id="EntrantID" value="'.$rd['EntrantID'].'">'.' '.htmlspecialchars($rd['RiderName']).'</span>');
+	echo('<input type="text" class="number"  readonly name="EntrantID" id="EntrantID" value="'.$rd['EntrantID'].'">'.' '.htmlspecialchars($rd['RiderName']));
+	echo('<input title="'.$TAGS['FullDetails'][1].'" id="FullDetailsButton" type="button" value="'.$TAGS['FullDetails'][0].'"');
+	echo(' onclick="window.location='."'entrants.php?c=entrant&amp;id=".$rd['EntrantID']."&mode=full'".'">');
+	echo('</span>');
+
 	
 	
 	
@@ -932,6 +1032,7 @@ function showEntrantRecord($rd)
 		echo('<fieldset  class="tabContent" id="tab_scorex"><legend>'.$TAGS['ScorexLit'][0].'</legend>');
 		showEntrantScorex($rd['ScoreX']);
 		echo('</fieldset>');
+
 	}
 	if ($rd['RiderName'] <> '')
 		$dis = '';
@@ -992,8 +1093,21 @@ startHtml();
 if (isset($_REQUEST['savedata']))
 	saveEntrantRecord();
 
-
-if (isset($_REQUEST['c']) && $_REQUEST['c']=='entrant')
+if (isset($_POST['c']) && $_POST['c']=='kill')
+{
+	deleteEntrant();
+	listEntrants();
+}
+else if (isset($_POST['c']) && $_POST['c']=='renumentrant')
+{
+	renumberEntrant();
+	listEntrants();
+}
+else if (isset($_REQUEST['c']) && $_REQUEST['c']=='moveentrant')
+	showRenumberEntrant();
+else if (isset($_REQUEST['c']) && $_REQUEST['c']=='delentrant')
+	showDeleteEntrant();
+else if (isset($_REQUEST['c']) && $_REQUEST['c']=='entrant')
 	fetchShowEntrant();
 else if (isset($_REQUEST['c']) && $_REQUEST['c']=='newentrant')
 	showNewEntrant();

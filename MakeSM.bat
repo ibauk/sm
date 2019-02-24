@@ -99,6 +99,8 @@ echo fastcgi / 127.0.0.1:9000 php >> %DESTFOLDER%\caddy\caddyfile
 :: Now build the executable
 echo @echo off >%DESTFOLDER%\%EXECNAME%
 echo cls>> %DESTFOLDER%\%EXECNAME%
+echo set CDIR=%%cd%%>> %DESTFOLDER%\%EXECNAME%
+echo chdir %%~dp0>> %DESTFOLDER%\%EXECNAME%
 echo echo.>> %DESTFOLDER%\%EXECNAME%
 echo echo ** IBAUK ScoreMaster  %SMFLAVOUR% as at %SMDATE%>> %DESTFOLDER%\%EXECNAME%
 echo echo.>> %DESTFOLDER%\%EXECNAME%
@@ -157,7 +159,7 @@ echo echo.>> %DESTFOLDER%\%EXECNAME%
 echo echo.>> %DESTFOLDER%\%EXECNAME%
 echo timeout /t 30>> %DESTFOLDER%\%EXECNAME%
 echo :EOJ>> %DESTFOLDER%\%EXECNAME%
-
+echo chdir %CDIR%>> %DESTFOLDER%\%EXECNAME%
 echo.
 echo ScoreMaster distribution setup in %DESTFOLDER%
 echo.

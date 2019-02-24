@@ -1,4 +1,6 @@
 <?php
+//error_reporting(E_ALL);
+//ini_set('display_errors', 1);
 
 /*
  * I B A U K   -   S C O R E M A S T E R

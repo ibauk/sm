@@ -1249,6 +1249,7 @@ function showRallyConfig()
 	echo('</fieldset>');
 
 	echo('<fieldset id="tab_rejections" class="tabContent"><legend>'.$TAGS['RejectReasons'][0].'</legend>');
+	echo('<p>'.$TAGS['RejectReasons'][1].'</p>');
 	echo('<ol>');
 	$rejectreasons = explode("\n",$rd['RejectReasons']);
 	foreach($rejectreasons as $rrline)

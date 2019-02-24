@@ -112,16 +112,19 @@ $TAGS = array(
 	'CertificateHours'	=> array('Certificate hours','The duration of the rally in hours for the certificate'),
 	'CertTitle'			=> array('Title','Description of this certificate class'),
 	'Class'				=> array('Class #','The certificate class applicable'),
+	'ChooseEntrant'		=> array('Choose entrant','Pick an entrant from this list'),
 	'ComboIDLit'		=> array('ComboID',''),
 	'ComboMaintHead'	=> array('Combination Bonuses','List of Combination bonuses'),
 	'CombosLit'			=> array('Combinations','Combination bonuses'),
 	'CommaSeparated'	=> array('Comma separated list',''),
 	'CompulsoryBonus'	=> array('Compulsory?','This bonus is required for Finisher status'),
+	'ConfirmDelEntrant'	=> array('Delete this entrant?','Confirm deletion of this entrant'),
 	
 	'CorrectedMiles'	=> array('Miles ridden','Official rally mileage'),	// Miles/Kms
 	
 	'Country'			=> array('Country',"Entrant's home country"),
 	'dblclickprint'		=> array('Double-click to print',''),
+	'DeleteEntrant'		=> array('Go ahead, delete the bugger!','Execute the deletion'),
 	'DeleteEntryLit'	=> array('Delete?',''),
 	'EntrantDNF'		=> array('DNF','Did not qualify as a finisher'),
 	'EntrantDNS'		=> array('DNS','Entrant failed to start the rally'),
@@ -145,6 +148,9 @@ $TAGS = array(
 	'FinishersExported'	=> array('Finishers exported!','Finisher details exported to CSV'),
 	'FinishPosition'	=> array('Final place','Finisher ranking position',''),
 	'FinishTime'		=> array('Finish time','Official finish time. Entrants finishing later are DNF'),
+
+	'FullDetails'		=> array('Full details','Show the complete record'),
+
 	'gblMainMenu'		=> array('Main menu','Return to main menu'),
 	
 	'GroupNameLit'		=> array('Special group','Group used for presentation purposes'),
@@ -171,6 +177,7 @@ $TAGS = array(
 	'ModBonus1'			=> array('ModBonus1','Modifies bonus score'),
 	'ModBonusLit'		=> array('Usage','1=This calc directly affects bonus value, 0=This calc builds the axis score'),
 	'NameFilter'		=> array('Rider name','Use this to filter the list of riders shown below'),
+	'NewEntrantNum'		=> array('New number','What\'s the number number for this entrant'),
 	'NewPlaceholder'	=> array('start new entry','Placeholder for new table entries'),
 	'NMethod-1'			=> array('NMethod-1','Not used'),
 	'NMethod0'			=> array('NMethod0','No of bonuses per cat'),
@@ -237,9 +244,10 @@ $TAGS = array(
 	'RejectReason8'		=> array('8=Reason 8',''),
 	'RejectReason9'		=> array('9=Ask Rallymaster',''),
 	
-	'RejectReasons'		=> array('RejectReasons','Reasons for rejection'),
+	'RejectReasons'		=> array('RejectReasons','Reasons for bonus claim rejection'),
 	
 	'RejectsLit'		=> array('Rejections','Rejected bonus claims'),
+	'RenumberGo'		=> array('Go ahead, renumber','Submit the request'),
 	
 	'RiderFirst'		=> array('Informal name',"Used for repeat mentions on finisher's certificate"),
 	'RiderIBA'			=> array('IBA #',"Rider's IBA number if known"),
@@ -323,6 +331,10 @@ $TAGS = array(
 	'UploadEntrantsH1'	=> array('Uploading Entrants','Upload Entrants data from spreadsheet'),
 	'UploadForce'		=> array('Force overwrite','Overwrite existing Entrant records'),
 	'UploadPickFile'	=> array('Pick a file','Please select the input file'),
+
+	'UtlDeleteEntrant'	=> array('Delete entrant','Delete an entrant record from the database'),
+	'UtlFolderMaker'	=> array('Folder maker','Generate script to make entrant/bonus folders'),
+	'UtlRenumEntrant'	=> array('Renumber entrant','Assign a new entrant number to an existing entrant'),
 	
 	'WizNextPage'		=> array('Next','Save and move to the next page of the wizard'),
 	'WizPrevPage'		=> array('Previous','Save and return to the previous wizard page'),
@@ -388,6 +400,7 @@ $KONSTANTS['EntrantFinisher'] = 8;
 $KONSTANTS['EntrantDNF'] = 3;
 $KONSTANTS['BeingScored'] = 1;
 $KONSTANTS['NotBeingScored'] = 0;
+$KONSTANTS['AreYouSureYes'] = 'yesIamSure';
 $KONSTANTS['TiesSplitByMiles'] = 1;
 $KONSTANTS['TeamRankIndividuals'] = 0;
 $KONSTANTS['TeamRankHighest'] = 1;

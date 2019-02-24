@@ -5,7 +5,7 @@
  * I am written for readability rather than efficiency, please keep me that way.
  *
  *
- * Copyright (c) 2018 Bob Stammers
+ * Copyright (c) 2019 Bob Stammers
  *
  *
  * This file is part of IBAUK-SCOREMASTER.
@@ -107,6 +107,7 @@ ul#tabs li a.selected { color: #000; background-color: #f1f0ee; font-weight: bol
 .slogan			{ font-size: .8em; font-style: italic; text-align: center; }
 .ClaimsCount	{ padding-left: 1em; text-align: right; }
 #ScoreNowButton	{ background-color: white; color: black; margin-left: 3em;}
+#FullDetailsButton	{ background-color: white; color: black; margin-left: 3em;}
 
 #header			{ background-color: lightgray; border-bottom: solid; }
 #hdrRallyTitle 	{ padding-left: 1em; }
@@ -154,7 +155,7 @@ table#entrants	td.EntrantID	{ text-align: center; }
 table#entrants	.RiderName,.PillionName,.Bike	{ text-align: left; }
 table#entrants	.FinishPosition,.TotalPoints,.CorrectedMiles	{ text-align: center; }
 
-
+.maindiv		{ margin: 2em auto 2em auto; padding-left: 2em; }
 #header a		{ text-decoration: none; }
 #header a:link	{ color: black; }
 #header a:visited	{ color: black; }
