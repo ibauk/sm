@@ -104,7 +104,9 @@ $TAGS = array(
 	'CatBriefDesc'		=> array('Description',''),
 	'CategoryLit'		=> array('Category',''),
 	'CatEntry'			=> array('Category','The number of this category within the axis'),
+	'CatEntryCC'		=> array('Which category','Which cat(s) does this rule apply to'),
 	'CatExplainer'		=> array('CatExplainer','You can amend the description of entries or delete them entirely. New entries must have an entry number which is unique within the axis.'),
+	'ccApplyToAll'		=> array('all cats','applies to all cats'),
 	
 	'CertExplainer'		=> array('Certificates are "web" documents comprising well-formed HTML and CSS parts.',
 									'Please carefully specify the certificate layout and content in the texts below.'),
@@ -226,6 +228,17 @@ $TAGS = array(
 	
 	'qPoints'			=> array('Points',''),
 	
+	// Renumber All Entrants texts
+	'raeConfirm'		=> array('Are you sure','Must be checked before submission'),
+	'raeFirst'			=> array('Starting number','The first number to be used'),
+	'raeOrder'			=> array('In what order','How to sort the entrants for renumbering'),
+	'raeRandom'			=> array('Random','Sort randomly'),
+	'raeRiderFirst'		=> array('Firstname','Sort on first name'),
+	'raeRiderLast'		=> array('Lastname','Sort on surname'),
+	'raeSortA'			=> array('Ascending','Sort A-Z, 1-9'),
+	'raeSortD'			=> array('Descending','Sort Z-A, 9-1'),
+	'raeSubmit'			=> array('Go ahead, Renumber all entrants','Go ahead! Renumber all entrants'),
+	
 	'RallyResults'		=> array('Rally results',''),
 	'RallySlogan'		=> array('Rally slogan','Brief description of the rally, usually shown on finisher certificates.'),
 	'RallyTitle'		=> array('Rally title','Formal title of the rally. Surround an optional part with [ ]; Use | for newlines'),
@@ -334,6 +347,7 @@ $TAGS = array(
 
 	'UtlDeleteEntrant'	=> array('Delete entrant','Delete an entrant record from the database'),
 	'UtlFolderMaker'	=> array('Folder maker','Generate script to make entrant/bonus folders'),
+	'UtlRAE'			=> array('Renumber all entrants','Renumber all the entrants, regardless of status'),
 	'UtlRenumEntrant'	=> array('Renumber entrant','Assign a new entrant number to an existing entrant'),
 	
 	'WizNextPage'		=> array('Next','Save and move to the next page of the wizard'),

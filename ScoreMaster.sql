@@ -170,7 +170,6 @@ CREATE TABLE IF NOT EXISTS `claims` (
 CREATE TABLE IF NOT EXISTS `categories` (
 	`Axis`	INTEGER DEFAULT 1,
 	`Cat`	INTEGER,
-	`Entry`	INTEGER,
 	`BriefDesc`	TEXT,
 	PRIMARY KEY(`Axis`,`Cat`)
 );
@@ -240,6 +239,7 @@ INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (25,'AdmPri
 INSERT INTO `functions` (functionid,menulbl,url,onclick,tags) VALUES (26,'UtlFolderMaker','utils.php','window.open(''utils.php'',''utils'');return false;','entrant,bonus,folder,directory,script');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,tags) VALUES (27,'UtlDeleteEntrant','entrants.php?c=delentrant',NULL,'entrant,delete entrant');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,tags) VALUES (28,'UtlRenumEntrant','entrants.php?c=moveentrant',NULL,'entrant,renumber entrant,entrant number,number');
+INSERT INTO `functions` (functionid,menulbl,url,onclick,tags) VALUES (29,'UtlRAE','entrants.php?c=showrae',NULL,'entrant,renumber all entrants,entrant number,number');
 
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('admin','AdmMenuHeader','1,2,3,4,24,5,6,25');
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('setup','AdmSetupHeader','16,17,18,19,20,21,22');

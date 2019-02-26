@@ -188,6 +188,7 @@ function askPoints(inp)
 	calcScore(true);
 }
 
+
 function bodyLoaded()
 {
 	//var B = document.getElementsByName('BonusID[]');
@@ -202,6 +203,9 @@ function bodyLoaded()
 	
 	if (hasTabs)
 		tabsSetupTabs();
+	
+	if (hasCCDropdowns)
+		ccShowSelectAxisCats(document.getElementById(CC_Axis_elem).value,CC_Cats_elem);
 	
 	if (!isScoresheetpage)
 		return;
@@ -794,6 +798,34 @@ function calcTimePenalty()
 	return [0,0];
 
 }
+
+function ccShowSelectAxisCats(axis,sel)
+{
+	var lst;
+	try {
+		lst = document.getElementById('axis'+axis+'cats');
+	} catch(err) {
+		return;
+	}
+	var cats = lst.value.split(',');
+	var optval = sel.options[sel.selectedIndex].value;
+	while (sel.options.length > 0)
+		sel.options.remove(0);
+	for (var i = 0; i < cats.length; i++)
+	{
+		var f = cats[i].split('=');
+		var opt = document.createElement("option");
+		opt.text = f[1]+' ('+f[0]+')';
+		opt.value = f[0];
+		if (f[0]==optval)
+			opt.selected = true;
+		sel.options.add(opt);
+	}
+	if (sel.selectedIndex < 0 && sel.opt.length > 0)
+		sel.selectedIndex = 0;
+
+}
+
 
 function chooseNZ(i,j)
 {

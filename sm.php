@@ -225,15 +225,16 @@ function saveCompoundCalcs()
 	
 	if (isset($_REQUEST['newcc']))
 	{
-		$sql = "INSERT INTO catcompound (Axis,Cat,ModBonus,NMin,PointsMults,NPower) VALUES(";
+		$sql = "INSERT INTO catcompound (Axis,Cat,NMethod,ModBonus,NMin,PointsMults,NPower) VALUES(";
 		$sql .= intval($_REQUEST['axis']);
-		$sql .= intval($_REQUEST['Cat']);
+		$sql .= ",".intval($_REQUEST['Cat']);
 		$sql .= ",".intval($_REQUEST['NMethod']);
 		$sql .= ",".intval($_REQUEST['ModBonus']);
 		$sql .= ",".intval($_REQUEST['NMin']);
 		$sql .= ",".intval($_REQUEST['PointsMults']);
 		$sql .= ",".intval($_REQUEST['NPower']);
 		$sql .= ")";
+		//echo($sql.'<hr>');
 		$DB->exec($sql);
 		if ($DB->lastErrorCode() <> 0)
 			echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
@@ -860,7 +861,7 @@ function showCompoundCalcs()
 {
 	global $DB, $TAGS, $KONSTANTS;
 	
-
+	$cats = fetchCategoryArrays();
 	
 	$R = $DB->query('SELECT Cat1Label,Cat2Label,Cat3Label FROM rallyparams');
 	$AxisLabels = $R->fetchArray();
@@ -868,7 +869,7 @@ function showCompoundCalcs()
 		if ($AxisLabels['Cat'.$i.'Label']=='')
 			$AxisLabels['Cat'.$i.'Label']="$i (not used)";
 		else
-			$AxisLabels['Cat'.$i.'Label']="$i ".$AxisLabels['Cat'.$i.'Label'];
+			$AxisLabels['Cat'.$i.'Label']=$AxisLabels['Cat'.$i.'Label']." ($i)";
 	$R = $DB->query('SELECT rowid as id,Cat,Axis,NMethod,ModBonus,NMin,PointsMults,NPower FROM catcompound ORDER BY Axis,Cat,NMin DESC');
 	if ($DB->lastErrorCode() <> 0)
 		echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
@@ -890,12 +891,21 @@ function triggerNewRow(obj)
 <?php	
 
 	echo('<form method="post" action="sm.php">');
+	for ($i = 0; $i < $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $i++)
+	{
+		$j = $i + 1;
+		$k = '0='.$TAGS['ccApplyToAll'][0];
+		if (isset($cats[$j]))
+			foreach($cats[$j] as $cat => $bd)
+				$k .= ",$cat=$bd";
+		echo('<input type="hidden" id="axis'.$j.'cats" value="'.$k.'">');
+	}
 	echo('<input type="hidden" name="c" value="catcalcs">');
 	echo('<input type="hidden" name="menu" value="setup">');
 	echo('<table id="catcalcs">');
 	echo('<caption title="'.htmlentities($TAGS['CalcMaintHead'][1]).'">'.htmlentities($TAGS['CalcMaintHead'][0]).'</caption>');
 	echo('<thead><tr><th>'.$TAGS['AxisLit'][0].'</th>');
-	echo('<th>'.$TAGS['CatEntry'][0].'</th>');
+	echo('<th>'.$TAGS['CatEntryCC'][0].'</th>');
 	echo('<th>'.$TAGS['ModBonusLit'][0].'</th>');
 	echo('<th>'.$TAGS['NMethodLit'][0].'</th>');
 	echo('<th>'.$TAGS['NMinLit'][0].'</th>');
@@ -905,8 +915,10 @@ function triggerNewRow(obj)
 	echo('</tr>');
 	echo('</thead><tbody>');
 	
+	$rowid = 0;
 	while ($rd = $R->fetchArray())
 	{
+		$rowid++;
 		echo('<tr class="hoverlite">');
 
 		echo('<td title="'.$TAGS['AxisLit'][1].'"><input type="hidden" name="id[]" value="'.$rd['id'].'"><select onchange="enableSaveButton();" name="axis[]">');
@@ -918,10 +930,29 @@ function triggerNewRow(obj)
 			echo('>'.$AxisLabels['Cat'.$i.'Label'].'</option>');
 		}
 		echo('</select></td>');
+		
 		echo('<td title="'.$TAGS['CatEntry'][1].'">');
-		echo('<input type="number"  onchange="enableSaveButton();" name="Cat[]" value="');
-		echo($rd['Cat']);
-		echo('">');
+		//echo('<input type="number"  onchange="enableSaveButton();" name="Cat[]" value="');
+		//echo($rd['Cat']);
+		//echo('">');
+		
+		echo('<select id="selcat'.$rowid.'" name="Cat[]" onchange="enableSaveButton();" >');
+		echo('<option value="0"');
+		if ($rd['Cat']==0)
+			echo(' selected');
+		echo('>'.$TAGS['ccApplyToAll'][0].' (0)</option>');
+		if (isset($cats[1]))
+			foreach($cats[1] as $cat => $bd)
+			{
+				echo('<option value="'.$cat.'"');
+				if ($rd['Cat']==$cat)
+					echo(' selected');
+				echo('>'.$bd.' ('.$cat.')</option>');
+			}
+	
+		echo('</select>');
+
+		
 		echo('</td>');
 		echo('</select></td>');
 		echo('<td title="'.$TAGS['ModBonusLit'][1].'"><select onchange="enableSaveButton();" name="ModBonus[]">');
@@ -972,31 +1003,50 @@ function triggerNewRow(obj)
 	//showFooter();
 }
 
+function fetchCategoryArrays()
+{
+	global $DB;
+	
+	$R = $DB->query("SELECT Axis,Cat,BriefDesc FROM categories ORDER BY Axis,BriefDesc");
+	$res = [];
+	while ($rd = $R->fetchArray())
+		$res[$rd['Axis']][$rd['Cat']] = $rd['BriefDesc'];
+	return $res;
+}
 
 function showNewCompoundCalc()
 {
 
 	global $DB, $TAGS, $KONSTANTS;
 	
-
+	$cats = fetchCategoryArrays();
 
 	$R = $DB->query('SELECT Cat1Label,Cat2Label,Cat3Label FROM rallyparams');
 	
 	$AxisLabels = $R->fetchArray();
 	
-	for ($i=1;$i<=3;$i++)
+	for ($i=1;$i<=$KONSTANTS['NUMBER_OF_COMPOUND_AXES'];$i++)
 		if ($AxisLabels['Cat'.$i.'Label']=='')
 			$AxisLabels['Cat'.$i.'Label']="$i (not used)";
 		else
-			$AxisLabels['Cat'.$i.'Label']="$i ".$AxisLabels['Cat'.$i.'Label'];
+			$AxisLabels['Cat'.$i.'Label']=$AxisLabels['Cat'.$i.'Label']." ($i)";
 
 	echo('<form method="post" action="sm.php">');
+	for ($i = 0; $i < $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $i++)
+	{
+		$j = $i + 1;
+		$k = '0='.$TAGS['ccApplyToAll'][0];
+		if (isset($cats[$j]))
+			foreach($cats[$j] as $cat => $bd)
+				$k .= ",$cat=$bd";
+		echo('<input type="hidden" id="axis'.$j.'cats" value="'.$k.'">');
+	}
 	echo('<input type="hidden" name="c" value="catcalcs">');
 	echo('<input type="hidden" name="menu" value="setup">');
 	echo('<input type="hidden" name="newcc" value="1">');
 	echo('<span class="vlabel" title="'.$TAGS['AxisLit'][1].'">');
-	echo('<label for="axis">'.$TAGS['AxisLit'][0].'</label> ');
-	echo('<select id="axis" name="axis">');
+	echo('<label class="wide" for="axis">'.$TAGS['AxisLit'][0].'</label> ');
+	echo('<select id="axis" name="axis" onchange="ccShowSelectAxisCats(this.value,document.getElementById(\'selcat\'));">');
 	for ($i=1;$i<=3;$i++)
 	{
 		echo("<option value=\"$i\"");
@@ -1006,12 +1056,19 @@ function showNewCompoundCalc()
 	}
 	echo('</select> ');
 	echo('</span>');
-	echo('<span class="vlabel" title="'.$TAGS['CatEntry'][1].'">');
-	echo('<label for="Cat">'.$TAGS['CatEntry'][0].'</label> ');
-	echo('<input type="number" name="Cat" id="Cat" value="0">');
+	echo('<span class="vlabel" title="'.$TAGS['CatEntryCC'][1].'">');
+	echo('<label class="wide" for="Cat">'.$TAGS['CatEntryCC'][0].'</label> ');
+	//echo('<input type="number" name="Cat" id="Cat" value="0">');
+	echo('<select id="selcat" name="Cat">');
+	echo('<option value="0" selected>'.$TAGS['ccApplyToAll'][0].' (0)</option>');
+	if (isset($cats[1]))
+		foreach($cats[1] as $cat => $bd)
+			echo('<option value="'.$cat.'">'.$bd.' ('.$cat.')</option>');
+	
+	echo('</select>');
 	echo('</span>');
 	echo('<span class="vlabel" title="'.$TAGS['ModBonusLit'][1].'">');
-	echo('<label for="ModBonus">'.$TAGS['ModBonusLit'][0].'</label> ');
+	echo('<label class="wide" for="ModBonus">'.$TAGS['ModBonusLit'][0].'</label> ');
 	echo('<select name="ModBonus">');
 	for ($i=0;$i<=1;$i++)
 	{
@@ -1024,7 +1081,7 @@ function showNewCompoundCalc()
 	echo('</span>');
 	
 	echo('<span class="vlabel" title="'.$TAGS['NMethodLit'][1].'">');
-	echo('<label for="NMethod">'.$TAGS['NMethodLit'][0].'</label> ');
+	echo('<label class="wide" for="NMethod">'.$TAGS['NMethodLit'][0].'</label> ');
 	echo('<select name="NMethod">');
 	echo('<option value="0" selected>'.$TAGS['NMethod0'][1].'</option>');
 	echo('<option value="1">'.$TAGS['NMethod1'][1].'</option>');
@@ -1033,12 +1090,12 @@ function showNewCompoundCalc()
 	echo('</span>');
 	
 	echo('<span class="vlabel" title="'.$TAGS['NMinLit'][1].'">');
-	echo('<label for="NMin">'.$TAGS['NMinLit'][0].'</label> ');
+	echo('<label class="wide" for="NMin">'.$TAGS['NMinLit'][0].'</label> ');
 	echo('<input type="number" name="NMin" value="1">');
 	echo('</span>');
 	
 	echo('<span class="vlabel" title"'.$TAGS['PointsMults'][1].'">');
-	echo('<label for="PointsMults">'.$TAGS['PointsMults'][0].'</label> ');
+	echo('<label class="wide" for="PointsMults">'.$TAGS['PointsMults'][0].'</label> ');
 	echo('<select name="PointsMults">');
 	for ($i=0;$i<=1;$i++)
 	{
@@ -1051,7 +1108,7 @@ function showNewCompoundCalc()
 	echo('</span>');
 	
 	echo('<span class="vlabel" title="'.$TAGS['NPowerLit'][1].'">');
-	echo('<label for="NPower">'.$TAGS['NPowerLit'][0].'</label> ');
+	echo('<label class="wide" for="NPower">'.$TAGS['NPowerLit'][0].'</label> ');
 	echo('<input type="number" name="NPower"  value="0">');
 	echo('</span>');
 

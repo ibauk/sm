@@ -366,6 +366,65 @@ function parseStringArray($str,$delim1,$delim2)
 	return $res;
 }
 
+function renumberAllEntrants()
+// 
+// This will renumber all the entrants into a single contiguous range
+// The strategy is make two update passes to avoid problems with PK
+// clashes
+{
+	global $DB, $TAGS, $KONSTANTS;
+	
+	$firstnum	= $_POST['firstnum'];
+	$step		= $_POST['step'];		// No-one's ever going to use step <> 1 but ...
+	$order		= $_POST['order'];
+
+	if ($_POST['rusure'] != $KONSTANTS['AreYouSureYes'])
+		return;
+	
+	$rex = [];
+	$sql = "SELECT *,substr(RiderName,1,RiderPos-1) As RiderFirst";
+	$sql .= ",substr(RiderName,RiderPos+1) As RiderLast";
+	$sql .= " FROM (SELECT *,instr(RiderName,' ') As RiderPos FROM entrants) ";
+	
+	$R = $DB->query("$sql ORDER BY $order");
+	$nextnum = $firstnum;
+	$hinum = 0;
+	while ($rd = $R->fetchArray())
+	{
+		if ($rd['EntrantID'] > $hinum)
+			$hinum = $rd['EntrantID'];
+		$rex[$rd['EntrantID']] = $nextnum;
+		$nextnum += $step;
+	}
+	$base = 0;
+	while ($firstnum + $base <= $hinum)
+		$base += 1000; // Should be big enough
+	$DB->exec("START TRANSACTION");
+	foreach ($rex as $k => $v)
+	{
+		$newnumber = $base + $v;
+		$DB->exec("UPDATE entrants SET EntrantID=$newnumber WHERE EntrantID=$k");
+		if ($DB->lastErrorCode()<>0) {
+			echo("SQL ERROR: ".$DB->lastErrorMsg().'<hr>'.$sql.'<hr>');
+			exit;
+		}
+	}
+	
+	if ($base > 0)
+	{
+		foreach ($rex as $k => $v)
+		{
+			$newnumber = $base + $v;
+			$DB->exec("UPDATE entrants SET EntrantID=$v WHERE EntrantID=$newnumber");
+			if ($DB->lastErrorCode()<>0) {
+				echo("SQL ERROR: ".$DB->lastErrorMsg().'<hr>'.$sql.'<hr>');
+				exit;
+			}
+		}
+	}
+	$DB->exec("COMMIT");
+}
+
 function renumberEntrant()
 {
 	global $DB, $TAGS, $KONSTANTS;
@@ -615,6 +674,51 @@ function showDeleteEntrant()
 	echo('</form>');
 	echo('</div>');
 }
+
+function showRAE()
+{
+	global $DB, $TAGS, $KONSTANTS;
+
+	echo('<div class="maindiv">');
+	echo('<form method="post" action="entrants.php">');
+	echo('<input type="hidden" name="c" value="rae">');
+	echo('<input type="hidden" name="step" value="1">');
+	echo('<input type="hidden" name="seq" value="">'); // ascending/descending
+	echo('<span class="vlabel" title="'.$TAGS['raeFirst'][1].'">');
+	echo('<label for="firstnum">'.$TAGS['raeFirst'][0].'</label> ');
+	echo('<input type="number" id="firstnum" name="firstnum" value="1">');
+	echo('</span>');
+	echo('<span class="vlabel" title="'.$TAGS['raeOrder'][1].'">');
+	echo('<label for="order">'.$TAGS['raeOrder'][0].'</label> ');
+	echo('<select id="order" name="order">');
+	echo('<option selected value="EntrantID">'.$TAGS['EntrantID'][0].'</option>');
+	echo('<option value="RiderLast">'.$TAGS['raeRiderLast'][0].'</option>');
+	echo('<option value="RiderFirst">'.$TAGS['raeRiderFirst'][0].'</option>');
+	echo('<option value="random()">'.$TAGS['raeRandom'][0].'</option>');
+	echo('</select> ');
+	
+	echo('<span title="'.$TAGS['raeSortA'][1].'">');
+	echo('<label for="seqasc">'.$TAGS['raeSortA'][0].'</label> ');
+	echo('<input type="radio" id="seqasc" name="seq" checked value="">  ');
+	echo('</span>');
+	echo('<span title="'.$TAGS['raeSortD'][1].'">');
+	echo('<label for="seqdes">'.$TAGS['raeSortD'][0].'</label> ');
+	echo('<input type="radio" id="seqdes" name="seq" value=" DESC">');
+	echo('</span>');
+	echo('</span>');
+	echo('<span class="vlabel" title="'.$TAGS['raeConfirm'][1].'">');
+	echo('<label class="wide" for="rusure">'.$TAGS['raeConfirm'][0].'</label> ');
+	echo('<input type="checkbox" id="rusure" name="rusure" value="'.$KONSTANTS['AreYouSureYes'].'">');
+	echo('</span>');
+	echo('<span class="vlabel">');
+	echo('<input type="submit" name="killer" value="'.$TAGS['raeSubmit'][0].'">');
+	echo('</span>');
+	echo('</form>');
+	echo('</div>');
+	
+}
+
+
 
 function showRenumberEntrant()
 {
@@ -1098,11 +1202,18 @@ if (isset($_POST['c']) && $_POST['c']=='kill')
 	deleteEntrant();
 	listEntrants();
 }
+else if (isset($_POST['c']) && $_POST['c']=='rae')
+{
+	renumberAllEntrants();
+	listEntrants();
+}
 else if (isset($_POST['c']) && $_POST['c']=='renumentrant')
 {
 	renumberEntrant();
 	listEntrants();
 }
+else if (isset($_REQUEST['c']) && $_REQUEST['c']=='showrae')
+	showRAE();
 else if (isset($_REQUEST['c']) && $_REQUEST['c']=='moveentrant')
 	showRenumberEntrant();
 else if (isset($_REQUEST['c']) && $_REQUEST['c']=='delentrant')
