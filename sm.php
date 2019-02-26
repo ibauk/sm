@@ -921,7 +921,7 @@ function triggerNewRow(obj)
 		$rowid++;
 		echo('<tr class="hoverlite">');
 
-		echo('<td title="'.$TAGS['AxisLit'][1].'"><input type="hidden" name="id[]" value="'.$rd['id'].'"><select onchange="enableSaveButton();" name="axis[]">');
+		echo('<td title="'.$TAGS['AxisLit'][1].'"><input type="hidden" name="id[]" value="'.$rd['id'].'"><select onchange="enableSaveButton();ccShowSelectAxisCats(this.value,document.getElementById(\'selcat'.$rowid.'\'));" name="axis[]">');
 		for ($i=1;$i<=3;$i++)
 		{
 			echo("<option value=\"$i\"");
