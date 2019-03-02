@@ -84,7 +84,7 @@ function showPage($page_number)
 {
 	global $TAGS,$DB,$KONSTANTS;
 	
-	
+//	echo('Showing page '.$page_number.'</hr>');
 	function isChecked($n)
 	{
 		return ($n ? ' checked ' : '');
@@ -235,6 +235,7 @@ function showPageTrailer($page_number)
 {
 	global $TAGS, $LAST_WIZARD_PAGE;
 	
+	//echo("Showing page $page_number of ".$LAST_WIZARD_PAGE."<hr>");
 	if ($page_number > 1)
 		echo('<input type="submit" class="wizbutton" name="prevpage" title="'.$TAGS['WizPrevPage'][1].'" value="'.$TAGS['WizPrevPage'][0].'"> ');
 	if ($page_number < $LAST_WIZARD_PAGE)

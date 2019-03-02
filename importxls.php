@@ -8,7 +8,7 @@
  * I am written for readability rather than efficiency, please keep me that way.
  *
  *
- * Copyright (c) 2018 Bob Stammers
+ * Copyright (c) 2019 Bob Stammers
  *
  *
  * This file is part of IBAUK-SCOREMASTER.
@@ -44,8 +44,11 @@ $SPECFILES = array(	'BBR' => array('bbrspec.php','Brit Butt rally'),
 				);
 **/
 require_once("specfiles.php");
+require_once("vendor\autoload.php");
 
-require_once './PHPExcel/Classes/PHPExcel/IOFactory.php';
+//use \PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+
 
 function getMergeCols($sheet,$row,$colspec,$sep = ' ')
 // Extract and return the contents of one or more cells
@@ -59,7 +62,12 @@ function getMergeCols($sheet,$row,$colspec,$sep = ' ')
 	for ($i = 0; $i < sizeof($cols); $i++)
 	{
 		if ($res <> '') $res .= $sep;
-		$res .= $sheet->getCellByColumnAndRow($cols[$i],$row)->getValue();
+		//echo("  C=$cols[$i],R=$row  ");
+		
+		// PhpSpreadsheet uses columns starting at 1
+		// PHPExcel (deprecated) used columns starting at 0
+		// Need to add 1 to column values
+		$res .= $sheet->getCellByColumnAndRow($cols[$i]+1,$row)->getValue();
 	}
 	return $res;
 }
@@ -135,8 +143,8 @@ function processUpload()
 	global $IMPORTSPEC, $target_dir;
 	
 	
-	if (file_exists($target_dir.IMPORTSPEC['xlsname']))
-		die("file [".$target_dir.IMPORTSPEC['xlsname']."] already exists");
+	//if (file_exists($target_dir.$IMPORTSPEC['xlsname']))
+	//	die("file [".$target_dir.$IMPORTSPEC['xlsname']."] already exists");
 	if (!move_uploaded_file($_FILES['fileid']['tmp_name'],$target_dir.$IMPORTSPEC['xlsname']))
 		die('Upload failed ['.$_FILES['fileid']['tmp_name'].']==>['.$target_dir.$IMPORTSPEC['xlsname'].']');
 }
@@ -154,7 +162,7 @@ require_once($_REQUEST['specfile']);
 
 startHtml($TAGS['xlsImporting'][0]);
 
-$debugging = FALSE;
+$debugging = 0;
 
 echo("debugging=".$debugging."; specfile=".$_REQUEST['specfile']."<br>");
 
@@ -164,22 +172,26 @@ if (!isset($IMPORTSPEC['xlsname']))
 if (isset($_REQUEST['fileuploaded']))
 	processUpload();
 
-if ($debugging) echo("1 Testing ".$target_dir.$IMPORTSPEC['xlsname']."<br>");
-try {
-	$xlstype = PHPExcel_IOFactory::identify($target_dir.$IMPORTSPEC['xlsname']);
-} catch (Exception $e) {
-	die("Error: ".$e->getMessage());
-}
-if ($debugging) echo("2 $xlstype<br>");
-$rdr = PHPExcel_IOFactory::createReader($xlstype); 
+if ($debugging) echo("1 Loading ".$target_dir.$IMPORTSPEC['xlsname']."<br>");
+$filetype = \PhpOffice\PhpSpreadsheet\IOFactory::identify($target_dir.$IMPORTSPEC['xlsname']);
+//echo("Filetype is $filetype");
+$rdr = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($filetype);
+//($target_dir.$IMPORTSPEC['xlsname']);
 $rdr->setReadDataOnly(true);
 $rdr->setLoadSheetsOnly($IMPORTSPEC['whichsheet']);
-if ($debugging) echo("3<br>");
 try {
 	$xls = $rdr->load($target_dir.$IMPORTSPEC['xlsname']);
-} catch (Exception $e) {
+} catch (\PhpOffice\PhpSpreadsheet\Reader\Exception $e) {
 	die("Error: ".$e->getMessage());
 }
+
+if (0)
+{
+echo('<pre style="font-size: .5em;">');
+print_r($xls);
+echo('</pre>');
+}
+
 if ($debugging)
 {
 	if ($xls)
@@ -187,10 +199,8 @@ if ($debugging)
 	else
 		echo(" !!! ");
 }
-if ($debugging) echo("4<br>");
-$sheet = $xls->getSheet();
+$sheet = $xls->getSheet($IMPORTSPEC['whichsheet']);
 $row = $IMPORTSPEC['FirstDataRow'];  // Skip the column headers
-if ($debugging) echo("5 [$row]<br>");	
 $nrows = 0;
 
 echo("<p>".$TAGS['xlsImporting'][1]."</p>");
@@ -216,6 +226,7 @@ $row = $row - 1;  // Step back one so I can bump below
 while ($row++ >= 0) {
 	try {
 		if ($debugging) echo("a ");
+		//unset($IMPORTSPEC['reject']);
 		if (isset($IMPORTSPEC['reject']))
 			foreach($IMPORTSPEC['reject'] as $col => $re)
 			{
@@ -225,7 +236,7 @@ while ($row++ >= 0) {
 				else
 					$ok = FALSE;
 				if ($debugging)
-					echo(' ['.$val.'] != ['.$re.']');
+					echo("Col $col == ".' ['.$val.'] != ['.$re.']');
 				if ($ok)
 				{
 					continue 2;
@@ -381,7 +392,7 @@ while ($row++ >= 0) {
 		if ($debugging) echo("E  ");
 		$stmt->bindValue(':PillionFirst',properName(trim($pillionnames[1])),SQLITE3_TEXT);
 		if ($debugging) echo("F  ");
-		$stmt->bindValue(':Bike',properName(trim($bike[0])),SQLITE3_TEXT);
+		$stmt->bindValue(':Bike',trim($bike[0]),SQLITE3_TEXT);
 		if (isset($IMPORTSPEC['cols']['BikeReg']))
 			$stmt->bindValue(':BikeReg',strtoupper(trim($bikereg)),SQLITE3_TEXT);
 		

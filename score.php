@@ -328,15 +328,15 @@ function scoreEntrant($showBlankForm = FALSE)
 	echo('<input type="hidden" id="ShowMults" value="'.$ShowMults.'">');
 	echo('<input type="hidden" id="FinishTimeDNF" value="'.$rd['FinishTime'].'">');
 	echo('<input type="hidden" name="ScoreX" id="scorexstore" value=""/>');
-	
+	//echo(" 1 ");
 	$R = $DB->query('SELECT rowid AS id,PenaltyStart,PenaltyFinish,PenaltyMethod,PenaltyFactor FROM timepenalties ORDER BY PenaltyStart,PenaltyFinish');
 	while ($rd = $R->fetchArray())
 		echo('<input type="hidden" name="TimePenalty[]" data-start="'.$rd['PenaltyStart'].'" data-end="'.$rd['PenaltyFinish'].'" data-factor="'.$rd['PenaltyFactor'].'" data-method="'.$rd['PenaltyMethod'].'">');
-
+	//echo(" 2 ");
 	$R = $DB->query('SELECT rowid AS id,Axis,Cat,NMethod,ModBonus,NMin,PointsMults,NPower FROM catcompound ORDER BY Axis,NMin DESC');
 	while ($rd = $R->fetchArray())
 		echo('<input type="hidden" name="catcompound[]" data-axis="'.$rd['Axis'].'" data-cat="'.$rd['Cat'].'" data-method="'.$rd['NMethod'].'" data-mb="'.$rd['ModBonus'].'" data-min="'.$rd['NMin'].'" data-pm="'.$rd['PointsMults'].'" data-power="'.$rd['NPower'].'">');
-	
+	//echo(" 3 ");
 	$sql = 'SELECT * FROM entrants';
 	if ($showBlankForm) 
 		$sql .= ' LIMIT 1';	// Just need a valid array, don't care about the contents
@@ -425,12 +425,12 @@ function scoreEntrant($showBlankForm = FALSE)
 	if (!$showBlankForm)
 	{
 		
-	echo('<span class="clickme" onclick="sxtoggle();" title="'.$TAGS['TotalPoints'][1].'"><label for="TotalPoints">'.$TAGS['TotalPoints'][0].' </label> ');
+	echo("\r\n".'<span><label  class="clickme" title="'.$TAGS['ToggleScoreX'][1].'" for="TotalPoints">'.$TAGS['TotalPoints'][0].' </label> ');
 	if ($ScoringMethod <> $KONSTANTS['ManualScoring'])
 		$ro = 'readonly="readonly" ';
 	else
 		$ro = '';
-	echo('<input type="'.($ro != ''? 'text' : 'number').'" '.$ro.' name="TotalPoints" id="TotalPoints" value="'.$rd['TotalPoints'].'" onchange="calcScore(true)" /> ');
+	echo('<input  class="clickme" onclick="sxtoggle();" title="'.$TAGS['TotalPoints'][1].'" type="'.($ro != ''? 'text' : 'number').'" '.$ro.' name="TotalPoints" id="TotalPoints" value="'.$rd['TotalPoints'].'" onchange="calcScore(true)" /> ');
 	echo('</span> ');
 	// echo(' <span class="clickme noprint" onclick="sxtoggle();"> ? </span>');
 	if ($ScoringMethod == $KONSTANTS['CompoundScoring'])
@@ -441,7 +441,7 @@ function scoreEntrant($showBlankForm = FALSE)
 			$style = '';
 		echo('<span '.$style.' title="'.$TAGS['TotalMults'][1].'"><label for="TotalMults">'.$TAGS['TotalMults'][0].'</label> ');
 		echo(' <input type="text" readonly="readonly" title="'.$TAGS['TotalMults'][1].'" id="TotalMults" value="0" onchange="caclScore(true)" /> ');
-		echo('</span>');
+		echo('</span>'."\r\n");
 	}
 	echo('<br /><span title="'.$TAGS['EntrantStatus'][1].'"><label for="EntrantStatus">'.$TAGS['EntrantStatus'][0].' </label> ');
 	echo('<select name="EntrantStatus" id="EntrantStatus" onchange="enableSaveButton()">'); // Don't recalculate if status changed manually
@@ -500,7 +500,7 @@ function scoreEntrant($showBlankForm = FALSE)
 				showCategory($i,$axisnames[$i]);
 		echo('</div>');
 	}
-	echo('<div id="scorex" title="'.$TAGS['dblclickprint'][0].'" class="hidescorex scorex" data-show="0" ondblclick="sxprint();" ></div>');
+	echo('<div id="scorex" title="'.$TAGS['dblclickprint'][0].'" class="hidescorex scorex" data-show="0" ondblclick="sxprint();" >'.$rd['ScoreX'].'</div>');
 	echo('</body></html>');
 }
 

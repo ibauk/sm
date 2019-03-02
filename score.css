@@ -197,7 +197,7 @@ table#entrants	.FinishPosition,.TotalPoints,.CorrectedMiles	{ text-align: center
 
 .dox			{ margin-left: 1em; } /* documentation links in HelpAbout */
 
-
+textarea		{ font-size: 0.6em; }
 
 table.qdfinishers {
 	display: inline-block;

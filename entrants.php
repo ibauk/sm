@@ -199,7 +199,7 @@ function saveEntrantRecord()
 				'Bike','BikeReg','TeamID','Country','OdoKms','OdoCheckStart','OdoCheckFinish',
 				'OdoScaleFactor','OdoRallyStart','OdoRallyFinish','CorrectedMiles','FinishTime',
 				'BonusesVisited','SpecialsTicked','CombosTicked','TotalPoints','FinishPosition',
-				'EntrantStatus','ScoredBy','StartTime','Class','OdoCheckTrip');
+				'EntrantStatus','ScoredBy','StartTime','Class','OdoCheckTrip','ExtraData');
 
 	$fab = array('BonusesVisited' => 'BonusID','SpecialsTicked' => 'SpecialID', 'CombosTicked' => 'ComboID');
 	
@@ -946,6 +946,15 @@ function showEntrantCombinations($Combos,$rejections)
 	}
 }
 
+function showEntrantExtraData($xd)
+{
+	global $DB, $TAGS, $KONSTANTS;
+
+	$rows = substr_count($xd,"\n") + 1;
+	echo('<p>'.$TAGS['ExtraData'][1].'</p>');
+	echo('<textarea name="ExtraData" style="width:100%;" rows="'.$rows.'">'.$xd.'</textarea>');
+}
+
 
 function showEntrantRecord($rd)
 {
@@ -981,6 +990,7 @@ function showEntrantRecord($rd)
 		echo('<li><a href="#tab_combos">'.$TAGS['CombosLit'][0].'</a></li>');
 		echo('<li><a href="#tab_rejects">'.$TAGS['RejectsLit'][0].'</a></li>');
 		echo('<li><a href="#tab_scorex">'.$TAGS['ScorexLit'][0].'</a></li>');
+		echo('<li><a href="#tab_xtra">'.$TAGS['ExtraData'][0].'</a></li>');
 	}
 	echo('</ul></div>');
 	
@@ -1135,6 +1145,9 @@ function showEntrantRecord($rd)
 		echo('</fieldset>');
 		echo('<fieldset  class="tabContent" id="tab_scorex"><legend>'.$TAGS['ScorexLit'][0].'</legend>');
 		showEntrantScorex($rd['ScoreX']);
+		echo('</fieldset>');
+		echo('<fieldset  class="tabContent" id="tab_xtra"><legend>'.$TAGS['ExtraData'][0].'</legend>');
+		showEntrantExtraData($rd['ExtraData']);
 		echo('</fieldset>');
 
 	}

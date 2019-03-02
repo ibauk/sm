@@ -373,17 +373,18 @@ function saveSpecials()
 {
 	global $DB, $TAGS, $KONSTANTS;
 
-	//var_dump($_REQUEST);
+	var_dump($_REQUEST);
 	$arr = $_REQUEST['BonusID'];
 	$DB->query('BEGIN TRANSACTION');
 	for ($i=0; $i < count($arr); $i++)
 	{
-		$sql = "INSERT OR REPLACE INTO specials (BonusID,BriefDesc,GroupName,Points,MultFactor) VALUES(";
+		$sql = "INSERT OR REPLACE INTO specials (BonusID,BriefDesc,GroupName,Points,MultFactor,AskPoints) VALUES(";
 		$sql .= "'".$DB->escapeString($_REQUEST['BonusID'][$i])."'";
 		$sql .= ",'".$DB->escapeString($_REQUEST['BriefDesc'][$i])."'";
 		$sql .= ",'".$DB->escapeString(isset($_REQUEST['GroupName'][$i]) ? $_REQUEST['GroupName'][$i] : '')."'";
 		$sql .= ','.intval($_REQUEST['Points'][$i]);
 		$sql .= ','.intval($_REQUEST['MultFactor'][$i]);
+		$sql .= ','.intval($_REQUEST['AskPoints'][$i]);
 		$sql .= ")";
 		if ($_REQUEST['BonusID'][$i]<>'')
 		{
@@ -869,7 +870,7 @@ function showCompoundCalcs()
 		if ($AxisLabels['Cat'.$i.'Label']=='')
 			$AxisLabels['Cat'.$i.'Label']="$i (not used)";
 		else
-			$AxisLabels['Cat'.$i.'Label']=$AxisLabels['Cat'.$i.'Label']." ($i)";
+			$AxisLabels['Cat'.$i.'Label']=$AxisLabels['Cat'.$i.'Label'];
 	$R = $DB->query('SELECT rowid as id,Cat,Axis,NMethod,ModBonus,NMin,PointsMults,NPower FROM catcompound ORDER BY Axis,Cat,NMin DESC');
 	if ($DB->lastErrorCode() <> 0)
 		echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
@@ -1029,7 +1030,7 @@ function showNewCompoundCalc()
 		if ($AxisLabels['Cat'.$i.'Label']=='')
 			$AxisLabels['Cat'.$i.'Label']="$i (not used)";
 		else
-			$AxisLabels['Cat'.$i.'Label']=$AxisLabels['Cat'.$i.'Label']." ($i)";
+			$AxisLabels['Cat'.$i.'Label']=$AxisLabels['Cat'.$i.'Label'];
 
 	echo('<form method="post" action="sm.php">');
 	for ($i = 0; $i < $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $i++)

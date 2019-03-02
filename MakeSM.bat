@@ -16,52 +16,72 @@ set CADDYFOLDER=C:\Users\bobst\go\src\github.com\mholt\caddy\caddy\
 set PHPFOLDER=C:\PHP
 set SMFOLDER=%CADDYFOLDER%sm
 set EXECNAME=runsm.bat
+set RBLRCERTS=rblrcerts.sql
+set DB2USE=
+set OK=
 
 set DESTFOLDER=%1
-set OK=%2
 
 if "%DESTFOLDER%" == "" goto :HELP
+
+shift
+:PARSE
+if [%1] == [] goto PARAMSDONE
+if /i [%1] == [ok] set OK=ok
+if /i [%1] == [v] set DB2USE=VIRGIN
+if /i [%1] == [l] set DB2USE=LIVE
+if /i [%1] == [r] set DB2USE=RBLR
+if /i [%1] == [rblr] set DB2USE=RBLR
+shift
+goto PARSE
+:PARAMSDONE
+
 echo.
 echo Making a ScoreMaster ( %SMFLAVOUR% ) installation in %DESTFOLDER%
 echo.
-echo I normally provide a virgin copy of the database. If you want to supply the current live ScoreMaster.db
-echo instead of that please choose that now.
-echo.
-set DB2USE=VIRGIN
-if "%3" == "v" goto :CHECKDEST
-if "%3" == "V" goto :CHECKDEST
-if "%3" == "l" goto :USELIVE
-if "%3" == "L" goto :USELIVE
 
-choice /c vl /d v /t 10 /m "Establish Virgin database or Live database"
-if errorlevel 2 goto :USELIVE
-goto :CHECKDEST
+if /i [%DB2USE%] == [VIRGIN] goto CHECKDEST
+if /i [%DB2USE%] == [RBLR] goto CHECKDEST
+if /i [%DB2USE%] == [LIVE] goto USELIVE
+
+echo I normally provide a virgin copy of the database. If you want to supply the current live ScoreMaster.db
+echo instead of that or you want to setup for the RBLR please choose that now. 
+echo.
+
+
+choice /c vrl /d v /t 10 /m "Establish Virgin database, Live database or RBLR"
+if errorlevel 3 goto USELIVE
+set DB2USE=VIRGIN
+if errorlevel 2 set DB2USE=RBLR
+goto CHECKDEST
 
 :USELIVE
 echo Using LIVE ScoreMaster.db
 set DB2USE=LIVE
 
 :CHECKDEST
-if exist %DESTFOLDER% if "%OK%" == "ok" goto :ZAPDEST
-if not exist %DESTFOLDER% goto :STARTCOPYING
+if exist %DESTFOLDER% if /i [%OK%] == [ok] goto ZAPDEST
+if not exist %DESTFOLDER% goto STARTCOPYING
 
 set _t=
 for /f "delims=" %%a in ('dir /b %DESTFOLDER%') do set _t=%%a
-if {%_t%} == {} goto :STARTCOPYING
+if {%_t%} == {} goto STARTCOPYING
 
 echo.
 echo Destination %DESTFOLDER% is not empty, use 'ok' to overwrite
+echo.
 goto :EOJ
 
 :ZAPDEST
 echo.
 echo Overwriting %DESTFOLDER%
 rmdir %DESTFOLDER% /s /q
-if exist %DESTFOLDER% echo FAILED!! && goto :EOJ
+if exist %DESTFOLDER% echo FAILED!! && goto EOJ
 echo.
 :STARTCOPYING
+
 echo.
-echo Establishing %DESTFOLDER%
+echo Establishing %DB2USE% ScoreMaster in %DESTFOLDER%
 mkdir %DESTFOLDER%
 mkdir %DESTFOLDER%\sm
 mkdir %DESTFOLDER%\sm\certificates
@@ -70,24 +90,28 @@ mkdir %DESTFOLDER%\caddy
 echo Copying components ...
 echo     PHP
 xcopy %PHPFOLDER% %DESTFOLDER%\php /e /i>nul
-echo     PHPExcel
-xcopy %SMFOLDER%\PHPExcel %DESTFOLDER%\sm\PHPExcel /e /i>nul
+echo     PHPSpreadsheet
+xcopy %SMFOLDER%\vendor %DESTFOLDER%\sm\vendor /e /i>nul
+xcopy %SMFOLDER%\PhpSpreadsheet %DESTFOLDER%\sm\PhpSpreadsheet /e /i>nul
 echo     images
 :: xcopy %SMFOLDER%\images %DESTFOLDER%\sm\images /e /i>nul
 mkdir %DESTFOLDER%\sm\images
 for %%a in (ibauk.png,ibauk90.png) do copy %SMFOLDER%\images\%%a %DESTFOLDER%\sm\images>nul
-echo     certificates
+
+if #%DB2USE% == #RBLR for %%a in (ss1000.jpg,smallpoppy.png,rblrhead.png,bb1500.jpg,bbg1500.png,route500AC.png,route500CW.png) do copy %SMFOLDER%\images\%%a %DESTFOLDER%\sm\images>nul
+::echo     certificates
 :: xcopy %SMFOLDER%\certificates %DESTFOLDER%\sm\certificates /e /i>nul
 echo.
 echo Copying main SM application ...
 for %%a in (about.php,admin.php,bbrspec.php,certificate.php,common.php,
-			score.css,setup.php,favicon.ico,
+			score.css,setup.php,favicon.ico,bblspec.php,utils.php,
 			entrants.php,exportxls.php,importxls.php,index.php,
 			jorvicspec.php,licence.txt,rblrspec.php,readme.txt,
 			score.js,score.php,sm.php,specfiles.php) do copy %SMFOLDER%\%%a %DESTFOLDER%\sm>nul
 
 echo Copying %DB2USE% database ...
-if %DB2USE%==VIRGIN sqlite3 %DESTFOLDER%\sm\ScoreMaster.db <%SMFOLDER%\scoremaster.sql
+if NOT %DB2USE%==LIVE sqlite3 %DESTFOLDER%\sm\ScoreMaster.db <%SMFOLDER%\scoremaster.sql
+if %DB2USE%==RBLR sqlite3 %DESTFOLDER%\sm\ScoreMaster.db <%SMFOLDER%\rblrcerts.sql
 if %DB2USE%==LIVE copy %SMFOLDER%\scoremaster.db %DESTFOLDER%\sm\ScoreMaster.db>nul
 
 copy %CADDYFOLDER%\caddy.exe %DESTFOLDER%\caddy>nul
@@ -111,6 +135,7 @@ echo set MU=MU>> %DESTFOLDER%\%EXECNAME%
 echo echo If you're going to run ScoreMaster on this machine only, please choose Single-user mode>> %DESTFOLDER%\%EXECNAME%
 echo echo otherwise, to allow two or more computers at the same time, choose Multi-user mode.>> %DESTFOLDER%\%EXECNAME%
 echo echo.>> %DESTFOLDER%\%EXECNAME%
+echo if /i #%%1==#s goto SINGLEUSER>> %DESTFOLDER%\%EXECNAME%
 echo choice /c smq /t 30 /d s /m "Should I run Single-user or Multi-user (Q=Quit)">> %DESTFOLDER%\%EXECNAME%
 echo if errorlevel 3 goto :EOJ>> %DESTFOLDER%\%EXECNAME%
 echo if errorlevel 2 goto :MULTIUSER>> %DESTFOLDER%\%EXECNAME%
@@ -161,14 +186,15 @@ echo timeout /t 30>> %DESTFOLDER%\%EXECNAME%
 echo :EOJ>> %DESTFOLDER%\%EXECNAME%
 echo chdir %CDIR%>> %DESTFOLDER%\%EXECNAME%
 echo.
-echo ScoreMaster distribution setup in %DESTFOLDER%
+echo %DB2USE% ScoreMaster distribution setup in %DESTFOLDER%
 echo.
 goto :EOJ
 
 
 :HELP
 echo.
-echo %0 destinationfolder [ok]
+echo.
+echo %~n0 destinationfolder [ OK ] [ V | L ] [ RBLR ]
 echo.
 echo I make distributions of ScoreMaster but I do need you to specify
 echo a destination folder. 

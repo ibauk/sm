@@ -9,7 +9,7 @@
  * I am written for readability rather than efficiency, please keep me that way.
  *
  *
- * Copyright (c) 2018 Bob Stammers
+ * Copyright (c) 2019 Bob Stammers
  *
  *
  * This file is part of IBAUK-SCOREMASTER.
@@ -30,11 +30,47 @@
  */
 
 
-// Full/relative path to database file
-$DBFILENAME = 'ScoreMaster.db';
+$KONSTANTS['DistanceIsMiles'] = 0;
+$KONSTANTS['DistanceIsKilometres'] = 1;
+$KONSTANTS['OdoCountsMiles'] = 0;
+$KONSTANTS['OdoCountsKilometres'] = 1;
 
 
-// This array specifies labels and tootips for each onscreen field to avoid the need for 'literals in the procedure division'.
+/*
+ * This next constant determines whether the basic unit of distance used
+ * by this application is the mile or the kilometre. The field names on
+ * the database remain as 'miles' or 'mileage' as they're only used 
+ * internally but calculations switching between miles and kilometres
+ * are affected by this setting. Field labels and tooltips must also
+ * be altered manually. It is assumed that a particular instance of this 
+ * application will always use the same unit of measure.
+ *
+ * Field labels affected are marked  // Miles/Kms
+ *
+ */
+ 
+$KONSTANTS['BasicDistanceUnits'] = $KONSTANTS['DistanceIsMiles'];
+// $KONSTANTS['BasicDistanceUnits'] = $KONSTANTS['DistanceIsKilometres'];
+
+
+
+
+// Default settings
+
+// This setting should normally reflect BasicDistanceUnits above
+$KONSTANTS['DefaultKmsOdo'] = $KONSTANTS['OdoCountsMiles']; 
+// $KONSTANTS['DefaultKmsOdo'] = $KONSTANTS['OdoCountsKilometres'];
+
+
+
+// Used when setting up new entrants onscreen
+
+$KONSTANTS['DefaultCountry'] = 'UK';
+
+
+
+
+// This array specifies labels and tooltips for each onscreen field to avoid the need for 'literals in the procedure division'.
 // This is in alphabetic order by key. It doesn't need to be but it makes your life easier, doesn't it?
 // DO NOT alter key names!
 $TAGS = array(
@@ -48,6 +84,7 @@ $TAGS = array(
 	'abtDocTechRef'		=> array('Technical reference','For application developers'),
 	'abtHostname'		=> array('Hostname','Name of the computer hosting this application'),
 	'abtHostOS'			=> array('HostOS','Details of the host\'s operating system'),
+	'abtLicence'		=> array('Licence','The licence controlling use of this application'),
 	'abtOnlineDoc'		=> array('Online documentation','Current application manuals available on the web'),
 	'abtPHP'			=> array('PHP version',''),
 	'abtSQLite'			=> array('SQLite version',''),
@@ -83,6 +120,7 @@ $TAGS = array(
 	'AdmShowTagMatches'	=> array('Items matching ','Showing functions matching tag '),
 	'AdmSpecialTable'	=> array('Special bonuses','View/edit special bonuses'),
 	'AdmTimePenalties'	=> array('Time penalties','Maintain table of time penalties'),
+	'AdmUtilHeader'		=> array('Utility functions',',,'),
 	
 	'AskEnabledSave'	=> array('Save this scoresheet?',''),
 	'AskPoints'			=> array('Variable?','Ask for points value during scoring'),
@@ -144,6 +182,8 @@ $TAGS = array(
 	'EntrantStatusV'	=> array('array("0" => "DNS", "1" => "ok", "8" => "Finisher", "3" => "DNF");','array used for vertical tables'),
 	
 	'ExcessMileage'		=> array('Excess miles',''),						// Miles/Kms
+	
+	'ExtraData'			=> array('ExtraData','Extra data to be passed on to the main database. Format is <i>name</i>=<i>value</i>'),
 	
 	'FetchCert'			=> array('Fetch certificate','Fetch the HTML, CSS &amp; options for this certificate'),
 	'FinishDate'		=> array('Finish date','The last riding day of the rally.'),
@@ -319,6 +359,9 @@ $TAGS = array(
 	
 	'TimepMaintHead'	=> array('Time Penalties','List of time penalty entries'),
 
+	
+	'ToggleScoreX'		=> array('Toggle ScoreX','Click to show/hide score explanation'),
+	
 	// time penalties
 	'tpFactorLit'		=> array('Number','Number of points/mults'),
 	'tpFinishLit'		=> array('Finish time','Time this penalty ends'),
@@ -387,6 +430,9 @@ $TAGS = array(
 	);
 
 
+// Full/relative path to database file
+$DBFILENAME = 'ScoreMaster.db';
+
 	
 	
 // Uninteresting values
@@ -404,10 +450,6 @@ $KONSTANTS['TiedPointsSplit'] = 1;
 $KONSTANTS['RankTeamsAsIndividuals'] = 0;	
 $KONSTANTS['RankTeamsHighest'] = 1;
 $KONSTANTS['RankTeamsLowest'] = 2;
-$KONSTANTS['DistanceIsMiles'] = 0;
-$KONSTANTS['DistanceIsKilometres'] = 1;
-$KONSTANTS['OdoCountsMiles'] = 0;
-$KONSTANTS['OdoCountsKilometres'] = 1;
 $KONSTANTS['EntrantDNS'] = 0;
 $KONSTANTS['EntrantOK'] = 1;
 $KONSTANTS['EntrantFinisher'] = 8;
@@ -431,38 +473,9 @@ $KONSTANTS['ComboScoreMethodMults'] = 1;
  */
 $KONSTANTS['NUMBER_OF_COMPOUND_AXES'] = 3;
 
-
-/*
- * This next constant determines whether the basic unit of distance used
- * by this application is the mile or the kilometre. The field names on
- * the database remain as 'miles' or 'mileage' as they're only used 
- * internally but calculations switching between miles and kilometres
- * are affected by this setting. Field labels and tooltips must also
- * be altered manually. It is assumed that a particular instance of this 
- * application will always use the same unit of measure.
- */
- 
-$KONSTANTS['BasicDistanceUnits'] = $KONSTANTS['DistanceIsMiles'];
-// $KONSTANTS['BasicDistanceUnits'] = $KONSTANTS['DistanceIsKilometres'];
-
-
-
-
-// Default settings
-
-// This setting should normally reflect BasicDistanceUnits above
-$KONSTANTS['DefaultKmsOdo'] = $KONSTANTS['OdoCountsMiles']; 
-// $KONSTANTS['DefaultKmsOdo'] = $KONSTANTS['OdoCountsKilometres'];
-
-
-// Used when setting up new entrants onscreen
-
-$KONSTANTS['DefaultCountry'] = 'UK';
-
-
-
 $KONSTANTS['DefaultOdoScaleFactor'] = 1;
 $KONSTANTS['DefaultEntrantStatus'] = $KONSTANTS['EntrantOK'];
+
 
 
 

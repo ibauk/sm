@@ -175,6 +175,7 @@ CREATE TABLE IF NOT EXISTS `categories` (
 );
 CREATE TABLE IF NOT EXISTS `catcompound` (
 	`Axis`	INTEGER DEFAULT 1,
+	`Cat`	INTEGER,
 	`NMethod`	INTEGER DEFAULT -1,
 	`ModBonus`	INTEGER DEFAULT 0,
 	`NMin`	INTEGER DEFAULT 1,
@@ -240,11 +241,13 @@ INSERT INTO `functions` (functionid,menulbl,url,onclick,tags) VALUES (26,'UtlFol
 INSERT INTO `functions` (functionid,menulbl,url,onclick,tags) VALUES (27,'UtlDeleteEntrant','entrants.php?c=delentrant',NULL,'entrant,delete entrant');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,tags) VALUES (28,'UtlRenumEntrant','entrants.php?c=moveentrant',NULL,'entrant,renumber entrant,entrant number,number');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,tags) VALUES (29,'UtlRAE','entrants.php?c=showrae',NULL,'entrant,renumber all entrants,entrant number,number');
+INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (30,'AdmUtilHeader','admin.php?menu=util',NULL,'utilities,delete');
 
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('admin','AdmMenuHeader','1,2,3,4,24,5,6,25');
-INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('setup','AdmSetupHeader','16,17,18,19,20,21,22');
+INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('setup','AdmSetupHeader','16,17,18,19,20,21,22,23,30');
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('entrant','AdmEntrantsHeader','1,11,12,2,13,15,24');
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('bonus','AdmBonusHeader','7,8,9,10');
+INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('util','AdmUtilHeader','29,28,27,26');
 
 
 

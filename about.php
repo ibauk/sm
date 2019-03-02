@@ -8,7 +8,7 @@
  * I am written for readability rather than efficiency, please keep me that way.
  *
  *
- * Copyright (c) 2018 Bob Stammers
+ * Copyright (c) 2019 Bob Stammers
  *
  *
  * This file is part of IBAUK-SCOREMASTER.
@@ -110,13 +110,13 @@ function showAbout()
 	echo('<dt title="'.$TAGS['abtOnlineDoc'][1].'">'.$TAGS['abtOnlineDoc'][0].'</dt>');
 	echo('<dd>');
 	echo('<span class="dox" title="'.$TAGS['abtDocAdminGuide'][1].'">');
-	echo('<a href="https://docs.google.com/document/d/1SFTU79AvWniOubc6psYkj55m3JCwlYJp1QkSMSJzij4/edit" target="smdox">'.$TAGS['abtDocAdminGuide'][0].'</a>');
+	echo('<a href="https://docs.google.com/document/d/1SFTU79AvWniOubc6psYkj55m3JCwlYJp1QkSMSJzij4/preview" target="smdox">'.$TAGS['abtDocAdminGuide'][0].'</a>');
 	echo('</span>');
 	echo('<span class="dox" title="'.$TAGS['abtDocDBSpec'][1].'">');
-	echo('<a href="https://docs.google.com/document/d/1oRSSBPdAJdHNgKaB3ZlFlFsqYm-PtBxjBkM7-QwG9xo/edit" target="smdox">'.$TAGS['abtDocDBSpec'][0].'</a>');
+	echo('<a href="https://docs.google.com/document/d/1oRSSBPdAJdHNgKaB3ZlFlFsqYm-PtBxjBkM7-QwG9xo/preview" target="smdox">'.$TAGS['abtDocDBSpec'][0].'</a>');
 	echo('</span>');
 	echo('<span class="dox" title="'.$TAGS['abtDocTechRef'][1].'">');
-	echo('<a href="https://docs.google.com/document/d/1IUiCZhgov1RSNxQ26CvoiSGEdEyFchIaFsXWaLnvUjM/edit" target="smdox">'.$TAGS['abtDocTechRef'][0].'</a>');
+	echo('<a href="https://docs.google.com/document/d/1IUiCZhgov1RSNxQ26CvoiSGEdEyFchIaFsXWaLnvUjM/preview" target="smdox">'.$TAGS['abtDocTechRef'][0].'</a>');
 	echo('</span>');
 	echo('</dd>');
 	echo('</dl><hr>');
@@ -138,6 +138,7 @@ function showAbout()
 	$mk = ($KONSTANTS['DefaultKmsOdo'] == $KONSTANTS['OdoCountsMiles'] ? 'miles' : 'kilometres');
 	echo('<dt title="'.$TAGS['abtDefaultOdo'][1].'">'.$TAGS['abtDefaultOdo'][0].'</dt><dd>'.$mk.'</dd>');
 	echo('<dt title="'.$TAGS['abtAuthor'][1].'">'.$TAGS['abtAuthor'][0].'</dt><dd>Bob Stammers &lt;webmaster@ironbutt.co.uk&gt; on behalf of <span title="Iron Butt Association (UK)">IBAUK</span></dd>');
+	echo('<dt title="'.$TAGS['abtLicence'][1].'">'.$TAGS['abtLicence'][0].'</dt><dd>GPL v3.0</dd>');
 	echo('</dl>');
 	echo("</div> <!-- helpabout -->\n");
 	

@@ -108,16 +108,28 @@ function editCertificate()
 	echo('<label for="Title">'.$TAGS['CertTitle'][0].' </label>');
 	echo('<input title="'.$TAGS['CertTitle'][1].'" type="text" name="Title" id="Title" value="'.$rd['Title'].'" > ');
 
-	echo('<br>html<br>');
-	echo("<textarea form='certform' name='certhtml' id='certhtml' contenteditable='true' style='height:20em; width:90%;'>");
+	
+	echo('<div class="tabs_area" style="display:inherit"><ul id="tabs">');
+	echo('<li><a href="#tab_html">html</a></li>');
+	echo('<li><a href="#tab_css">css</a></li>');
+	
+	
+//	echo('<br>html<br>');
+	echo('<fieldset class="tabContent" id="tab_html"><legend></legend>');
+	echo("<textarea form='certform' name='certhtml' id='certhtml' contenteditable='true' style='height:20em; width:100%;'>");
 	echo($rd['html']);
 	echo('</textarea>');
-	echo('<br><br>css<br>');
-	echo("<textarea form='certform' name='certcss' id='certcss' contenteditable='true' style='height:10em; width:90%;'>");
+	echo('</fieldset>');
+	
+//	echo('<br><br>css<br>');
+	echo('<fieldset class="tabContent" id="tab_css"><legend></legend>');
+	echo("<textarea form='certform' name='certcss' id='certcss' contenteditable='true' style='height:20em; width:100%;'>");
 	echo($rd['css']);
 	echo('</textarea>');
+	echo('</fieldset>');
+	echo('</div>');
 	
-	echo('<br><input type="submit" name="savecert" value="'.$TAGS['SaveCertificate'][0].'" title="'.$TAGS['SaveCertificate'][1].'">');
+	echo('<input type="submit" name="savecert" value="'.$TAGS['SaveCertificate'][0].'" title="'.$TAGS['SaveCertificate'][1].'">');
 	echo('</form>');
 	//showFooter();
 }
@@ -238,56 +250,20 @@ if (isset($_REQUEST['c']) && $_REQUEST['c']=='editcert')
 	exit;
 }
 
-
-function showAdminMenu()
+function dbInitialized()
 {
 	global $DB;
 
 	if ($R = $DB->query("SELECT DBState FROM rallyparams"))
 	{
-	$rd = $R->fetchArray();
-	if ($rd['DBState'] == 0) // Database is in initial virgin state
-	{
-		include("setup.php");
-		exit;
+		$rd = $R->fetchArray();
+		return ($rd['DBState'] != 0);
 	}
-	}
-	show_menu('admin');
-	
+	return false;
+
 }
 
 
-function showBonusMenu()
-{
-	global $TAGS;
-	
-	$MAINMENU = array(
-		'AdmBonusTable'		=> array('sm.php?c=bonuses',NULL),
-		'AdmSpecialTable'	=> array('sm.php?c=specials',NULL),
-		'AdmSGroups'		=> array('sm.php?c=sgroups',NULL),
-		'AdmCombosTable'	=> array('sm.php?c=combos',NULL)
-	);
-	showMenu($MAINMENU,$TAGS['AdmBonusHeader'][0]);
-	
-}
-
-function showEntrantsMenu()
-{
-	global $TAGS;
-	
-	$MAINMENU = array(
-		'AdmEntrantChecks'	=> array('entrants.php?c=entrants&amp;ord=EntrantID&amp;mode=check',NULL),
-		'AdmEntrants'		=> array('entrants.php?c=entrants&amp;ord=EntrantID&amp;mode=full',NULL),
-		'AdmNewEntrant'		=> array('entrants.php?c=newentrant',NULL),
-		'AdmDoScoring'		=> array('score.php',NULL),
-		'AdmDoBlank'		=> array('score.php?c=blank',NULL),
-		'AdmRankEntries'	=> array('admin.php?c=rank',NULL),
-		'AdmExportFinishers'=> array('exportxls.php?c=expfinishers',"this.firstChild.innerHTML='".$TAGS['FinishersExported'][0]."';"),
-		'AdmImportEntrants'	=> array('importxls.php?showupload',NULL)
-	);
-	showMenu($MAINMENU,$TAGS['AdmEntrantsHeader'][0]);
-	
-}
 
 
 
@@ -517,9 +493,9 @@ startHtml('<a href="about.php" class="techie" title="'.$TAGS['HelpAbout'][1].'">
 if (isset($_REQUEST['c']) && $_REQUEST['c']=='setup')
 	showSetupMenu();
 else if (isset($_REQUEST['c']) && $_REQUEST['c']=='entrants')
-	showEntrantsMenu();
+	show_menu('entrant');
 else if (isset($_REQUEST['c']) && $_REQUEST['c']=='bonus')
-	showBonusMenu();
+	show_menu('bonus');
 else if (isset($_REQUEST['c']) && $_REQUEST['c']=='offerzap')
 	showInitialisationOffer();
 else if (isZapDBCommand())
@@ -530,8 +506,13 @@ else if (isset($_REQUEST['tag']))
 	show_tagmenu($_REQUEST['tag']);
 else if (isset($_REQUEST['c']) && $_REQUEST['c']=='testmenu')
 	show_tagmenu('score');
+else if (dbInitialized())
+	show_menu('admin');
 else
-	showAdminMenu();
+	{
+		include("setup.php");
+		exit;
+	};
 
 
 ?>

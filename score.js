@@ -165,6 +165,7 @@ function askPoints(inp)
 			if (aps)
 			{
 				val = document.createElement('input');
+				val.setAttribute('type','hidden');
 				val.setAttribute('name','ap'+id);
 				val.setAttribute('id','ap'+id);
 				aps.appendChild(val);
@@ -895,7 +896,7 @@ function odoAdjust(useTrip)
 		if (!useTrip)
 			odochecktrip = odocheckfinish - odocheckstart;
 		
-		if (document.getElementById('OdoCheckStart').value != '' && odochecktrip > 0)
+		if (document.getElementById('OdoCheckStart').value != '' || odochecktrip > 0)
 		{
 			var checkdistance = odochecktrip;
 			if (odokms && !basickms) // Want miles, have kms
@@ -908,7 +909,7 @@ function odoAdjust(useTrip)
 	}		
 	if (useTrip)
 		document.getElementById('OdoCheckFinish').value = odocheckstart + odochecktrip;
-	else
+	else if (document.getElementById('OdoCheckTrip').value == '')
 		document.getElementById('OdoCheckTrip').value = odocheckfinish - odocheckstart;
 	
 	var odorallystart = parseFloat(document.getElementById('OdoRallyStart').value);
@@ -1279,7 +1280,7 @@ function sxstart()
 	var sx = document.getElementById(SX_id);
 	if (!sx) return;
 	
-	var html = '<table><caption>'+document.getElementById("RiderID").innerHTML+' [<span id="sxsfs"></span>]</caption><thead><tr><th class="id">id</th><th class="desc"></th><th class="bp">BP</th>';
+	var html = '<table><caption>'+document.getElementById("RiderID").innerHTML+' [&nbsp;<span id="sxsfs"></span>&nbsp;]</caption><thead><tr><th class="id">id</th><th class="desc"></th><th class="bp">BP</th>';
 	if (showMults) html += '<th class="bm">BM</th>';
 	html += '<th class="tp">TP</th></tr></thead><tbody></tbody></table>';
 	sx.innerHTML = html;
