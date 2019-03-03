@@ -260,6 +260,8 @@ $TAGS = array(
 	'PointsMults0'		=> array('PointsMults0','Points'),
 	'PointsMults1'		=> array('PointsMults1','Multipliers'),
 	
+	'PreviewCert'		=> array('Preview','What will this certificate look like'),
+	
 	// Quick dirty list headings
 	'qPlace'			=> array('Rank',''),
 	'qName'				=> array('Name',''),

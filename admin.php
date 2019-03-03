@@ -44,7 +44,7 @@ function fetchCertificate($EntrantID,$Class)
 	$sql = "SELECT * FROM certificates WHERE EntrantID=";
 	$R = $DB->query($sql.$EntrantID." AND Class=$Class");
 	$rd = $R->fetchArray();
-	return ['html'=>$rd['html'],'css'=>$rd['css'],'Title'=>$rd['Title']];
+	return ['html'=>$rd['html'],'css'=>$rd['css'],'Title'=>$rd['Title'],'Class'=>$rd['Class']];
 	
 }
 
@@ -95,11 +95,39 @@ function editCertificate()
 		$class = $_REQUEST['Class'];
 	$rd = fetchCertificate($EntrantID,$class);
 	startHtml('');
+	//var_dump($rd);
 	echo('<p>'.$TAGS['CertExplainer'][0].'<br>');
 	echo($TAGS['CertExplainer'][1].'</p>');
 	echo('<form id="certform" method="post" action="admin.php">');
 	echo('<input type="hidden" name="c" value="editcert">');
 	echo('<input type="hidden" name="EntrantID" value="'.$EntrantID.'">');
+	
+	$MC = getValueFromDB("SELECT count(*) As Rex FROM certificates WHERE EntrantID=$EntrantID","Rex",0);
+	if ($MC > 1)
+	{
+		$R = $DB->query("SELECT Class,Title FROM certificates WHERE EntrantID=$EntrantID ORDER BY Class");
+		if ($DB->lastErrorCode() <> 0)
+			echo($DB->lastErrorCode().' == '.$DB->lastErrorMsg().'<br>'.$sql.'<hr>');
+		$pv = "document.getElementById('Class').value=this.value;";
+		$pv .= "var T=this.options[this.selectedIndex].text;";
+		$pv .= "document.getElementById('Title').value=T.split(' - ')[1];";
+		$pv .= "document.getElementById('certcss').disabled=true;";
+		$pv .= "document.getElementById('certhtml').disabled=true;";
+		$pv .= "document.getElementById('fetchcert').disabled=false;";
+		$pv .= "document.getElementById('fetchcert').click();";
+	
+		echo('<select onchange="'.$pv.'">');
+		while ($rrd = $R->fetchArray())
+		{
+			echo('<option value="'.$rrd['Class'].'"');
+			if ($rrd['Class'] == $rd['Class']) {
+				echo(' selected ');
+			}
+			echo('>'.$rrd['Class'].' - '.$rrd['Title'].'</option>');
+		}
+		echo('</select> ');
+	}
+	
 	echo('<label for="Class">'.$TAGS['Class'][0].' </label>');
 	$x = ' onchange="document.getElementById('."'".'fetchcert'."'".').disabled=false;"';
 	echo('<input title="'.$TAGS['Class'][1].'" type="number" name="Class" id="Class" value="'.$class.'" '.$x.'> ');
@@ -112,6 +140,7 @@ function editCertificate()
 	echo('<div class="tabs_area" style="display:inherit"><ul id="tabs">');
 	echo('<li><a href="#tab_html">html</a></li>');
 	echo('<li><a href="#tab_css">css</a></li>');
+	echo('</ul></div>');
 	
 	
 //	echo('<br>html<br>');
@@ -127,9 +156,19 @@ function editCertificate()
 	echo($rd['css']);
 	echo('</textarea>');
 	echo('</fieldset>');
-	echo('</div>');
+
 	
-	echo('<input type="submit" name="savecert" value="'.$TAGS['SaveCertificate'][0].'" title="'.$TAGS['SaveCertificate'][1].'">');
+	
+	echo('<input type="submit" name="savecert" value="'.$TAGS['SaveCertificate'][0].'" title="'.$TAGS['SaveCertificate'][1].'"> ');
+
+	$pv = "var W=window.open('','preview');";
+	$pv .= "W.document.write('<html><head><style>'";
+	$pv .= "+document.getElementById('certcss').value+'</style></head>'";
+	$pv .= "+'<body><div class=certificate>'+document.getElementById('certhtml').value+'</div></body></html>');";
+	$pv .= "W.document.close();";
+	
+	echo('<input type="button" onclick="'.$pv.'" value="'.$TAGS['PreviewCert'][0].'" title="'.$TAGS['PreviewCert'][1].'"> ');
+
 	echo('</form>');
 	//showFooter();
 }
