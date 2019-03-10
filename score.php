@@ -10,7 +10,7 @@
  * I am written for readability rather than efficiency, please keep me that way.
  *
  *
- * Copyright (c) 2018 Bob Stammers
+ * Copyright (c) 2019 Bob Stammers
  *
  *
  * This file is part of IBAUK-SCOREMASTER.
@@ -190,7 +190,7 @@ function putScore()
 	if (isset($_REQUEST['ComboID']) || isset($_REQUEST['update_combos']))
 		$sql .= ",CombosTicked='".implode(',',$_REQUEST['ComboID'])."'";
 	if (isset($_REQUEST['TotalPoints']))
-		$sql .= ",TotalPoints=".intval($_REQUEST['TotalPoints']);
+		$sql .= ",TotalPoints=".intval(str_replace(',','',$_REQUEST['TotalPoints']));
 	if (isset($_REQUEST['StartTime']))
 		$sql .= ",StartTime='".$DB->escapeString($_REQUEST['StartDate']).'T'.$DB->escapeString($_REQUEST['StartTime'])."'";
 	if (isset($_REQUEST['FinishPosition']))
@@ -363,6 +363,7 @@ function scoreEntrant($showBlankForm = FALSE)
 	echo('<input type="hidden" name="EntrantID" value="'.$_REQUEST['EntrantID'].'">');
 	echo('<input type="hidden" name="RejectedClaims" id="RejectedClaims" value="'.$rd['RejectedClaims'].'">');
 	echo("\r\n");
+	echo('<div id="ScoreSheet">'."\r\n");
 	echo('<div id="ScoreHeader"');
 	if ($ScoringMethod == $KONSTANTS['ManualScoring'])
 		echo(' class="manualscoring" ');
@@ -453,7 +454,7 @@ function scoreEntrant($showBlankForm = FALSE)
 	echo('<option value="'.$KONSTANTS['EntrantDNF'].'" '.($rd['EntrantStatus']==$KONSTANTS['EntrantDNF'] ? ' selected="selected" ' : '').'>'.$TAGS['EntrantDNF'][0].'</option>');
 	echo('</select>');
 	echo('</span> ');
-	echo('<input type="submit" class="noprint" id="savescorebutton" disabled="disabled" name="savescore" data-altvalue="'.$TAGS['SaveScore'][0].'" value="'.$TAGS['ScoreSaved'][0].'" /> ');
+	echo('<input type="submit" class="noprint" id="savescorebutton" disabled accesskey="S" name="savescore" data-altvalue="'.$TAGS['SaveScore'][0].'" value="'.$TAGS['ScoreSaved'][0].'" /> ');
 	//echo('<input type="submit" id="backtolistbutton" name="showpicklist" data-altvalue="'.$TAGS['ShowEntrants'][0].'" value="'.$TAGS['ShowEntrants'][0].'"> ');
 	
 	
@@ -472,24 +473,25 @@ function scoreEntrant($showBlankForm = FALSE)
 	{
 		echo('<fieldset id="tab_bonuses"><legend>'.$TAGS['BonusesLit'][0].'</legend>');
 		showBonuses($rd['BonusesVisited']);
-		echo('</fieldset><!-- showBonuses -->');
+		echo('</fieldset><!-- showBonuses -->'."\r\n");
 		if (getValueFromDB('SELECT count(*) as rex FROM specials','rex',0) > 0)
 		{
 			echo('<fieldset id="tab_specials"><legend>'.$TAGS['SpecialsLit'][0].'</legend>');
 			showSpecials($rd['SpecialsTicked']);
-			echo('</fieldset><!-- showSpecials -->');
+			echo('</fieldset><!-- showSpecials -->'."\r\n");
 		}
 		if (getValueFromDB('SELECT count(*) as rex FROM combinations','rex',0) > 0)
 		{
 			echo('<fieldset id="tab_combos"><legend>'.$TAGS['CombosLit'][0].'</legend>');
 			showCombinations($rd['CombosTicked']);
-			echo('</fieldset><!-- showCombinations -->');
+			echo('</fieldset><!-- showCombinations -->'."\r\n");
 		}
 	}
 	
 	echo("\r\n");
 	echo('</form>');
 	echo("\r\n");
+	echo('</div>'."\r\n"); // End ScoreSheet
 
 
 	if ($ScoringMethod == $KONSTANTS['CompoundScoring'])
@@ -566,24 +568,25 @@ function showCombinations($Combos)
 	{
 		$BP[$rd['ComboID']] = array($rd['BriefDesc'],$rd['ScoreMethod'],$rd['ScorePoints'],$rd['Bonuses'],$rd['Compulsory']);
 	}
-	echo('<input type="hidden" name="update_combos" value="1" />');
+	echo('<input type="hidden" name="update_combos" value="1" />'."\r\n");
 	foreach($BP as $bk => $b)
 	{
 		if ($bk <> '') {
-			echo('<span class="combo" title="'.htmlspecialchars($bk).' [ ');
+			$chk = array_search($bk, $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
+			$spncls = ($chk <> '') ? ' checked' : ' unchecked';
+			echo('<span class="combo '.$spncls.'" title="'.htmlspecialchars($bk).' [ ');
 			if ($b[1]==$KONSTANTS['ComboScoreMethodMults'])
 				echo('x');
 			echo($b[2]);
 			echo(' ]" oncontextmenu="showPopup(this);">');
 			echo('<label for="C'.$bk.'">'.htmlspecialchars($b[0]).' </label>');
-			$chk = array_search($bk, $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
 			echo('<input type="checkbox"'.$chk.' name="ComboID[]" disabled="disabled" id="C'.$bk.'" value="'.$bk.'"');
 			echo(' data-method="'.$b[1].'" data-points="'.$b[2].'" data-bonuses="'.$b[3].'" data-reqd="'.$b[4].'" /> ');
 			echo(' &nbsp;&nbsp;</span> ');
 			echo("\r\n");
 		}
 	}
-	echo('<br />');
+	//echo('<br />');
 }
 
 
@@ -725,6 +728,7 @@ function showSpecials($specials)
 	foreach($BP as $bk => $b)
 	{
 		if ($bk <> '') {
+			$chk = array_search($bk, $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
 			if ($b[4] <> $lastSpecialGroup)
 			{
 				if ($lastSpecialGroup <> '')
@@ -742,6 +746,8 @@ function showSpecials($specials)
 				$optType = 'checkbox';
 			echo('<span ');
 			echo('class="showbonus ');
+			$spncls = ($chk <> '') ? ' checked' : ' unchecked';
+			echo($spncls);
 			if ($b[3]<>0)
 				echo(' compulsory ');
 			echo('" ');
@@ -782,7 +788,7 @@ function showSpecials($specials)
 		echo('</fieldset>');
 	echo("\r\n");
 	echo('<span id="apspecials">');
-	foreach ($APs as $b => $p)
+	foreach ($AP as $b => $p)
 	{
 		echo('<input type="hidden" name=ap'.$b.'" id="ap'.$b.'" value="'.$p.'">');
 	}

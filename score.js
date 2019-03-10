@@ -8,7 +8,7 @@
  * I am written for readability rather than efficiency, please keep me that way.
  *
  *
- * Copyright (c) 2018 Bob Stammers
+ * Copyright (c) 2019 Bob Stammers
  *
  *
  * This file is part of IBAUK-SCOREMASTER.
@@ -51,8 +51,8 @@ const RPT_Tooltip	= "Click for explanation";
 const RPT_Bonuses	= "Bonuses";
 const RPT_Specials	= "Specials";
 const RPT_Combos	= "Combos";
-const RPT_MPenalty	= "MileagePenalty";
-const RPT_TPenalty	= "TimePenalty";
+const RPT_MPenalty	= "Mileage penalty";
+const RPT_TPenalty	= "Late penalty";
 const RPT_Total 	= "TOTAL";
 
 const CFGERR_MethodNIY = "Error: compoundCalcRuleMethod {0} not implemented yet";
@@ -95,7 +95,6 @@ const CMB_ScoreMults = 1;
  * arbitrarily increased.
  */ 
 const CALC_AXIS_COUNT = 3;
-
 
 const CAT_NumBonusesPerCatMethod = 0;
 const CAT_ResultPoints = 0;
@@ -204,9 +203,6 @@ function bodyLoaded()
 	
 	if (hasTabs)
 		tabsSetupTabs();
-	
-	if (hasCCDropdowns)
-		ccShowSelectAxisCats(document.getElementById(CC_Axis_elem).value,CC_Cats_elem);
 	
 	if (!isScoresheetpage)
 		return;
@@ -588,7 +584,7 @@ function calcComplexScore(res)
 		totalBonusPoints = totalBonusPoints * totalMultipliers;
 	
 	// Now display the results
-	document.getElementById('TotalPoints').value = totalBonusPoints;
+	document.getElementById('TotalPoints').value = formatNumberScore(totalBonusPoints);
 	try {document.getElementById('TotalMults').value = totalMultipliers;} catch(err) {}
 	zapScoreDetails();
 	
@@ -642,13 +638,18 @@ function calcScore(enableSave)
 	
 	if (debug) alert("calcScore[0]");
 	
+	hidePopup();
 	
 	if (sm != SM_Manual)
 	{
-		tickCombos();
-		repaintBonuses();
+		
+		if (debug) alert("calcScore[0][1]");
 		sxstart();
 		reportRejectedClaims();
+		tickCombos();
+		if (debug) alert("calcScore[0][2]");
+		repaintBonuses();
+
 		if (debug) alert("calcScore[1]");
 		if (sm == SM_Compound)
 			TPS = calcComplexScore(res);
@@ -656,7 +657,7 @@ function calcScore(enableSave)
 			TPS = calcSimpleScore(res);
 		if (debug) alert("calcScore[2]");
 		sxappend('',RPT_Total,'',0,TPS);
-		document.getElementById('TotalPoints').value = TPS;
+		document.getElementById('TotalPoints').value = formatNumberScore(TPS);
 		document.getElementById('TotalPoints').setAttribute('title',res.reason);
 	}
 	if (debug) alert("calcScore[3]");
@@ -802,12 +803,14 @@ function calcTimePenalty()
 
 function ccShowSelectAxisCats(axis,sel)
 {
-	var lst;
+	var lst = 0;
+	
 	try {
 		lst = document.getElementById('axis'+axis+'cats');
 	} catch(err) {
 		return;
 	}
+	
 	var cats = lst.value.split(',');
 	var optval = sel.options[sel.selectedIndex].value;
 	while (sel.options.length > 0)
@@ -829,8 +832,7 @@ function ccShowSelectAxisCats(axis,sel)
 
 
 function chooseNZ(i,j)
-{
-	if (i==0)
+{if (i==0)
 		return j;
 	else
 		return i;
@@ -849,6 +851,7 @@ function countNZ(cnts)
 function enableSaveButton()
 {
 	var cmd;
+	
 	cmd = document.getElementById('savescorebutton');
 	if (cmd == null)
 		cmd = document.getElementById('savedata'); /* Forms other than scoresheet */
@@ -866,7 +869,22 @@ function enableSaveButton()
 
 
 
+function formatNumberScore(n)
+/*
+ * If n is a number and not equal zero, return its value
+ * formatted as the machine's locale
+ * otherwise return n, which may be blank or not a number
+ *
+ */
+{
+	var NF = new Intl.NumberFormat();
+	
+	if (parseInt(n) > 0)
+		return NF.format(n);
+	else
+		return n;
 
+}
 	
 function getFirstChildWithTagName( element, tagName ) {  // Tabbing
      for ( var i = 0; i < element.childNodes.length; i++ ) {
@@ -874,7 +892,11 @@ function getFirstChildWithTagName( element, tagName ) {  // Tabbing
      }
 }
 
-
+function hidePopup()
+{
+	var menu = document.getElementById('rcmenu');
+	menu.style.display='none';
+}
 
 /* ODO readings form filler */
 function odoAdjust(useTrip)
@@ -955,10 +977,13 @@ function repaintBonuses()
 
 function reportRejectedClaim(bonusid,reason)
 {
+//	alert('rRC-'+bonusid);
 	var B = document.getElementById(bonusid);
 	if (B == null)
 		return;
 	B.setAttribute('data-rejected',reason);
+	setRejectedTooltip(B.parentNode,reason);
+	var BP = B.parentNode;
 	var R = document.getElementsByName('RejectReason');
 	for (var i = 0; i < R.length; i++)
 		if (R[i].getAttribute('data-code') == reason)
@@ -986,7 +1011,9 @@ function reportRejectedClaims()
  */
 {
 	var RC = document.getElementById('RejectedClaims');
+//	alert('rca ['+RC.value+']');
 	var rca = RC.value.split(',');
+//	alert(rca.length);
 	for (var i = 0; i < rca.length; i++ )
 	{
 		var cr = rca[i].split('=');
@@ -1009,7 +1036,7 @@ function setFinisherStatus()
 		document.getElementById('EntrantStatus').value = status;
 		document.getElementById('EntrantStatus').setAttribute('title',x);
 		if (x != '')
-			sxappend(document.getElementById('EntrantStatus').options[status].text,x,0,0,0);
+			sxappend(' '+document.getElementById('EntrantStatus').options[status].text,x,'','',0);
 	}
 	var CS = parseInt(document.getElementById('EntrantStatus').value);
 	//if (CS != EntrantOK && CS != EntrantFinisher)
@@ -1065,12 +1092,13 @@ function setFinisherStatus()
 function setRejectedClaim(bonusid,reason)
 {
 	// reason == 0 - unset, claim not rejected
+	//alert(' Flagging ' + bonusid + ' as ' + reason);
 	var B = document.getElementById(bonusid);
 	if (B == null)
 		return;
 	B.setAttribute('data-rejected',reason);
 	var RC = document.getElementById('RejectedClaims');
-	//alert('src:' + bonusid + '=' + reason + '; rc=' + RC.value);
+//	alert('src:' + bonusid + '=' + reason + '; rc=' + RC.value);
 	var rca = RC.value.split(',');
 	var done = false;
 	for (var i = 0; i < rca.length; i++ )
@@ -1094,7 +1122,20 @@ function setRejectedClaim(bonusid,reason)
 	else
 		B.parentElement.className = class_showbonus + class_rejected;
 	
+	setRejectedTooltip(B.parentNode,reason);
 	//alert('Setting RC value == ' + RC.value);
+}
+
+function setRejectedTooltip(BP,reason)
+{
+	var tit = BP.getAttribute('title').split('\r');
+	if (reason == 0)
+		BP.setAttribute('title',tit[0]);
+	else {
+		var rcm = document.getElementById('rcmenu');
+		BP.setAttribute('title',tit[0]+'\r'+rcm.firstChild.childNodes[reason].innerText);
+	}
+
 }
 
 function setSplitNow(id_prefix)
@@ -1149,20 +1190,23 @@ function showPickedName()
  */
 function showPopup(obj)
 {
+	
 	var menu = document.getElementById('rcmenu');
 	if (menu == null)
 		return true;
-	var ee = obj.getBoundingClientRect();
-	var el = document.elementFromPoint(ee.left,ee.top);
+	var el = obj;
+	//alert(el.tagName + ' == ' + (el.tagName != 'SPAN') + ' id=' + el.id);
 	if (el.tagName != 'SPAN')
 		el = el.parentElement;
+	var ee = el.getBoundingClientRect();
 	var B = el.getElementsByTagName('input')[0];
 	menu.setAttribute('data-bonusid',B.id);
 	menu.onclick = function(e) { 
-		document.getElementById('rcmenu').style.display='none'; // Hide the menu
+		menu.style.display='none'; // hide the menu
 		var reason = e.target; 
 		var code = reason.innerText.split('=')[0];
 		var bid = menu.getAttribute('data-bonusid');
+		//alert('bid is ' + bid);
 		if (code > 0)
 			document.getElementById(bid).checked = false; 
 		document.getElementById(bid).disabled = code > 0;
@@ -1219,15 +1263,21 @@ function sxappend(id,desc,bp,bm,tp)
 	
 	document.getElementById('sxsfs').innerHTML = estat.options[estat.selectedIndex].text;
 	
+	
 	var row = sxb.insertRow(-1);
 	var td_id = row.insertCell(-1);
-	td_id.innerHTML = id;
+	var id1 = id.substr(0,1);
+	if (id1 != ' ' && id1 != '') {
+		td_id.innerHTML = id1 + '-' + id.substr(1);
+	} else {
+		td_id.innerHTML = id;
+	}
 	td_id.className = 'id';
 	var td_desc = row.insertCell(-1);
 	td_desc.innerHTML = desc;
 	td_desc.className = 'desc';
 	var td_bp = row.insertCell(-1);
-	td_bp.innerHTML = bp;
+	td_bp.innerHTML = formatNumberScore(bp);
 	td_bp.className = 'bp';
 	if (showMults)
 	{
@@ -1236,7 +1286,7 @@ function sxappend(id,desc,bp,bm,tp)
 		td_bm.className = 'bm';
 	}
 	var td_tp = row.insertCell(-1);
-	td_tp.innerHTML = tp;
+	td_tp.innerHTML = formatNumberScore(tp);
 	td_tp.className = 'tp';
 }
 function sxhide()
@@ -1269,12 +1319,15 @@ function sxprint()
 }
 function sxshow()
 {
-	var sx = document.getElementById(SX_id);	
+	var sx = document.getElementById(SX_id);
+	if (sx.innerHTML=='')
+		calcScore(false);
 	sx.className = 'showscorex scorex';
 	sx.setAttribute('data-show','1');
 }	
 function sxstart()
 {
+//	alert('start');
 	var showMults = document.getElementById("ShowMults").value == SM_ShowMults;
 	
 	var sx = document.getElementById(SX_id);
@@ -1288,6 +1341,7 @@ function sxstart()
 }
 function sxtoggle()
 {
+	hidePopup();
 	var sx = document.getElementById(SX_id);	
 	if (sx.getAttribute('data-show') != '1')
 		sxshow();
@@ -1369,6 +1423,8 @@ function tickCombos()
 	for (var i = 0; i < cmbs.length; i++ )
 	{
 		var tick = true;
+		if (cmbs[i].getAttribute('data-rejected') > 0)
+			tick = false;
 		var bps = cmbs[i].getAttribute('data-bonuses').split(',');
 		for (var j = 0; j < bps.length; j++ )
 			if (bps[j] != '') 

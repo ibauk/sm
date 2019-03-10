@@ -373,7 +373,7 @@ function saveSpecials()
 {
 	global $DB, $TAGS, $KONSTANTS;
 
-	var_dump($_REQUEST);
+	//var_dump($_REQUEST);
 	$arr = $_REQUEST['BonusID'];
 	$DB->query('BEGIN TRANSACTION');
 	for ($i=0; $i < count($arr); $i++)
