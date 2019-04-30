@@ -48,15 +48,15 @@ $IMPORTSPEC['cols']['PillionName']	= '5:6';
 $IMPORTSPEC['cols']['PillionFirst']	= 5;
 $IMPORTSPEC['cols']['Bike'] 		= 15;
 $IMPORTSPEC['cols']['BikeReg'] 		= 16;
+$IMPORTSPEC['cols']['Email']		= 14;
+$IMPORTSPEC['cols']['Phone']		= 13;
+$IMPORTSPEC['cols']['NoKName']		= 17;
+$IMPORTSPEC['cols']['NoKPhone']		= 18;
+$IMPORTSPEC['cols']['NoKRelation']	= 19;
 
 // data collects lines to be stored as ExtraData
-$IMPORTSPEC['data']['Email']		= 14;
 $IMPORTSPEC['data']['Postcode']		= 11;
-$IMPORTSPEC['data']['Phone']		= 13;
 $IMPORTSPEC['data']['Country']		= 12;
-$IMPORTSPEC['data']['NoKName']		= 17;
-$IMPORTSPEC['data']['NoKPhone']		= 18;
-$IMPORTSPEC['data']['NoKRelation']	= 19;
 $IMPORTSPEC['data']['Postal_Address']		= '7:8:9:10:11:12';
 
 // If the content of the indexed column matches the RE, reject (don't load) the entry

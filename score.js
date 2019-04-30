@@ -59,6 +59,7 @@ const CFGERR_MethodNIY = "Error: compoundCalcRuleMethod {0} not implemented yet"
 const CFGERR_NotBonuses = "Error: compoundCalcRuleType {0} not applicable to bonuses";
 
 const ASK_POINTS = "Please enter the points for";
+const LOOKUP_ENTRANT = "Find entrant record matching what?";
 const CLAIM_REJECTED = "Claim rejected";
 const FINISHERS_EXPORTED = "Finishers Exported!";
 
@@ -838,6 +839,13 @@ function chooseNZ(i,j)
 		return i;
 }
 
+function convertUTCDateToLocalDate(date)
+{
+    var newDate = new Date(date);
+    newDate.setMinutes(date.getMinutes() - date.getTimezoneOffset());
+    return newDate;
+}
+
 function countNZ(cnts)
 {
 	var res = 0;
@@ -867,7 +875,16 @@ function enableSaveButton()
 	
 }
 
-
+function findEntrant()
+{
+	var x;
+	
+	x = window.prompt(LOOKUP_ENTRANT,'');
+	if (x == null)
+		return true;
+	window.location='entrants.php?c=entrants&mode=find&x='+x;
+	return false;
+}
 
 function formatNumberScore(n)
 /*
@@ -1140,7 +1157,7 @@ function setRejectedTooltip(BP,reason)
 
 function setSplitNow(id_prefix)
 {
-	var dt = new Date(Date.now());
+	var dt = convertUTCDateToLocalDate(new Date(Date.now()));
 	var dtDate = document.getElementById(id_prefix+'Date');
 	if (!dtDate) return;
 	var dtTime = document.getElementById(id_prefix+'Time');

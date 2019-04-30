@@ -34,6 +34,14 @@
 $HOME_URL = "admin.php";
 require_once('common.php');
 
+function clean_foldername($x)
+{
+	$res = '';
+	for($i = 0; $i < strlen($x); $i++)
+		if (ctype_alnum($x[$i]))
+			$res .= $x[$i];
+	return $res;	
+}
 
 function generate_foldermaker()
 {
@@ -42,7 +50,7 @@ function generate_foldermaker()
 	//startHtml();
 	$nl = "<br>\r\n";
 	
-	echo("<div>$nl");
+	//echo("<div>$nl");
 	$R = $DB->query('SELECT * FROM rallyparams');
 	$rd = $R->fetchArray();
 	echo("@echo off$nl");
@@ -58,7 +66,7 @@ function generate_foldermaker()
 	
 	$MaxE = getValueFromDB("SELECT Max(EntrantID) As MaxE FROM entrants","MaxE",0);
 	if ($MaxE > 99)
-		$MaxEL = 3;
+		$MaxEL = 3;         
 	else
 		$MaxEL = 2;
 	$sql = "SELECT EntrantID,substr(RiderName,1,RiderPos-1) As RiderFirst";
@@ -71,7 +79,7 @@ function generate_foldermaker()
 	$R = $DB->query($sql);
 	$E = array();
 	while ($rd = $R->fetchArray()) {
-		echo("mkdir ".sprintf("%0".$MaxEL."u",$rd['EntrantID']).'-'.$rd['RiderLast']."$nl");
+		echo("mkdir ".sprintf("%0".$MaxEL."u",$rd['EntrantID']).'-'.clean_foldername($rd['RiderLast'])."$nl");
 	}
 	echo("cd ..$nl");
 	echo("mkdir by-bonus$nl");
@@ -81,15 +89,15 @@ function generate_foldermaker()
 	$R = $DB->query($sql);
 	$B = array();
 	while ($rd = $R->fetchArray()) {
-		echo("mkdir ".$rd['BonusID']."-".$rd['BriefDesc']."$nl");
+		echo("mkdir ".$rd['BonusID']."-".clean_foldername($rd['BriefDesc'])."$nl");
 	}
 	echo("cd ..$nl");
 	echo("cd ..$nl");
 	echo("echo ALL DONE ****$nl");
 	echo("dir photoclaims$nl");
 	
-	echo("</div$nl");
-	echo("</body></html>$nl");
+	//echo("</div$nl");
+	//echo("</body></html>$nl");
 	
 }
 

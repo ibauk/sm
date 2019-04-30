@@ -290,6 +290,12 @@ while ($row++ >= 0) {
 		$country = getMergeCols($sheet,$row,$IMPORTSPEC['cols']['Country']);
 		$scoredby = getMergeCols($sheet,$row,$IMPORTSPEC['cols']['ScoredBy']);
 		
+		$phone = getMergeCols($sheet,$row,$IMPORTSPEC['cols']['Phone']);
+		$email = getMergeCols($sheet,$row,$IMPORTSPEC['cols']['Email']);
+		$NoKName = getMergeCols($sheet,$row,$IMPORTSPEC['cols']['NoKName']);
+		$NoKPhone = getMergeCols($sheet,$row,$IMPORTSPEC['cols']['NoKPhone']);
+		$NoKRelation = getMergeCols($sheet,$row,$IMPORTSPEC['cols']['NoKRelation']);
+		
 		$xtraData = '';
 		foreach($IMPORTSPEC['data'] as $k => $kcol)
 		{
@@ -312,6 +318,16 @@ while ($row++ >= 0) {
 				$fl = buildList($fl,'Bike');
 			if (isset($IMPORTSPEC['cols']['BikeReg']))
 				$fl = buildList($fl,'BikeReg');
+			if (isset($IMPORTSPEC['cols']['Phone']))
+				$fl = buildList($fl,'Phone');
+			if (isset($IMPORTSPEC['cols']['Email']))
+				$fl = buildList($fl,'Email');
+			if (isset($IMPORTSPEC['cols']['NoKName']))
+				$fl = buildList($fl,'NoKName');
+			if (isset($IMPORTSPEC['cols']['NoKPhone']))
+				$fl = buildList($fl,'NoKPhone');
+			if (isset($IMPORTSPEC['cols']['NoKRelation']))
+				$fl = buildList($fl,'NoKRelation');
 			
 			$fl = buildList($fl,'FinishPosition');
 			$fl = buildList($fl,'RiderIBA');
@@ -339,6 +355,16 @@ while ($row++ >= 0) {
 				$fl = buildList($fl,':Bike');
 			if (isset($IMPORTSPEC['cols']['BikeReg']))
 				$fl = buildList($fl,':BikeReg');
+			if (isset($IMPORTSPEC['cols']['Phone']))
+				$fl = buildList($fl,':Phone');
+			if (isset($IMPORTSPEC['cols']['Email']))
+				$fl = buildList($fl,':Email');
+			if (isset($IMPORTSPEC['cols']['NoKName']))
+				$fl = buildList($fl,':NoKName');
+			if (isset($IMPORTSPEC['cols']['NoKPhone']))
+				$fl = buildList($fl,':NoKPhone');
+			if (isset($IMPORTSPEC['cols']['NoKRelation']))
+				$fl = buildList($fl,':NoKRelation');
 			
 			$fl = buildList($fl,':FinishPosition');
 			$fl = buildList($fl,':RiderIBA');
@@ -395,6 +421,16 @@ while ($row++ >= 0) {
 		$stmt->bindValue(':Bike',trim($bike[0]),SQLITE3_TEXT);
 		if (isset($IMPORTSPEC['cols']['BikeReg']))
 			$stmt->bindValue(':BikeReg',strtoupper(trim($bikereg)),SQLITE3_TEXT);
+		if (isset($IMPORTSPEC['cols']['Phone']))
+			$stmt->bindValue(':Phone',trim($phone),SQLITE3_TEXT);
+		if (isset($IMPORTSPEC['cols']['Email']))
+			$stmt->bindValue(':Email',trim($email),SQLITE3_TEXT);
+		if (isset($IMPORTSPEC['cols']['NoKName']))
+			$stmt->bindValue(':NoKName',trim($NoKName),SQLITE3_TEXT);
+		if (isset($IMPORTSPEC['cols']['NoKPhone']))
+			$stmt->bindValue(':NoKPhone',trim($NoKPhone),SQLITE3_TEXT);
+		if (isset($IMPORTSPEC['cols']['NoKRelation']))
+			$stmt->bindValue(':NoKRelation',trim($NoKRelation),SQLITE3_TEXT);
 		
 		$stmt->bindValue(':FinishPosition',$finishposition,SQLITE3_INTEGER);
 		$stmt->bindValue(':RiderIBA',$rideriba,SQLITE3_INTEGER);

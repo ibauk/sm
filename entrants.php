@@ -111,6 +111,12 @@ function listEntrants($ord = "EntrantID")
 			$bonus = $_REQUEST['bonus'];
 			$sql .= " WHERE ',' || CombosTicked || ',' LIKE '%,$bonus,%'";
 		}
+		else if ($_REQUEST['mode']=='find' && isset($_REQUEST['x']) && is_numeric($_REQUEST['x']))
+		{
+			$n = intval($_REQUEST['x']);
+			if (substr($n,0,1) > '0' && strlen($n) <= 3) // Make sure it's reasonable to suppose it's an EntrantID
+			$sql .= " WHERE EntrantID=$n";
+		}
 	}
 	if ($ord <> '')
 		$sql .= " ORDER BY $ord";
@@ -150,7 +156,12 @@ function listEntrants($ord = "EntrantID")
 	if ($ShowTeamCol && $_REQUEST['mode']=='full')
 		echo('<th class="TeamID"><a href="entrants.php?c=entrants&amp;ord=TeamID&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['TeamID'][0].'</a></th>');
 	echo('<th class="EntrantStatus"><a href="entrants.php?c=entrants&amp;ord=EntrantStatus&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['EntrantStatus'][0].'</a></th>');
-	if ($_REQUEST['mode']!='check')
+	if ($_REQUEST['mode']=='find')
+	{
+		echo('<th>');
+		echo('</th>');
+	}
+	else if ($_REQUEST['mode']!='check')
 	{
 		echo('<th class="FinishPosition"><a href="entrants.php?c=entrants&amp;ord=EntrantStatus DESC,FinishPosition&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['FinishPosition'][0].'</a></th>');
 		echo('<th class="TotalPoints"><a href="entrants.php?c=entrants&amp;ord=TotalPoints&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['TotalPoints'][0].'</a></th>');
@@ -159,8 +170,26 @@ function listEntrants($ord = "EntrantID")
 	echo('</tr>');
 	echo('</thead><tbody>');
 	
-	while ($rd = $R->fetchArray())
+	while ($rd = $R->fetchArray(SQLITE3_ASSOC))
 	{
+		$show_row = true;
+		$found_field = '';
+		$found_value = '';
+		if ($_REQUEST['mode']=='find')
+		{
+			$show_row = false;
+			foreach ($rd as $rdf=>$rdv)
+				if (stripos($rdv,$_REQUEST['x'])!==FALSE)
+				{
+					$found_field = $rdf;
+					$found_value = $rdv;
+					$show_row = true;
+					break;
+				}
+			if (!$show_row)
+				continue;
+			//var_dump($rd);
+		}
 		echo('<tr class="link" onclick="window.location.href=\'entrants.php?c=entrant&amp;id='.$rd['EntrantID'].'&amp;mode='.$_REQUEST['mode'].'\'">');
 		echo('<td class="EntrantID">'.$rd['EntrantID'].'</td>');
 		echo('<td class="RiderName">'.$rd['RiderName'].'</td>');
@@ -177,6 +206,13 @@ function listEntrants($ord = "EntrantID")
 		if ($es=='')
 			$es = '[[ '.$rd['EntrantStatus'].']]';
 		echo('<td class="EntrantStatus">'.$es.'</td>');
+		if ($_REQUEST['mode']=='find')
+		{
+			echo('<td>');
+			if ($found_field != 'ExtraData')
+				echo($found_field.'=');
+			echo($found_value.'</td>');
+		}
 		if ($_REQUEST['mode']=='full')
 		{
 			echo('<td class="FinishPosition">'.$rd['FinishPosition'].'</td>');
@@ -193,13 +229,20 @@ function listEntrants($ord = "EntrantID")
 
 function saveEntrantRecord()
 {
-	global $DB, $TAGS, $KONSTANTS;
+	global $DB, $TAGS, $KONSTANTS, $DBVERSION;
 
-	$fa = array('RiderName','RiderFirst','RiderIBA','PillionName','PillionFirst','PillionIBA',
+	$fa1 = array('RiderName','RiderFirst','RiderIBA','PillionName','PillionFirst','PillionIBA',
 				'Bike','BikeReg','TeamID','Country','OdoKms','OdoCheckStart','OdoCheckFinish',
 				'OdoScaleFactor','OdoRallyStart','OdoRallyFinish','CorrectedMiles','FinishTime',
 				'BonusesVisited','SpecialsTicked','CombosTicked','TotalPoints','FinishPosition',
 				'EntrantStatus','ScoredBy','StartTime','Class','OdoCheckTrip','ExtraData');
+
+	if ($DBVERSION >= 2) {
+		$fa2 = array('Phone','Email','NoKName','NoKRelation','NoKPhone');
+		$fa = array_merge($fa1,$fa2);
+	} else {
+		$fa = $fa1;
+	}
 
 	$fab = array('BonusesVisited' => 'BonusID','SpecialsTicked' => 'SpecialID', 'CombosTicked' => 'ComboID');
 	
@@ -313,7 +356,7 @@ function saveEntrantRecord()
 	else
 		$sql .= " WHERE EntrantID=".$_REQUEST['EntrantID'];
 	
-	//echo($sql.'<br>');
+//	echo($sql.'<br>');
 	$DB->exec($sql);
 	if ($DB->lastErrorCode()<>0) {
 		echo("SQL ERROR: ".$DB->lastErrorMsg().'<hr>'.$sql.'<hr>');
@@ -760,6 +803,7 @@ function showEntrantChecks($rd)
 
 	echo('<input type="hidden" name="c" value="entrants">');
 	echo('<input type="hidden" name="mode" value="check">');
+	echo('<input type="hidden" name="updaterecord" value="'.$rd['EntrantID'].'">');
 	
 	echo('<span class="vlabel"  style="font-weight: bold;" title="'.$TAGS['EntrantID'][1].'"><label for="EntrantID">'.$TAGS['EntrantID'][0].' </label> ');
 	echo('<input type="text" class="number"  readonly name="EntrantID" id="EntrantID" value="'.$rd['EntrantID'].'">'.' '.htmlspecialchars($rd['RiderName']));
@@ -907,7 +951,7 @@ function showEntrantSpecials($specials,$rejections)
 			if ($bk <> '') {
 				$chk = array_search($bk, $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
 				echo('<span title="'.htmlspecialchars($bk).'"');
-				if ($chk) echo(' class="keep checked"'); else if ($REJ['S'.$bk] != '') echo(' class="rejected"'); else echo(' class="keep"');
+				if ($chk) echo(' class="keep checked"'); else if (isset($REJ['S'.$bk]) && $REJ['S'.$bk] != '') echo(' class="rejected"'); else echo(' class="keep"');
 				echo('><label for="S'.$bk.'">'.htmlspecialchars($b).' </label>');
 				echo('<input '.$ro.' type="checkbox"'.$chk.' name="SpecialID[]" id="S'.$bk.'" value="'.$bk.'"> ');
 				echo(' &nbsp;&nbsp;</span>');
@@ -938,7 +982,7 @@ function showEntrantCombinations($Combos,$rejections)
 		if ($bk <> '') {
 			$chk = array_search($bk, $BAB) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
 			echo('<span title="'.htmlspecialchars($bk).'"');
-			if ($chk) echo(' class="keep checked"'); else if ($REJ['C'.$bk] != '') echo(' class="rejected"'); else echo(' class="keep"');
+			if ($chk) echo(' class="keep checked"'); else if (isset($REJ['C'.$bk]) && $REJ['C'.$bk] != '') echo(' class="rejected"'); else echo(' class="keep"');
 			echo('><label for="C'.$bk.'">'.htmlspecialchars($b).' </label>');
 			echo('<input '.$ro.' type="checkbox"'.$chk.' name="ComboID[]" id="C'.$bk.'" value="'.$bk.'"> ');
 			echo(' &nbsp;&nbsp;</span>');
@@ -958,8 +1002,8 @@ function showEntrantExtraData($xd)
 
 function showEntrantRecord($rd)
 {
-	global $DB, $TAGS, $KONSTANTS;
-
+	global $DB, $TAGS, $KONSTANTS, $DBVERSION;
+//var_dump($rd);
 	$is_new_record = ($rd['EntrantID']=='');
 	echo('<form method="post" action="entrants.php">');
 
@@ -981,6 +1025,8 @@ function showEntrantRecord($rd)
 	
 	echo('<div class="tabs_area" style="display:inherit"><ul id="tabs">');
 	echo('<li><a href="#tab_basic">'.$TAGS['BasicDetails'][0].'</a></li>');
+	if ($DBVERSION >= 2)
+		echo('<li><a href="#tab_contact">'.$TAGS['ContactDetails'][0].'</a></li>');
 	echo('<li><a href="#tab_odo">'.$TAGS['Odometer'][0].'</a></li>');
 	echo('<li><a href="#tab_results">'.$TAGS['RallyResults'][0].'</a></li>');
 	if (!$is_new_record)
@@ -1033,6 +1079,27 @@ function showEntrantRecord($rd)
 	
 	echo('</fieldset>');
 	
+	if ($DBVERSION >= 2)
+	{
+		echo('<fieldset  class="tabContent" id="tab_contact"><legend>'.$TAGS['ContactDetails'][0].'</legend>');
+		
+		echo('<span class="vlabel" title="'.$TAGS['EntrantPhone'][1].'"><label for="Phone">'.$TAGS['EntrantPhone'][0].' </label> ');
+		echo('<input type="tel"  onchange="enableSaveButton();" name="Phone" id="Phone" value="'.$rd['Phone'].'"> </span>');
+	
+		echo('<span class="vlabel" title="'.$TAGS['EntrantEmail'][1].'"><label for="Email">'.$TAGS['EntrantEmail'][0].' </label> ');
+		echo('<input type="email"  onchange="enableSaveButton();" name="Email" id="Email" value="'.$rd['Email'].'"> </span>');
+	
+		echo('<span class="vlabel" title="'.$TAGS['NoKName'][1].'"><label for="NoKName">'.$TAGS['NoKName'][0].' </label> ');
+		echo('<input type="text"  onchange="enableSaveButton();" name="NoKName" id="NoKName" value="'.$rd['NoKName'].'"> </span>');
+	
+		echo('<span class="vlabel" title="'.$TAGS['NoKRelation'][1].'"><label for="NoKRelation">'.$TAGS['NoKRelation'][0].' </label> ');
+		echo('<input type="text"  onchange="enableSaveButton();" name="NoKRelation" id="NoKRelation" value="'.$rd['NoKRelation'].'"> </span>');
+	
+		echo('<span class="vlabel" title="'.$TAGS['NoKPhone'][1].'"><label for="NoKPhone">'.$TAGS['NoKPhone'][0].' </label> ');
+		echo('<input type="tel"  onchange="enableSaveButton();" name="NoKPhone" id="NoKPhone" value="'.$rd['NoKPhone'].'"> </span>');
+	
+		echo('</fieldset>');
+	}
 	
 	
 	echo('<fieldset  class="tabContent" id="tab_odo"><legend>'.$TAGS['Odometer'][0].'</legend>');

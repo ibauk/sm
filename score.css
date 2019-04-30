@@ -18,7 +18,7 @@
 }
 
 body, input, select		{ 
-    font-family: Verdana, Arial, Helvetica, sans-serif; font-size: calc(15pt + 1vmin);  background-color: #daad86;/*#11E3FF;*/ /*color: #B25D00;*/ }
+    font-family: Verdana, Arial, Helvetica, sans-serif; font-size: calc(14pt + 1vmin);  background-color: #daad86;/*#11E3FF;*/ /*color: #B25D00;*/ }
 
 input,select			{ color: #000; font-weight: bold; }
 input[type="number"], .number	{ width:4em; }
@@ -135,7 +135,7 @@ span.keep		{ white-space: nowrap; display: inline-block; }
 #adminMM a:hover{ background: lightgray; }
 #adminMM a:visited { color: #b20000; /* #FF0076; */ }
 #adminMM a:link	{
-	background-color: #00ff48; /*#2BFF2F;*/
+	background-color: #00ff00; /*#00ff48;*/ /*#2BFF2F;*/
     border: none;
     border-radius: 10px;
     color: #b20000;

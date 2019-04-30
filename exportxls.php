@@ -8,7 +8,7 @@
  * I am written for readability rather than efficiency, please keep me that way.
  *
  *
- * Copyright (c) 2018 Bob Stammers
+ * Copyright (c) 2019 Bob Stammers
  *
  *
  * This file is part of IBAUK-SCOREMASTER.
@@ -30,6 +30,7 @@
 
 /*
  *	2.1	Output ExtraData fields with finishers
+ *	2.2 Expressly output Phone/Email
  *
  */
  
@@ -42,7 +43,7 @@ function exportFinishers()
 	
 	header('Content-Type: text/csv; charset=utf-8');
 	header("Content-Disposition: attachment; filename=finishers.csv;");
-	$sql = "SELECT RiderName,PillionName,Bike,FinishPosition,CorrectedMiles,TotalPoints,RiderIBA,PillionIBA,BikeReg,ExtraData FROM entrants WHERE EntrantStatus=".$KONSTANTS['EntrantFinisher'];
+	$sql = "SELECT RiderName,PillionName,Bike,FinishPosition,CorrectedMiles,TotalPoints,RiderIBA,PillionIBA,BikeReg,Class,Phone,Email,ExtraData FROM (SELECT *,Instr(RiderName,' ') As pos FROM entrants) WHERE EntrantStatus=".$KONSTANTS['EntrantFinisher'];
 	$R = $DB->query($sql);
 	
 	ob_end_clean();  // Clear out any whitespace we've accidentally accumulated so far
@@ -50,11 +51,8 @@ function exportFinishers()
 	// create a file pointer connected to the output stream
 	$output = fopen('php://output', 'w');
 
-	$cols = array('RiderName','PillionName','Bike','Placing','Miles','Points','RiderIBA','PillionIBA','BikeReg');
+	$cols = array('RiderName','PillionName','Bike','Placing','Miles','Points','RiderIBA','PillionIBA','BikeReg','Class','Phone','Email');
 	$hdrDone = FALSE;
-	
-	// output the column headings
-	//fputcsv($output, array('RiderName','PillionName','Bike','Placing','Miles','Points','RiderIBA','PillionIBA','BikeReg'));
 	
 
 

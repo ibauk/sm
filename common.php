@@ -160,6 +160,8 @@ $TAGS = array(
 	'CompulsoryBonus'	=> array('Compulsory?','This bonus is required for Finisher status'),
 	'ConfirmDelEntrant'	=> array('Delete this entrant?','Confirm deletion of this entrant'),
 	
+	'ContactDetails'	=> array('Contacts',''),
+	
 	'CorrectedMiles'	=> array('Miles ridden','Official rally mileage'),	// Miles/Kms
 	
 	'Country'			=> array('Country',"Entrant's home country"),
@@ -168,6 +170,7 @@ $TAGS = array(
 	'DeleteEntryLit'	=> array('Delete?',''),
 	'EntrantDNF'		=> array('DNF','Did not qualify as a finisher'),
 	'EntrantDNS'		=> array('DNS','Entrant failed to start the rally'),
+	'EntrantEmail'		=> array('Entrant email','Email for this entrant'),
 	'EntrantFinisher'	=> array('Finisher','Rally finisher'),
 	'EntrantID'			=> array('Entrant #','The unique reference for this Entrant'),
 	'EntrantListBonus'	=> array('Entrants claiming bonus','List of entrants claiming a particular bonus'),
@@ -176,6 +179,7 @@ $TAGS = array(
 	'EntrantListFull'	=> array('Full list of Entrants','Choose an entrant to view/edit his/her details'),
 	'EntrantListSpecial'=> array('Entrants claiming special','List of entrants claiming a particular special'),
 	'EntrantOK'			=> array('ok','Status normal'),
+	'EntrantPhone'		=> array('Entrant phone','Contact phone for this entrant'),
 	'EntrantStatus'		=> array('Status','The current rally status of this entrant'),
 	
 							// Careful! this is executed as PHP, get it right.
@@ -227,6 +231,10 @@ $TAGS = array(
 	'NMethodLit'		=> array('NMethod','0=# entries per cat, 1=# of NZ cats, -1=record not used'),
 	'NMinLit'			=> array('NMin','The minimum value of N before this rule is triggered'),
 	'NoCerts2Print'		=> array('Sorry, no certificates to print.',''),
+	
+	'NoKName'			=> array('NoK name','Name of Next of Kin'),
+	'NoKPhone'			=> array('NoK phone','Phone number for Next of Kin'),
+	'NoKRelation'		=> array('NoK relation','Relationship of Next of Kin'),
 	'NoScoreX2Print'	=> array('Sorry, no score explanations to print.',''),
 	'nowlit'			=> array('Now','Record the current date/time'),
 	'NPowerLit'			=> array('NPower',"If bonus rule &amp; this is 0, R=bonuspoints(N-1)\n".
@@ -242,7 +250,7 @@ $TAGS = array(
 	'OdoKms'			=> array('Odo counts',''),																			// Miles/Kms
 	'OdoKmsK'			=> array('kilometres',''),																			// Miles/Kms
 	'OdoKmsM'			=> array('miles',''),																				// Miles/Kms
-	'Odometer'			=> array('Odo readings',''),																		// Miles/Kms
+	'Odometer'			=> array('Odo&nbsp;readings',''),																		// Miles/Kms
 	'OdoRallyStart'		=> array('Start of rally','The reading at the start of the rally'),									// Miles/Kms
 	'OdoRallyFinish'	=> array('At end of rally','The odometer reading at the end of the rally'),							// Miles/Kms
 	'OdoScaleFactor'	=> array('Correction factor','The number to multiply odo readings to get true distance'),			// Miles/Kms
@@ -281,7 +289,7 @@ $TAGS = array(
 	'raeSortD'			=> array('Descending','Sort Z-A, 9-1'),
 	'raeSubmit'			=> array('Go ahead, Renumber all entrants','Go ahead! Renumber all entrants'),
 	
-	'RallyResults'		=> array('Rally results',''),
+	'RallyResults'		=> array('Rally&nbsp;results',''),
 	'RallySlogan'		=> array('Rally slogan','Brief description of the rally, usually shown on finisher certificates.'),
 	'RallyTitle'		=> array('Rally title','Formal title of the rally. Surround an optional part with [ ]; Use | for newlines'),
 	
@@ -391,6 +399,7 @@ $TAGS = array(
 	'UploadPickFile'	=> array('Pick a file','Please select the input file'),
 
 	'UtlDeleteEntrant'	=> array('Delete entrant','Delete an entrant record from the database'),
+	'UtlFindEntrant'	=> array('Find entrant','Search for a particular entrant'),
 	'UtlFolderMaker'	=> array('Folder maker','Generate script to make entrant/bonus folders'),
 	'UtlRAE'			=> array('Renumber all entrants','Renumber all the entrants, regardless of status'),
 	'UtlRenumEntrant'	=> array('Renumber entrant','Assign a new entrant number to an existing entrant'),
@@ -491,6 +500,7 @@ try
 } catch(Exception $ex) {
 	echo("OMG ".$ex->getMessage().' file=[ '.$DBFILENAME.' ]');
 }
+$DBVERSION = getValueFromDB("SELECT DBVersion FROM rallyparams","DBVersion",0);
 
 $RALLY_INITIALISED = (1==1);
 $HTML_STARTED = false;

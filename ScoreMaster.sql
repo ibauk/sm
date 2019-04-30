@@ -45,9 +45,9 @@ CREATE TABLE IF NOT EXISTS `rallyparams` (
 	`TiedPointsRanking`	INTEGER DEFAULT 0,
 	`TeamRanking`	INTEGER DEFAULT 0,
 	`OdoCheckMiles`	NUMERIC DEFAULT 20,
-	`Cat1Label`	TEXT DEFAULT 'Cat1',
-	`Cat2Label`	TEXT DEFAULT 'Cat2',
-	`Cat3Label`	TEXT DEFAULT 'Cat3',
+	`Cat1Label`	TEXT,
+	`Cat2Label`	TEXT,
+	`Cat3Label`	TEXT,
 	`RejectReasons`	TEXT DEFAULT "1=No/wrong photo
 2=Photo unclear
 3=Out of hours
@@ -147,6 +147,11 @@ CREATE TABLE IF NOT EXISTS `entrants` (
 	`Class`	INTEGER DEFAULT 0,
 	`ScoreX`	TEXT,
 	`RejectedClaims`	TEXT,
+	`Phone` TEXT,
+	`Email` TEXT,
+	`NoKName` TEXT,
+	`NoKRelation` TEXT,
+	`NoKPhone` TEXT,
 	PRIMARY KEY(`EntrantID`)
 );
 CREATE TABLE IF NOT EXISTS `combinations` (
@@ -242,10 +247,11 @@ INSERT INTO `functions` (functionid,menulbl,url,onclick,tags) VALUES (27,'UtlDel
 INSERT INTO `functions` (functionid,menulbl,url,onclick,tags) VALUES (28,'UtlRenumEntrant','entrants.php?c=moveentrant',NULL,'entrant,renumber entrant,entrant number,number');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,tags) VALUES (29,'UtlRAE','entrants.php?c=showrae',NULL,'entrant,renumber all entrants,entrant number,number');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (30,'AdmUtilHeader','admin.php?menu=util',NULL,'utilities,delete');
+INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (31,'UtlFindEntrant','#','return findEntrant();','entrant,find');
 
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('admin','AdmMenuHeader','1,2,3,4,24,5,6,25');
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('setup','AdmSetupHeader','16,17,18,19,20,21,22,23,30');
-INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('entrant','AdmEntrantsHeader','1,11,12,2,13,15,24');
+INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('entrant','AdmEntrantsHeader','1,11,12,2,13,15,24,31');
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('bonus','AdmBonusHeader','7,8,9,10');
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('util','AdmUtilHeader','29,28,27,26');
 
