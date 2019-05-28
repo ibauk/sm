@@ -1009,7 +1009,13 @@ function reportRejectedClaim(bonusid,reason)
 			if (B.name != 'BonusID[]')
 				sxappend(B.getAttribute('id'),B.parentNode.firstChild.innerHTML.replace(/\[.+\]/,""),'X','','');
 			else
-				sxappend(B.getAttribute('id'),B.parentNode.getAttribute("title").replace(/\[.+\]/,""),'X','','');
+			{
+				var xtit = B.parentNode.getAttribute("title").replace(/\[.+\]/,"");
+				var p = xtit.indexOf('\r');
+				if (p >= 0)
+					xtit = xtit.substr(0,p);
+				sxappend(B.getAttribute('id'),xtit,'X','','');
+			}
 			sxappend('',CLAIM_REJECTED + ' - ' + R[i].value,'','','');
 		}
 	if (reason == 0)
@@ -1314,23 +1320,25 @@ function sxhide()
 }
 function sxprint()
 {
-    var mywindow = window.open('', 'PRINT', 'height=400,width=600');
-	var hdrtitle = document.getElementById('hdrRallyTitle').innerHTML;
+	var ent = document.getElementById('EntrantID').value;
+    var mywindow = window.open('entrants.php?c=scorex&entrant='+ent, 'PRINT', 'height=400,width=600');
 	
-    mywindow.document.write('<html><head><title>' + document.title  + '</title>');
-	mywindow.document.write('<link rel="stylesheet" type="text/css" href="score.css">');
+	//var hdrtitle = document.getElementById('hdrRallyTitle').innerHTML;
+	
+    //mywindow.document.write('<html><head><title>' + document.title  + '</title>');
+	//mywindow.document.write('<link rel="stylesheet" type="text/css" href="score.css">');
 
-    mywindow.document.write('</head><body >');
-    mywindow.document.write('<h1>' + hdrtitle  + '</h1>');
-	mywindow.document.write('<div class="scorex">');
-    mywindow.document.write(document.getElementById(SX_id).innerHTML);
-    mywindow.document.write('</div></body></html>');
+    //mywindow.document.write('</head><body>');
+    //mywindow.document.write('<h1>' + hdrtitle  + '</h1>');
+	//mywindow.document.write('<div class="scorex">');
+    //mywindow.document.write(document.getElementById(SX_id).innerHTML);
+    //mywindow.document.write('</div></body></html>');
 
-    mywindow.document.close(); // necessary for IE >= 10
-    mywindow.focus(); // necessary for IE >= 10*/
+    //mywindow.document.close(); // necessary for IE >= 10
+    //mywindow.focus(); // necessary for IE >= 10*/
 
-    mywindow.print();
-    mywindow.close();
+    //mywindow.print();
+    //mywindow.close();
 
     return true;	
 }

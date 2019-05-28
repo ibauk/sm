@@ -360,7 +360,7 @@ function scoreEntrant($showBlankForm = FALSE)
 	}
 	
 	
-	echo('<input type="hidden" name="EntrantID" value="'.$_REQUEST['EntrantID'].'">');
+	echo('<input type="hidden" id="EntrantID" name="EntrantID" value="'.$_REQUEST['EntrantID'].'">');
 	echo('<input type="hidden" name="RejectedClaims" id="RejectedClaims" value="'.$rd['RejectedClaims'].'">');
 	echo("\r\n");
 	echo('<div id="ScoreSheet">'."\r\n");
