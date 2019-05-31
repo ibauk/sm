@@ -6,23 +6,18 @@
  * I am written for readability rather than efficiency, please keep me that way.
  *
  *
- * Copyright (c) 2018 Bob Stammers
+ * Copyright (c) 2019 Bob Stammers
  *
  *
  * This file is part of IBAUK-SCOREMASTER.
  *
  * IBAUK-SCOREMASTER is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the MIT License
  *
  * IBAUK-SCOREMASTER is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with IBAUK-SCOREMASTER.  If not, see <http://www.gnu.org/licenses/>.
+ * MIT License for more details.
  *
  */
 
@@ -378,18 +373,21 @@ function saveSpecials()
 	$DB->query('BEGIN TRANSACTION');
 	for ($i=0; $i < count($arr); $i++)
 	{
-		$sql = "INSERT OR REPLACE INTO specials (BonusID,BriefDesc,GroupName,Points,MultFactor,AskPoints) VALUES(";
+		$sql = "INSERT OR REPLACE INTO specials (BonusID,BriefDesc,GroupName,Points,MultFactor) VALUES(";
 		$sql .= "'".$DB->escapeString($_REQUEST['BonusID'][$i])."'";
 		$sql .= ",'".$DB->escapeString($_REQUEST['BriefDesc'][$i])."'";
 		$sql .= ",'".$DB->escapeString(isset($_REQUEST['GroupName'][$i]) ? $_REQUEST['GroupName'][$i] : '')."'";
 		$sql .= ','.intval($_REQUEST['Points'][$i]);
 		$sql .= ','.intval($_REQUEST['MultFactor'][$i]);
-		$sql .= ','.intval($_REQUEST['AskPoints'][$i]);
 		$sql .= ")";
 		if ($_REQUEST['BonusID'][$i]<>'')
 		{
 			//echo($sql.'<br>');			
 			$DB->exec($sql);
+			if ($DB->lastErrorCode()<>0) {
+				echo("SQL ERROR: ".$DB->lastErrorMsg().'<hr>'.$sql.'<hr>');
+				exit;
+			}
 		}
 	}
 	if (isset($_REQUEST['Compulsory']))

@@ -14,17 +14,12 @@
  * This file is part of IBAUK-SCOREMASTER.
  *
  * IBAUK-SCOREMASTER is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the MIT License
  *
  * IBAUK-SCOREMASTER is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with IBAUK-SCOREMASTER.  If not, see <http://www.gnu.org/licenses/>.
+ * MIT License for more details.
  *
  */
 
@@ -352,6 +347,9 @@ function viewCertificate($EntrantID=0,$DontStart=false,$DontTail=false)
 
 function repeatFirstCertificate()
 {
+	// Decide whether or not the first certificate needs to be repeated
+	// to overcome browser formatting issues
+	
 	global $CERTOPTS;
 	//var_dump($CERTOPTS);
 	if (isset($CERTOPTS['optDoublefirst']))
@@ -360,13 +358,15 @@ function repeatFirstCertificate()
 		{
 			case 'OFF':
 				return false;
+			case 'ON':
+				return true;
 			case 'AUTO':
 				$browser = $_SERVER['HTTP_USER_AGENT'];
 				//echo("Browser=".$browser."; match=".$CERTOPTS['doublebrowser'].";");
 				return preg_match($CERTOPTS['txtDoublebrowser'],$browser);
 		}
 	}
-	return true;
+	return false;
 }
 
 function viewCertificates()

@@ -8,23 +8,18 @@
  * I am written for readability rather than efficiency, please keep me that way.
  *
  *
- * Copyright (c) 2018 Bob Stammers
+ * Copyright (c) 2019 Bob Stammers
  *
  *
  * This file is part of IBAUK-SCOREMASTER.
  *
  * IBAUK-SCOREMASTER is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * it under the terms of the MIT License
  *
  * IBAUK-SCOREMASTER is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with IBAUK-SCOREMASTER.  If not, see <http://www.gnu.org/licenses/>.
+ * MIT License for more details.
  *
  */
 
