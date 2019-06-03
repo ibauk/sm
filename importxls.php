@@ -135,7 +135,7 @@ function showUpload()
 
 function processUpload()
 {
-	global $IMPORTSPEC, $target_dir;
+	global $IMPORTSPEC, $target_dir, $TAGS;
 	
 	
 	//if (file_exists($target_dir.$IMPORTSPEC['xlsname']))
@@ -273,6 +273,8 @@ while ($row++ >= 0) {
 
 		$pillionnames = getNameFields($sheet,$row,array('PillionName','PillionFirst','PillionLast'));
 		$bike = getNameFields($sheet,$row,array('Bike','Make','Model'));
+		if(preg_match($TAGS['ImportBikeTBC'][0],trim($bike[0])))
+			$bike[0] = $TAGS['ImportBikeTBC'][1];
 		if ($debugging) echo("d [$bike[0]] ");
 		if (isset($IMPORTSPEC['cols']['BikeReg']))
 			$bikereg = getMergeCols($sheet,$row,$IMPORTSPEC['cols']['BikeReg']);

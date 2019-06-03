@@ -196,6 +196,10 @@ $TAGS = array(
 	
 	'GroupNameLit'		=> array('Special group','Group used for presentation purposes'),
 	'HelpAbout'			=> array('About ScoreMaster',''),
+	
+	// If an imported bike field matches this re, replace with the phrase
+	//                            re    phrase
+	'ImportBikeTBC'		=> array('/tbc|tba||unknown/i','motorbike,','Replace re with literal'),
 	'InsertNewCC'		=> array('Enter new compound calc',''),
 	'LegendPenalties'	=> array('Penalties',''),
 	'LegendScoring'		=> array('Scoring &amp; Ranking',''),
