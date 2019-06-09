@@ -194,6 +194,9 @@ function bodyLoaded()
 //		for (var j = 0; j < B[i].parentElement.childNodes.length; j++)
 	//		B[i].parentElement.childNodes[j].addEventListener('contextmenu',function(e){e.preventDefault()});
 	//}
+	
+	showBreadcrumbs();
+	
 	var isScoresheetpage = document.getElementById("scoresheetpage");
 	var hasTabs = document.getElementById('tabs');
 	
@@ -1171,6 +1174,26 @@ function setSplitNow(id_prefix)
 	dtDate.value = xd;
 	dtTime.value = xt;
 	enableSaveButton();
+}
+
+function showBreadcrumbs()
+{
+	var obj = document.getElementById('breadcrumbs');
+	if (!obj) return;
+	var nav = document.getElementById('navbar_breadcrumbs');
+	if (!nav) return;
+	nav.innerHTML = '';
+	var bc = obj.value.split(';');
+	for (var i = 0; i + 1 < bc.length; i++)
+	{
+		if (bc[i] != '')
+		{
+			var e = document.createElement('span');
+			e.className = 'breadcrumb';
+			e.innerHTML = bc[i];
+			nav.appendChild(e);
+		}
+	}
 }
 
 function showCat(cat,N,ent)

@@ -108,7 +108,7 @@ $TAGS = array(
 	'AdmRallyParams'	=> array('Rally parameters','View/edit current rally parameters'),
 	'AdmRankEntries'	=> array('Rank finishers','Calculate and apply the rank of each finisher'),
 	'AdmSelectTag'		=> array('Search by keyword','Choose a tag to list relevant functions'),
-	'AdmSetupHeader'	=> array('Rally setup',''),
+	'AdmSetupHeader'	=> array('Setup',''),
 	'AdmSetupWiz'		=> array('Setup wizard','Basic rally setup wizard'),
 	'AdmSGroups'		=> array('Specials groups','Maintain groups of specials'),
 	'AdmShowSetup'		=> array('Rally setup &amp; config','View/maintain rally configuration records'),
@@ -199,7 +199,7 @@ $TAGS = array(
 	
 	// If an imported bike field matches this re, replace with the phrase
 	//                            re    phrase
-	'ImportBikeTBC'		=> array('/tbc|tba||unknown/i','motorbike,','Replace re with literal'),
+	'ImportBikeTBC'		=> array('/tbc|tba|unknown/i','motorbike','Replace re with literal'),
 	'InsertNewCC'		=> array('Enter new compound calc',''),
 	'LegendPenalties'	=> array('Penalties',''),
 	'LegendScoring'		=> array('Scoring &amp; Ranking',''),
@@ -291,6 +291,7 @@ $TAGS = array(
 	'RallyResults'		=> array('Rally&nbsp;results',''),
 	'RallySlogan'		=> array('Rally slogan','Brief description of the rally, usually shown on finisher certificates.'),
 	'RallyTitle'		=> array('Rally title','Formal title of the rally. Surround an optional part with [ ]; Use | for newlines'),
+	'RecordSaved'		=> array('Record saved',''),
 	
 	// Used as 'clear' line in claim reject popup menu
 	'RejectReason0'		=> array('0=not rejected','Bonus claim is not rejected'),
@@ -358,6 +359,20 @@ $TAGS = array(
 	'SpecialsLit'		=> array('Specials','Special bonuses'),
 	'StartDate'			=> array('Start date','The first day of the rally. Rally riding day as opposed to must arrive by day'),
 	'StartTime'			=> array('Start time','Official start time. Rally clock starts at this time.'),
+	
+	// Titles for browser tabs
+	'ttWelcome'			=> array('ScoreMaster','Welcome page for anyone'),
+	'ttAdminMenu'		=> array('ScoreMaster','Showing main admin menu'),
+	'ttAbout'			=> array('SM:About',''),
+	'ttEntrants'		=> array('SM:Entrants',''),
+	'ttFinishers'		=> array('SM:Finishers','Quicklists'),
+	'ttCertificates'	=> array('Certificates',''),
+	'ttScoreX'			=> array('ScoreX',''),
+	'ttUpload'			=> array('SM:Upload','File pick screen'),
+	'ttImport'			=> array('SM:Import','Importing'),
+	'ttScoring'			=> array('Scoring','Logged on to scoring'),
+	'ttSetup'			=> array('SM:Setup','Edit setups'),
+	
 	'TeamID'			=> array('Team #','The team number this Entrant is a member of'),
 	'TeamRankingH'		=> array('Highest ranked member','Rank team as highest member'),
 	'TeamRankingI'		=> array('Individual placing','Rank each team member separately'),
@@ -439,6 +454,10 @@ $TAGS = array(
 	'zzzzzzzzzz'		=> array('zzz','dummy to mark end of array')
 	);
 
+// This is a list of makes/models of bike used to clean up the values entered by their owners during import
+// Each key here uses the letter case shown here, mostly uppercase but could be anything
+$KNOWN_BIKE_WORDS = array('BMW','BSA','cc','DCT','DVT','FJR','GS','GSA','GT','GTR','Harley-Davidson','KLE','KTM','LC',$TAGS['ImportBikeTBC'][1],'MV','RS','RT','SE','ST','TVS','VFR','V-Strom','VTR','XC','XRT');
+
 
 // Full/relative path to database file
 $DBFILENAME = 'ScoreMaster.db';
@@ -506,6 +525,23 @@ $HTML_STARTED = false;
 
 // Common subroutines
 
+function buildBreadcrumbs($home,$step)
+{
+	if (!isset($_REQUEST['breadcrumbs']))
+		$_REQUEST['breadcrumbs'] = '';
+	if ($step != $home && $step != '')
+		if ($_REQUEST['breadcrumbs']=='')
+			$_REQUEST['breadcrumbs'] = $home.";".$step;
+		else
+			$_REQUEST['breadcrumbs'] .= ";".$step;
+		
+}
+
+function emitBreadcrumbs()
+{
+	echo('<input type="hidden" name="breadcrumbs" id="breadcrumbs" value="'.$_REQUEST['breadcrumbs'].'">');
+}
+
 function properName($enteredName)
 // Used to fix names entered online; not everyone knows about shift keys
 // If they've tried, I just return what they entered but if not I'll
@@ -552,8 +588,93 @@ function getValueFromDB($sql,$col,$defaultvalue)
 		return $defaultvalue;
 	}
 }
+function retraceBreadcrumb()
+{
+	// This returns to penultimate breadcrumb
+	
+	if (!isset($_REQUEST['breadcrumbs']))
+		return false;
+	$bc = explode(';',$_REQUEST['breadcrumbs']);
+	$i = sizeof($bc) - 2;
+	if ($i < 0)
+		return false;
+	$lnk = $bc[$i];
+	$lnka = [];
+	if (preg_match('/href=\'([^\']*)\'/',$lnk,$lnka))
+	{
+		if ($i > 0)
+		{
+			if (strpos($lnka[1],'?'))
+				$lnka[1] .= '&';
+			else
+				$lnka[1] .= '?';
+			$lnka[1] .= 'breadcrumbs=';
+			for ($j = 0; $j < $i; $j++)
+			{
+				if ($j > 0)
+					$lnka[1] .= ';';
+				$lnka[1] .= $bc[$j];
+			}
+		}
+		header('Location: '.$lnka[1]);
+	}
+	return true;
+}
 
-function startHtml($otherInfo = '')
+function show_menu_taglist()
+{
+	global $TAGS,$DB;
+	
+	$R = $DB->query("SELECT * FROM functions");
+	$mytags = array();
+	while ($rd = $R->fetchArray())
+	{
+		$t = explode(',',$rd['Tags']);
+		foreach($t as $tg)
+		{
+			$mytags[$tg] = $tg;
+		}
+	}
+	sort($mytags);
+	echo("<select id='navbar_tagselect'");
+	echo(' title="'.$TAGS['AdmSelectTag'][1].'"');
+	echo(' onchange="window.location.href = '."'admin.php?tag='");
+	echo("+document.getElementById('navbar_tagselect').value".';"');
+	echo('>');
+	echo('<option value="">'.$TAGS['AdmSelectTag'][0].'</option>');
+	foreach($mytags as $t)
+	{
+		if ($t != '')
+			echo("<option value='$t'>$t</option>");
+	}
+	echo("</select>");
+	
+}
+
+
+function showNav()
+{
+	global $TAGS;
+	
+	echo('<div id="navbar">');
+	
+	echo( '<span id="navbar_breadcrumbs"></span> ');
+	
+	echo(' <span title="'.$TAGS['UtlFindEntrant'][1].'">');
+	$xx = "return document.getElementById('EntrantSearchKey').value!='';";
+	echo('<form method="get" action="entrants.php"  onsubmit="'.$xx.'">');
+	echo('<input type="hidden" name="c" value="entrants">');
+	echo('<input type="hidden" name="mode" value="find">');
+	echo('<input type="text" name="x" id="EntrantSearchKey" placeholder="'.$TAGS['UtlFindEntrant'][0].'">');
+	echo('<input type="submit" value="?"> ');
+	echo('</form>');
+	echo('</span> ');
+	
+	show_menu_taglist();
+	echo('</div>');
+}
+
+function startHtml($pagetitle,$otherInfo = '',$showNav=true)
 {
 	global $DB, $TAGS, $KONSTANTS, $HTML_STARTED;
 	global $HOME_URL;
@@ -570,7 +691,9 @@ function startHtml($otherInfo = '')
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<title>ScoreMaster</title>
+<?php
+echo('<title>'.$pagetitle.'</title>');
+?>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="stylesheet" type="text/css" href="score.css?ver=<?= filemtime('score.css')?>">
@@ -592,7 +715,8 @@ function startHtml($otherInfo = '')
 	echo("</a>");
 	echo('<span id="hdrOtherInfo">'.$otherInfo.'</span>');
 	echo("\r\n</div>\r\n");
-	
+	if ($showNav)
+		showNav();
 }
 function showFooter()
 {

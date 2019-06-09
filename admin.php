@@ -90,7 +90,7 @@ function editCertificate()
 	if (isset($_REQUEST['Class']))
 		$class = $_REQUEST['Class'];
 	$rd = fetchCertificate($EntrantID,$class);
-	startHtml('');
+	startHtml($TAGS['ttSetup'][0]);
 	//var_dump($rd);
 	echo('<p>'.$TAGS['CertExplainer'][0].'<br>');
 	echo($TAGS['CertExplainer'][1].'</p>');
@@ -141,21 +141,21 @@ function editCertificate()
 	
 //	echo('<br>html<br>');
 	echo('<fieldset class="tabContent" id="tab_html"><legend></legend>');
-	echo("<textarea form='certform' name='certhtml' id='certhtml' contenteditable='true' style='height:20em; width:100%;'>");
+	echo("<textarea form='certform' name='certhtml' id='certhtml' contenteditable='true' style='height:20em; width:100%;' oninput='enableSaveButton();'>");
 	echo($rd['html']);
 	echo('</textarea>');
 	echo('</fieldset>');
 	
 //	echo('<br><br>css<br>');
 	echo('<fieldset class="tabContent" id="tab_css"><legend></legend>');
-	echo("<textarea form='certform' name='certcss' id='certcss' contenteditable='true' style='height:20em; width:100%;'>");
+	echo("<textarea form='certform' name='certcss' id='certcss' contenteditable='true' style='height:20em; width:100%;' oninput='enableSaveButton();'>");
 	echo($rd['css']);
 	echo('</textarea>');
 	echo('</fieldset>');
 
 	
 	
-	echo('<input type="submit" name="savecert" value="'.$TAGS['SaveCertificate'][0].'" title="'.$TAGS['SaveCertificate'][1].'"> ');
+	echo('<input type="submit" disabled name="savecert" value="'.$TAGS['RecordSaved'][0].'" id="savedata" data-altvalue="'.$TAGS['SaveCertificate'][0].'" title="'.$TAGS['SaveCertificate'][1].'"> ');
 
 	$pv = "var W=window.open('','preview');";
 	$pv .= "W.document.write('<html><head><style>'";
@@ -302,43 +302,33 @@ function dbInitialized()
 
 
 
-function showMenu($menu,$title)
-{
-	global $TAGS;
-	
-	echo('<div id="adminMM">');
-	echo('<h4>'.$title.'</h4>');
-	echo('<ul class="menulist">');
-	foreach($menu as $itm => $dst)
-	{
-		echo('<li title="'.$TAGS[$itm][1].'"');
-		if ($dst[1])
-			echo(' onclick="'.$dst[1].'"');
-		echo('>');
-		echo('<a href="'.$dst[0].'">'.$TAGS[$itm][0].'</a>');
-		echo('</li>');
-	}
-	echo('</ul>');
-
-	echo('</div>');
-	showFooter();
-	exit;
-}
 
 function show_menu($menuid)
 {
-	global $TAGS,$DB;
+	global $TAGS,$DB,$HOME_URL;
 	
 	$R = $DB->query("SELECT * FROM menus WHERE menuid='$menuid'");
 	if (!($rd = $R->fetchArray()))
 	{
 		return; // Should complain
 	}
+	
+	$bchome = "<a href='".$HOME_URL."'> / </a>";
+	$bcstep = "<a href='".$HOME_URL.'?menu='.$menuid."'>".$TAGS[$rd['menulbl']][0].'</a>';
+	if ($menuid == 'admin')
+		buildBreadcrumbs($bchome,'');
+	else
+		buildBreadcrumbs($bchome,$bcstep);
+
+	emitBreadcrumbs();
+	
 	$menulbl = $rd['menulbl'];
 	$functions = explode(',',$rd['menufuncs']);
+	//showNav();
 	echo('<div id="adminMM">');
 	echo('<h4 title="'.$TAGS[$menulbl][1].'">'.$TAGS[$menulbl][0].'</h4>');
 	echo('<ul class="menulist">');
+	
 	foreach($functions as $f)
 	{
 		if ($f == '')
@@ -357,12 +347,16 @@ function show_menu($menuid)
 			echo(' onclick="'.$x.'"');
 		}
 		echo('>');
-		echo('<a href="'.$rd['url'].'">'.$TAGS[$rd['menulbl']][0].'</a>');
+		$bcurl = $_REQUEST['breadcrumbs'];
+		//if ($bcurl != '')
+		//	$bcurl .= ';';
+		//$bcurl .= '#';
+		echo('<a href="'.$rd['url'].'&amp;breadcrumbs='.urlencode($bcurl).'">'.$TAGS[$rd['menulbl']][0].'</a>');
 		echo('</li>');
 		
 	}
 	echo('</ul>');
-	show_menu_taglist();
+	//show_menu_taglist();
 	echo('</div>');
 	showFooter();
 	exit;
@@ -370,40 +364,11 @@ function show_menu($menuid)
 	
 }
 
-function show_menu_taglist()
-{
-	global $TAGS,$DB;
-	
-	$R = $DB->query("SELECT * FROM functions");
-	$mytags = array();
-	while ($rd = $R->fetchArray())
-	{
-		$t = explode(',',$rd['Tags']);
-		foreach($t as $tg)
-		{
-			$mytags[$tg] = $tg;
-		}
-	}
-	sort($mytags);
-	echo("<select id='menu_tagselect'");
-	echo(' title="'.$TAGS['AdmSelectTag'][1].'"');
-	echo(' onchange="window.location.href = '."'admin.php?tag='");
-	echo("+document.getElementById('menu_tagselect').value".'";');
-	echo('>');
-	echo('<option value="">'.$TAGS['AdmSelectTag'][0].'</option>');
-	foreach($mytags as $t)
-	{
-		if ($t != '')
-			echo("<option value='$t'>$t</option>");
-	}
-	echo("</select>");
-	
-}
-
 function show_tagmenu($tag)
 {
 	global $TAGS,$DB;
 	
+	//showNav();
 	echo('<div id="adminMM">');
 	echo('<h4 title="'.$TAGS['AdmShowTagMatches'][1].$tag.'">'.$TAGS['AdmShowTagMatches'][0].$tag.'</h4>');
 	echo('<ul class="menulist">');
@@ -426,7 +391,7 @@ function show_tagmenu($tag)
 		
 	}
 	echo('</ul>');
-	show_menu_taglist();
+	//show_menu_taglist();
 	echo('</div>');
 	showFooter();
 	exit;
@@ -436,22 +401,6 @@ function show_tagmenu($tag)
 
 
 
-function showSetupMenu()
-{
-	global $TAGS;
-	
-	$MAINMENU = array(
-		'AdmRallyParams'	=> array('sm.php?c=rallyparams',NULL),
-		'AdmEditCert'		=> array('admin.php?c=editcert',NULL),
-		'AdmEntrantsHeader'	=> array('admin.php?c=entrants',NULL),
-		'AdmBonusHeader'	=> array('admin.php?c=bonus',NULL),
-		'AdmTimePenalties'	=> array('sm.php?c=timep',NULL),
-		'AdmCatTable'		=> array('sm.php?c=showcat&axis=1',NULL),
-		'AdmCompoundCalcs'	=> array('sm.php?c=catcalcs',NULL)
-	);
-	showMenu($MAINMENU,$TAGS['AdmSetupHeader'][0]);
-	
-}
 
 function showInitialisationOffer()
 {
@@ -497,7 +446,7 @@ function zapDatabase()
 	$DB->query('COMMIT TRANSACTION');
 	
 	echo('<h4 title="'.TAGS['ZapDatabaseZapped'][1].'">'.$TAGS['ZapDatabaseZapped'][0].'</h4>');
-	showSetupMenu();
+	show_menu('setup');
 	
 }
 
@@ -523,11 +472,9 @@ function isZapDBCommand()
 
 global $TAGS;
 
-startHtml('<a href="about.php" class="techie" title="'.$TAGS['HelpAbout'][1].'">'.$TAGS['HelpAbout'][0].'</a>');
+startHtml($TAGS['ttAdminMenu'][0],'<a href="about.php" class="techie" title="'.$TAGS['HelpAbout'][1].'">'.$TAGS['HelpAbout'][0].'</a>');
 //var_dump($_REQUEST);
-if (isset($_REQUEST['c']) && $_REQUEST['c']=='setup')
-	showSetupMenu();
-else if (isset($_REQUEST['c']) && $_REQUEST['c']=='entrants')
+if (isset($_REQUEST['c']) && $_REQUEST['c']=='entrants')
 	show_menu('entrant');
 else if (isset($_REQUEST['c']) && $_REQUEST['c']=='bonus')
 	show_menu('bonus');

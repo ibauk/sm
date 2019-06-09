@@ -105,6 +105,10 @@ function saveBonuses()
 		}
 	}
 	$DB->query('COMMIT TRANSACTION');
+
+	if (retraceBreadcrumb())
+		exit;
+
 	if (isset($_REQUEST['menu'])) 
 	{
 		$_REQUEST['c'] = $_REQUEST['menu'];
@@ -153,6 +157,8 @@ function saveCategories()
 		}
 	}
 	$DB->query('COMMIT TRANSACTION');
+	if (retraceBreadcrumb())
+		exit;
 	if (isset($_REQUEST['menu'])) 
 	{
 		$_REQUEST['c'] = $_REQUEST['menu'];
@@ -198,6 +204,8 @@ function saveCombinations()
 		}
 	}
 	$DB->query('COMMIT TRANSACTION');
+	if (retraceBreadcrumb())
+		exit;
 	if (isset($_REQUEST['menu'])) 
 	{
 		$_REQUEST['c'] = $_REQUEST['menu'];
@@ -264,6 +272,8 @@ function saveCompoundCalcs()
 		}
 	}
 	$DB->query('COMMIT TRANSACTION');
+	if (retraceBreadcrumb())
+		exit;
 	if (isset($_REQUEST['menu'])) 
 	{
 		$_REQUEST['c'] = $_REQUEST['menu'];
@@ -305,6 +315,8 @@ function saveSGroups()
 		}
 	}
 	$DB->query('COMMIT TRANSACTION');
+	if (retraceBreadcrumb())
+		exit;
 	if (isset($_REQUEST['menu'])) 
 	{
 		$_REQUEST['c'] = $_REQUEST['menu'];
@@ -354,6 +366,8 @@ function saveRallyConfig()
 	$DB->exec($sql);
 	//echo("Rally configuration saved ".$DB->lastErrorCode().' ['.$DB->lastErrorMsg().']<hr>');
 	//show_regular_admin_screen();
+	if (retraceBreadcrumb())
+		exit;
 	if (isset($_REQUEST['menu'])) 
 	{
 		$_REQUEST['c'] = $_REQUEST['menu'];
@@ -418,6 +432,8 @@ function saveSpecials()
 		}
 	}
 	$DB->query('COMMIT TRANSACTION');
+	if (retraceBreadcrumb())
+		exit;
 	if (isset($_REQUEST['menu'])) 
 	{
 		$_REQUEST['c'] = $_REQUEST['menu'];
@@ -475,6 +491,8 @@ function saveTimePenalties()
 		}
 	}
 	$DB->query('COMMIT TRANSACTION');
+	if (retraceBreadcrumb())
+		exit;
 	if (isset($_REQUEST['menu'])) 
 	{
 		$_REQUEST['c'] = $_REQUEST['menu'];
@@ -510,6 +528,8 @@ function triggerNewRow(obj)
 }
 </script>
 <?php	
+	
+	buildBreadcrumbs('/','#');
 
 	$R = $DB->query('SELECT * FROM rallyparams');
 	$rd = $R->fetchArray();
@@ -520,6 +540,7 @@ function triggerNewRow(obj)
 
 
 	echo('<form method="post" action="sm.php">');
+	emitBreadcrumbs();
 
 	$R = $DB->query('SELECT * FROM categories ORDER BY Axis,BriefDesc');
 
@@ -539,7 +560,7 @@ function triggerNewRow(obj)
 	$showclaimsbutton = (getValueFromDB("SELECT count(*) As rex FROM entrants","rex",0)>0);
 	
 	echo('<input type="hidden" name="c" value="bonuses">');
-	echo('<input type="hidden" name="menu" value="setup">');
+//	echo('<input type="hidden" name="menu" value="setup">');
 	echo("\r\n");
 	echo('<input type="submit" name="savedata" value="'.$TAGS['UpdateBonuses'][0].'"> ');
 	echo('<table id="bonuses">');
@@ -720,6 +741,8 @@ function triggerNewRow(obj)
 	$CatLabel = $rd['CatLabel'];
 	echo('<p>'.$TAGS['CatExplainer'][1].'</p>');
 	echo('<form method="post" action="sm.php">');
+	buildBreadcrumbs('/','#');
+	emitBreadcrumbs();
 	echo('<input type="hidden" name="c" value="showcat">');
 	echo('<input type="hidden" name="axis" value="'.$axis.'">');
 	echo('<input type="hidden" name="ord" value="'.$ord.'">');
@@ -795,6 +818,8 @@ function triggerNewRow(obj)
 
 	echo('<form method="post" action="sm.php">');
 
+	buildBreadcrumbs('/','#');
+	emitBreadcrumbs();
 	
 	echo('<input type="hidden" name="c" value="combos">');
 	echo('<input type="hidden" name="menu" value="setup">');
@@ -890,6 +915,8 @@ function triggerNewRow(obj)
 <?php	
 
 	echo('<form method="post" action="sm.php">');
+	buildBreadcrumbs('/','#');
+	emitBreadcrumbs();
 	for ($i = 0; $i < $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $i++)
 	{
 		$j = $i + 1;
@@ -1132,6 +1159,8 @@ function showRallyConfig()
 	if (!$rd = $R->fetchArray())
 		$rd = [];
 	echo('<br><form method="post" action="sm.php">');
+	buildBreadcrumbs('/','#');
+	emitBreadcrumbs();
 	echo('<input type="hidden" name="c" value="rallyparams">');
 	echo('<input type="hidden" name="menu" value="setup">');
 	
@@ -1354,6 +1383,8 @@ function triggerNewRow(obj)
 
 	echo('<form method="post" action="sm.php">');
 
+	buildBreadcrumbs('/','#');
+	emitBreadcrumbs();
 	
 	echo('<input type="hidden" name="c" value="sgroups">');
 	echo('<input type="hidden" name="menu" value="setup">');
@@ -1436,6 +1467,8 @@ function triggerNewRow(obj)
 
 	echo('<form method="post" action="sm.php">');
 
+	buildBreadcrumbs('/','#');
+	emitBreadcrumbs();
 	
 	echo('<input type="hidden" name="c" value="specials">');
 	echo('<input type="hidden" name="menu" value="setup">');
@@ -1556,6 +1589,8 @@ function triggerNewRow(obj)
 
 	echo('<form method="post" action="sm.php">');
 
+	buildBreadcrumbs('/','#');
+	emitBreadcrumbs();
 	
 	echo('<input type="hidden" name="c" value="timep">');
 	echo('<input type="hidden" name="menu" value="setup">');
@@ -1625,7 +1660,7 @@ function triggerNewRow(obj)
 
 
 
-startHtml();
+startHtml($TAGS['ttSetup'][0]);
 
 if (isset($_REQUEST['c']))
 {

@@ -217,7 +217,7 @@ function showPageHeader($page_number)
 {
 	global $TAGS;
 	
-	startHtml('<a href="about.php" class="techie" title="'.$TAGS['HelpAbout'][1].'">'.$TAGS['HelpAbout'][0].'</a>');
+	startHtml($TAGS['ttWelcome'][0],'<a href="about.php" class="techie" title="'.$TAGS['HelpAbout'][1].'">'.$TAGS['HelpAbout'][0].'</a>',false);
 
 ?>
 <form method="post" action="setup.php">

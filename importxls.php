@@ -31,7 +31,6 @@ require_once("common.php");
 //$target_dir = __DIR__ .'/uploads/';
 $target_dir = './uploads/';
 
-
 /**
 $SPECFILES = array(	'BBR' => array('bbrspec.php','Brit Butt rally'),
 					'Jorvic' => array('jorvicspec.php','Jorvic rally'),
@@ -67,6 +66,34 @@ function getMergeCols($sheet,$row,$colspec,$sep = ' ')
 	return $res;
 }
 
+function knownWord($w,&$formattedword)
+{
+	global $KNOWN_BIKE_WORDS;
+	
+	for ($i = 0; $i < sizeof($KNOWN_BIKE_WORDS); $i++)
+		if (strtolower($w)==strtolower($KNOWN_BIKE_WORDS[$i]))
+		{
+			$formattedword = $KNOWN_BIKE_WORDS[$i];
+			return true;
+		}
+	return false;
+}
+function cleanBikename($bike)
+{
+	$words = explode(' ',$bike);
+	for ($i = 0; $i < sizeof($words); $i++)
+	{
+		$wk = '';
+		if (knownWord($words[$i],$wk))
+			$words[$i] = $wk;
+		else if (preg_match('/\\d/', $words[$i]) > 0)
+			$words[$i] = strtoupper($words[$i]);
+		else
+			$words[$i] = properName(strtolower($words[$i]));
+	}
+	return implode(' ',$words);
+}
+
 function getNameFields($sheet,$row,$namelabels)
 {
 	global $IMPORTSPEC;
@@ -100,7 +127,7 @@ function showUpload()
 {
 	global $TAGS, $SPECFILES;
 	
-	startHtml();
+	startHtml($TAGS['ttUpload'][0]);
 
 	echo('<h1>'.$TAGS['UploadEntrantsH1'][1].'</h1>');
 ?>
@@ -155,7 +182,7 @@ if (!isset($_REQUEST['specfile']))
 
 require_once($_REQUEST['specfile']);
 
-startHtml($TAGS['xlsImporting'][0]);
+startHtml($TAGS['ttImport'][0],$TAGS['xlsImporting'][0]);
 
 $debugging = 0;
 
@@ -415,7 +442,7 @@ while ($row++ >= 0) {
 		if ($debugging) echo("E  ");
 		$stmt->bindValue(':PillionFirst',properName(trim($pillionnames[1])),SQLITE3_TEXT);
 		if ($debugging) echo("F  ");
-		$stmt->bindValue(':Bike',trim($bike[0]),SQLITE3_TEXT);
+		$stmt->bindValue(':Bike',cleanBikename(trim($bike[0])),SQLITE3_TEXT);
 		if (isset($IMPORTSPEC['cols']['BikeReg']))
 			$stmt->bindValue(':BikeReg',strtoupper(trim($bikereg)),SQLITE3_TEXT);
 		if (isset($IMPORTSPEC['cols']['Phone']))

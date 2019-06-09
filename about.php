@@ -70,7 +70,7 @@ function showAbout()
 {
 	global $PROGRAM, $TAGS, $DBFILENAME, $DB, $KONSTANTS;
 	
-	startHtml();
+	startHtml($TAGS['ttAbout'][0]);
 	
 	
 	$serveraddr = $_SERVER['HTTP_HOST'];

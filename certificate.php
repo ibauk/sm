@@ -280,10 +280,14 @@ function fetchCertificateText($EntrantID)
 
 function startCertificateHtml($css)
 {
+	global $TAGS;
+	
 ?><!DOCTYPE html>
 <html>
 <head>
-<title>ScoreMaster:Certificates</title>
+<?php
+echo('<title>'.$TAGS['ttCertificates'][0].'</title>');
+?>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <style>
 <!--	

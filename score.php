@@ -134,7 +134,7 @@ function inviteScorer()
 	
 	$rally = getValueFromDB('SELECT RallyTitle FROM rallyparams','RallyTitle','');
 	
-	startHtml();
+	startHtml($TAGS['ttWelcome'][0]);
 	echo('<div id="frontpage"><p>'.$TAGS['OfferScore'][1].'</p>');
 	echo('<form method="post" action="score.php">');
 	echo('<input type="text" autofocus name="ScorerName">');
@@ -255,7 +255,7 @@ function scoreEntrant($showBlankForm = FALSE)
 		$ScorerName = '__________';
 	}
 	
-	startHtml($TAGS['Scorer'][0].': '.$ScorerName);
+	startHtml($TAGS['ttScoring'][0],$TAGS['Scorer'][0].': '.$ScorerName);
 
 	eval("\$evs = ".$TAGS['EntrantStatusV'][0]);
 	
@@ -436,7 +436,7 @@ function scoreEntrant($showBlankForm = FALSE)
 		else
 			$style = '';
 		echo('<span '.$style.' title="'.$TAGS['TotalMults'][1].'"><label for="TotalMults">'.$TAGS['TotalMults'][0].'</label> ');
-		echo(' <input type="text" readonly="readonly" title="'.$TAGS['TotalMults'][1].'" id="TotalMults" value="0" onchange="caclScore(true)" /> ');
+		echo(' <input type="text" readonly="readonly" title="'.$TAGS['TotalMults'][1].'" id="TotalMults" value="0" onchange="calcScore(true)" /> ');
 		echo('</span>'."\r\n");
 	}
 	echo('<br /><span title="'.$TAGS['EntrantStatus'][1].'"><label for="EntrantStatus">'.$TAGS['EntrantStatus'][0].' </label> ');
@@ -599,7 +599,7 @@ function showPicklist($ord)
 	
 	$lnk = '<a href="'.$HOME_URL.'" onclick="return areYouSure(\'\r\n'.$TAGS['LogoutScorer'][0].' '.$_REQUEST['ScorerName'].' ?\');">';
 
-	startHtml($lnk.$TAGS['Scorer'][0].': '.$_REQUEST['ScorerName'].'</a>');
+	startHtml($TAGS['ttScoring'][0],$lnk.$TAGS['Scorer'][0].': '.$_REQUEST['ScorerName'].'</a>');
 
 	eval("\$evs = ".$TAGS['EntrantStatusV'][0]);
 ?>
@@ -657,7 +657,7 @@ function filterByName(x)
 </script>
 <?php	
 	echo('<p>'.$TAGS['PickAnEntrant'][1].'</p>');
-	echo('<form id="entrantpick" method="post" action="score.php">');
+	echo('<form id="entrantpick" method="get" action="score.php">');
 	echo('<label for="EntrantID">'.$TAGS['EntrantID'][0].'</label> ');
 	echo('<input oninput="showPickedName();" type="number" autofocus id="EntrantID" name="EntrantID" min="'.$minEntrant.'" max="'.$maxEntrant.'"> '); 
 	echo('<input type="hidden" name="c" value="score">');
