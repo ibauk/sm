@@ -529,7 +529,7 @@ function triggerNewRow(obj)
 </script>
 <?php	
 	
-	buildBreadcrumbs('/','#');
+	pushBreadcrumb('#');
 
 	$R = $DB->query('SELECT * FROM rallyparams');
 	$rd = $R->fetchArray();
@@ -741,7 +741,7 @@ function triggerNewRow(obj)
 	$CatLabel = $rd['CatLabel'];
 	echo('<p>'.$TAGS['CatExplainer'][1].'</p>');
 	echo('<form method="post" action="sm.php">');
-	buildBreadcrumbs('/','#');
+	pushBreadcrumb('#');
 	emitBreadcrumbs();
 	echo('<input type="hidden" name="c" value="showcat">');
 	echo('<input type="hidden" name="axis" value="'.$axis.'">');
@@ -818,7 +818,7 @@ function triggerNewRow(obj)
 
 	echo('<form method="post" action="sm.php">');
 
-	buildBreadcrumbs('/','#');
+	pushBreadcrumb('#');
 	emitBreadcrumbs();
 	
 	echo('<input type="hidden" name="c" value="combos">');
@@ -915,7 +915,7 @@ function triggerNewRow(obj)
 <?php	
 
 	echo('<form method="post" action="sm.php">');
-	buildBreadcrumbs('/','#');
+	pushBreadcrumb('#');
 	emitBreadcrumbs();
 	for ($i = 0; $i < $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $i++)
 	{
@@ -1159,7 +1159,7 @@ function showRallyConfig()
 	if (!$rd = $R->fetchArray())
 		$rd = [];
 	echo('<br><form method="post" action="sm.php">');
-	buildBreadcrumbs('/','#');
+	pushBreadcrumb('#');
 	emitBreadcrumbs();
 	echo('<input type="hidden" name="c" value="rallyparams">');
 	echo('<input type="hidden" name="menu" value="setup">');
@@ -1383,7 +1383,7 @@ function triggerNewRow(obj)
 
 	echo('<form method="post" action="sm.php">');
 
-	buildBreadcrumbs('/','#');
+	pushBreadcrumb('#');
 	emitBreadcrumbs();
 	
 	echo('<input type="hidden" name="c" value="sgroups">');
@@ -1467,7 +1467,7 @@ function triggerNewRow(obj)
 
 	echo('<form method="post" action="sm.php">');
 
-	buildBreadcrumbs('/','#');
+	pushBreadcrumb('#');
 	emitBreadcrumbs();
 	
 	echo('<input type="hidden" name="c" value="specials">');
@@ -1589,7 +1589,7 @@ function triggerNewRow(obj)
 
 	echo('<form method="post" action="sm.php">');
 
-	buildBreadcrumbs('/','#');
+	pushBreadcrumb('#');
 	emitBreadcrumbs();
 	
 	echo('<input type="hidden" name="c" value="timep">');

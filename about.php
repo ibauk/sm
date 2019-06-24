@@ -24,7 +24,7 @@
  */
 
 
-$PROGRAM = array("version" => "2.2",	"title"	=> "ScoreMaster");
+$PROGRAM = array("version" => "2.3",	"title"	=> "ScoreMaster");
 /*
  *	2.0	25May18	Used live at BBR18
  *
@@ -45,6 +45,9 @@ $PROGRAM = array("version" => "2.2",	"title"	=> "ScoreMaster");
  *		Issued to John Cunniffe
  *	2.2.1		Programmable admin menus
  *				Full display of entrant table with scorex and rejects
+ *
+ *	2.3	13Jun19	Post BBR19
+ *				Breadcrumbs, new CSS, MIT licence, Tabnames
  */
 $HOME_URL = "admin.php";
 require_once("common.php");
@@ -70,7 +73,7 @@ function showAbout()
 {
 	global $PROGRAM, $TAGS, $DBFILENAME, $DB, $KONSTANTS;
 	
-	startHtml($TAGS['ttAbout'][0]);
+	startHtml($TAGS['ttAbout'][0],'',false);
 	
 	
 	$serveraddr = $_SERVER['HTTP_HOST'];

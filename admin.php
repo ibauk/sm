@@ -95,6 +95,8 @@ function editCertificate()
 	echo('<p>'.$TAGS['CertExplainer'][0].'<br>');
 	echo($TAGS['CertExplainer'][1].'</p>');
 	echo('<form id="certform" method="post" action="admin.php">');
+	pushBreadcrumb('#');
+	emitBreadcrumbs();
 	echo('<input type="hidden" name="c" value="editcert">');
 	echo('<input type="hidden" name="EntrantID" value="'.$EntrantID.'">');
 	
@@ -316,9 +318,9 @@ function show_menu($menuid)
 	$bchome = "<a href='".$HOME_URL."'> / </a>";
 	$bcstep = "<a href='".$HOME_URL.'?menu='.$menuid."'>".$TAGS[$rd['menulbl']][0].'</a>';
 	if ($menuid == 'admin')
-		buildBreadcrumbs($bchome,'');
+		pushBreadcrumb('');
 	else
-		buildBreadcrumbs($bchome,$bcstep);
+		pushBreadcrumb($bcstep);
 
 	emitBreadcrumbs();
 	
@@ -351,7 +353,12 @@ function show_menu($menuid)
 		//if ($bcurl != '')
 		//	$bcurl .= ';';
 		//$bcurl .= '#';
-		echo('<a href="'.$rd['url'].'&amp;breadcrumbs='.urlencode($bcurl).'">'.$TAGS[$rd['menulbl']][0].'</a>');
+		echo('<a href="'.$rd['url']);
+		if (strpos($rd['url'],'?'))
+			echo('&amp;');
+		else
+			echo('?');
+		echo('breadcrumbs='.urlencode($bcurl).'">'.$TAGS[$rd['menulbl']][0].'</a>');
 		echo('</li>');
 		
 	}

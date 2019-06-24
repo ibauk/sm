@@ -963,6 +963,26 @@ function odoAdjust(useTrip)
 	}
 }
 
+function calcMiles()
+{
+	var basickms = parseInt(document.getElementById('BasicDistanceUnits').value) != 0;
+	var odokms = document.getElementById('OdoKmsK').checked;
+	var correctionfactor = parseFloat(document.getElementById('OdoScaleFactor').value);
+	var odorallystart = parseFloat(document.getElementById('OdoRallyStart').value);
+	var odorallyfinish = parseFloat(document.getElementById('OdoRallyFinish').value);
+	if (document.getElementById('OdoRallyStart').value != '' && odorallyfinish > odorallystart)
+	{
+		var rallydistance = (odorallyfinish - odorallystart) * correctionfactor;
+		if (odokms && !basickms)
+			rallydistance = rallydistance / KmsPerMile;
+		else if (!odokms && basickms)
+			rallydistance = rallydistance * KmsPerMile;
+		
+		document.getElementById('CorrectedMiles').value = rallydistance.toFixed(0);
+	}
+	
+}
+
 function reflectBonusCheckedState(B)
 {
 	//if (B.id == 'CLinked1')

@@ -79,6 +79,7 @@ function listEntrants($ord = "EntrantID")
 
 	eval("\$evs = ".$TAGS['EntrantStatusV'][0]);
 
+	
 	$ShowTeamCol = TRUE;
 	$R = $DB->query("SELECT Count(*) As Rex FROM entrants WHERE TeamID <> 0");
 	if ($rd = $R->fetchArray())
@@ -123,7 +124,34 @@ function listEntrants($ord = "EntrantID")
 
 	echo('<table id="entrants">');
 	$eltag = "EntrantList".ucfirst($_REQUEST['mode']);
-	echo('<caption title="'.htmlentities($TAGS[$eltag][1]).'">'.htmlentities($TAGS[$eltag][0]).' '.$bonus);
+	$eltag0 = htmlentities($TAGS[$eltag][0]);
+	echo('<caption title="'.htmlentities($TAGS[$eltag][1]).'">'.$eltag0.' '.$bonus);
+	if ($eltag0 == '')
+		$eltag0 = '..';
+	
+	$bcurl ='&amp;breadcrumbs='.urlencode($_REQUEST['breadcrumbs']);
+	
+	
+	$myurl = "http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
+	$myurl = "entrants.php?c=entrants";
+	if (isset($_REQUEST['mode']))
+		$myurl .= '&mode='.$_REQUEST['mode'];
+	$myurl .= '&ord='.$ord;
+	$p = strpos($myurl,'&nobc');
+	if ($p)
+		$p = strpos($myurl,'?nobc');
+	if ($p)
+		$myurl = substr($myurl,0,$p);
+	$mybc = "<a href='".$myurl."'>".$eltag0."</a>";
+	if (!isset($_REQUEST['nobc']))
+		pushBreadcrumb($mybc);
+	else
+		pushBreadcrumb('#');
+	emitBreadcrumbs();
+	if (isset($_REQUEST['nobc']))
+		popBreadcrumb();
+	
+	
 	switch($_REQUEST['mode'])
 	{
 		case 'full':
@@ -140,17 +168,17 @@ function listEntrants($ord = "EntrantID")
 		echo('<caption title="'.htmlentities($TAGS['EntrantListCheck'][1]).'">'.htmlentities($TAGS['EntrantListCheck'][0]).'</caption>');
 	**/
 	
-	echo('<thead><tr><th class="EntrantID"><a href="entrants.php?c=entrants&amp;ord=EntrantID&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['EntrantID'][0].'</a></th>');
+	echo('<thead><tr><th class="EntrantID"><a href="entrants.php?c=entrants&amp;ord=EntrantID&amp;mode='.$_REQUEST['mode'].$bcurl.'">'.$TAGS['EntrantID'][0].'</a></th>');
 	if ($ord == 'RiderName' || $ord == 'RiderFirst')
 		$riderord = 'RiderLast';
 	else
 		$riderord = 'RiderName';
-	echo('<th class="RiderName"><a href="entrants.php?c=entrants&amp;ord='.$riderord.'&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['RiderName'][0].'</a></th>');
-	echo('<th class="PillionName"><a href="entrants.php?c=entrants&amp;ord=PillionName&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['PillionName'][0].'</a></th>');
-	echo('<th class="Bike"><a href="entrants.php?c=entrants&amp;ord=Bike&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['Bike'][0].'</a></th>');
+	echo('<th class="RiderName"><a href="entrants.php?c=entrants&amp;ord='.$riderord.'&amp;mode='.$_REQUEST['mode'].$bcurl.'">'.$TAGS['RiderName'][0].'</a></th>');
+	echo('<th class="PillionName"><a href="entrants.php?c=entrants&amp;ord=PillionName&amp;mode='.$_REQUEST['mode'].$bcurl.'">'.$TAGS['PillionName'][0].'</a></th>');
+	echo('<th class="Bike"><a href="entrants.php?c=entrants&amp;ord=Bike&amp;mode='.$_REQUEST['mode'].$bcurl.'">'.$TAGS['Bike'][0].'</a></th>');
 	if ($ShowTeamCol && $_REQUEST['mode']=='full')
-		echo('<th class="TeamID"><a href="entrants.php?c=entrants&amp;ord=TeamID&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['TeamID'][0].'</a></th>');
-	echo('<th class="EntrantStatus"><a href="entrants.php?c=entrants&amp;ord=EntrantStatus&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['EntrantStatus'][0].'</a></th>');
+		echo('<th class="TeamID"><a href="entrants.php?c=entrants&amp;ord=TeamID&amp;mode='.$_REQUEST['mode'].$bcurl.'">'.$TAGS['TeamID'][0].'</a></th>');
+	echo('<th class="EntrantStatus"><a href="entrants.php?c=entrants&amp;ord=EntrantStatus&amp;mode='.$_REQUEST['mode'].$bcurl.'">'.$TAGS['EntrantStatus'][0].'</a></th>');
 	if ($_REQUEST['mode']=='find')
 	{
 		echo('<th>');
@@ -158,9 +186,9 @@ function listEntrants($ord = "EntrantID")
 	}
 	else if ($_REQUEST['mode']!='check')
 	{
-		echo('<th class="FinishPosition"><a href="entrants.php?c=entrants&amp;ord=EntrantStatus DESC,FinishPosition&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['FinishPosition'][0].'</a></th>');
-		echo('<th class="TotalPoints"><a href="entrants.php?c=entrants&amp;ord=TotalPoints&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['TotalPoints'][0].'</a></th>');
-		echo('<th class="CorrectedMiles"><a href="entrants.php?c=entrants&amp;ord=CorrectedMiles&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['CorrectedMiles'][0].'</a></th>');
+		echo('<th class="FinishPosition"><a href="entrants.php?c=entrants&amp;ord=EntrantStatus DESC,FinishPosition&amp;mode='.$_REQUEST['mode'].$bcurl.'">'.$TAGS['FinishPosition'][0].'</a></th>');
+		echo('<th class="TotalPoints"><a href="entrants.php?c=entrants&amp;ord=TotalPoints&amp;mode='.$_REQUEST['mode'].$bcurl.'">'.$TAGS['TotalPoints'][0].'</a></th>');
+		echo('<th class="CorrectedMiles"><a href="entrants.php?c=entrants&amp;ord=CorrectedMiles&amp;mode='.$_REQUEST['mode'].$bcurl.'">'.$TAGS['CorrectedMiles'][0].'</a></th>');
 	}
 	echo('</tr>');
 	echo('</thead><tbody>');
@@ -185,7 +213,9 @@ function listEntrants($ord = "EntrantID")
 				continue;
 			//var_dump($rd);
 		}
-		echo('<tr class="link" onclick="window.location.href=\'entrants.php?c=entrant&amp;id='.$rd['EntrantID'].'&amp;mode='.$_REQUEST['mode'].'\'">');
+		$bclast = (isset($_REQUEST['nobc']) ? '' : '');
+		
+		echo('<tr class="link" onclick="window.location.href=\'entrants.php?c=entrant&amp;id='.$rd['EntrantID'].'&amp;mode='.$_REQUEST['mode'].'&breadcrumbs='.urlencode($_REQUEST["breadcrumbs"]).$bclast.'\'">');
 		echo('<td class="EntrantID">'.$rd['EntrantID'].'</td>');
 		echo('<td class="RiderName">'.$rd['RiderName'].'</td>');
 		echo('<td class="PillionName">'.$rd['PillionName'].'</td>');
@@ -583,7 +613,9 @@ function showFinisherList()
 ?><!DOCTYPE html>
 <html>
 <head>
-<title>ScoreMaster:Finishers</title>
+<?php
+echo('<title>'.$TAGS['ttFinishers'][0].'</title>');
+?>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="stylesheet" type="text/css" href="score.css?ver=<?= filemtime('score.css')?>">
 </head>
@@ -664,7 +696,9 @@ function showAllScorex()
 ?><!DOCTYPE html>
 <html>
 <head>
-<title>ScoreMaster:ScoreX</title>
+<?php
+echo('<title>'.$TAGS['ttScoreX'][0].'</title>');
+?>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="stylesheet" type="text/css" href="score.css?ver=<?= filemtime('score.css')?>">
 </head>
@@ -694,6 +728,8 @@ function showDeleteEntrant()
 
 	echo('<div class="maindiv">');
 	echo('<form method="post" action="entrants.php">');
+	pushBreadcrumb('#');
+	emitBreadcrumbs();
 	echo('<input type="hidden" name="c" value="kill">');
 	echo('<span class="vlabel" title="'.$TAGS['ChooseEntrant'][1].'">');
 	echo('<select id="entrantid" name="entrantid">');
@@ -722,6 +758,8 @@ function showRAE()
 
 	echo('<div class="maindiv">');
 	echo('<form method="post" action="entrants.php">');
+	pushBreadcrumb('#');
+	emitBreadcrumbs();
 	echo('<input type="hidden" name="c" value="rae">');
 	echo('<input type="hidden" name="step" value="1">');
 	echo('<input type="hidden" name="seq" value="">'); // ascending/descending
@@ -767,6 +805,8 @@ function showRenumberEntrant()
 
 	echo('<div class="maindiv">');
 	echo('<form method="post" action="entrants.php">');
+	pushBreadcrumb('#');
+	emitBreadcrumbs();
 	echo('<input type="hidden" name="c" value="renumentrant">');
 	echo('<span class="vlabel" title="'.$TAGS['ChooseEntrant'][1].'">');
 	echo('<select id="entrantid" name="entrantid">');
@@ -798,6 +838,8 @@ function showEntrantChecks($rd)
 	global $DB, $TAGS, $KONSTANTS;
 
 	echo('<form method="post" action="entrants.php">');
+	pushBreadcrumb('#');
+	emitBreadcrumbs();
 
 	echo('<input type="hidden" name="c" value="entrants">');
 	echo('<input type="hidden" name="mode" value="check">');
@@ -805,8 +847,14 @@ function showEntrantChecks($rd)
 	
 	echo('<span class="vlabel"  style="font-weight: bold;" title="'.$TAGS['EntrantID'][1].'"><label for="EntrantID">'.$TAGS['EntrantID'][0].' </label> ');
 	echo('<input type="text" class="number"  readonly name="EntrantID" id="EntrantID" value="'.$rd['EntrantID'].'">'.' '.htmlspecialchars($rd['RiderName']));
+	
+	popBreadcrumb();
 	echo('<input title="'.$TAGS['FullDetails'][1].'" id="FullDetailsButton" type="button" value="'.$TAGS['FullDetails'][0].'"');
-	echo(' onclick="window.location='."'entrants.php?c=entrant&amp;id=".$rd['EntrantID']."&mode=full'".'">');
+	echo(' onclick="window.location='."'entrants.php?c=entrant&amp;id=".$rd['EntrantID']."&mode=full");
+	echo('&breadcrumbs='.urlencode($_REQUEST['breadcrumbs']));
+	echo("'".'"> ');
+	
+	echo('<input type="submit" name="savedata" value="'.$TAGS['SaveEntrantRecord'][0].'">');
 	echo('</span>');
 
 	
@@ -902,7 +950,6 @@ function showEntrantChecks($rd)
 	echo('</fieldset>');
 	
 	
-	echo('<input type="submit" name="savedata" value="'.$TAGS['SaveEntrantRecord'][0].'">');
 	echo('</form>');
 		
 }
@@ -994,7 +1041,7 @@ function showEntrantExtraData($xd)
 
 	$rows = substr_count($xd,"\n") + 1;
 	echo('<p>'.$TAGS['ExtraData'][1].'</p>');
-	echo('<textarea name="ExtraData" style="width:100%;" rows="'.$rows.'">'.$xd.'</textarea>');
+	echo('<textarea onchange="enableSaveButton();" name="ExtraData" style="width:100%;" rows="'.$rows.'">'.$xd.'</textarea>');
 }
 
 
@@ -1005,6 +1052,9 @@ function showEntrantRecord($rd)
 	$is_new_record = ($rd['EntrantID']=='');
 	echo('<form method="post" action="entrants.php">');
 
+	pushBreadcrumb('#');
+	emitBreadcrumbs();
+	
 	echo('<input type="hidden" name="c" value="entrants">');
 	echo('<span class="vlabel"  style="font-weight: bold;" title="'.$TAGS['EntrantID'][1].'"><label for="EntrantID">'.$TAGS['EntrantID'][0].' </label> ');
 	if ($is_new_record)
@@ -1017,8 +1067,14 @@ function showEntrantRecord($rd)
 	{
 		echo('<input type="hidden" name="updaterecord" value="'.$rd['EntrantID'].'">');
 		echo('<input title="'.$TAGS['ScoreNow'][1].'" id="ScoreNowButton" type="button" value="'.$TAGS['ScoreNow'][0].'"');
-		echo(' onclick="window.open('."'score.php?c=score&amp;EntrantID=".$rd['EntrantID']."','score'".')">');
+		echo(' onclick="window.open('."'score.php?c=score&amp;EntrantID=".$rd['EntrantID']."','score'".')" >');
 	}
+	if ($rd['RiderName'] <> '')
+		$dis = '';
+	else
+		;
+		$dis = ' disabled ';
+	echo('<input type="submit"'.$dis.' id="savedata" name="savedata" value="'.$TAGS['RecordSaved'][0].'" data-altvalue="'.$TAGS['SaveEntrantRecord'][0].'">');
 	echo('</span> ');
 	
 	echo('<div class="tabs_area" style="display:inherit"><ul id="tabs">');
@@ -1110,28 +1166,28 @@ function showEntrantRecord($rd)
 	echo('<span  class="xlabel" title="'.$TAGS['OdoKms'][1].' "> '.$TAGS['OdoKms'][0].' ');
 	echo('<label for="OdoKmsM">'.$TAGS['OdoKmsM'][0].': </label> ');
 	$chk = $rd['OdoKms'] <> $KONSTANTS['OdoCountsKilometres'] ? ' checked="checked" ' : '';
-	echo('<input onchange="odoAdjust();" type="radio" name="OdoKms" id="OdoKmsM" value="'.$KONSTANTS['OdoCountsMiles'].'"'.$chk.'></span>');
+	echo('<input onchange="odoAdjust();enableSaveButton();" type="radio" name="OdoKms" id="OdoKmsM" value="'.$KONSTANTS['OdoCountsMiles'].'"'.$chk.'></span>');
 	echo('&nbsp;&nbsp;&nbsp;<span><label for="OdoKmsK">'.$TAGS['OdoKmsK'][0].' </label> ');
 	$chk = $rd['OdoKms'] == $KONSTANTS['OdoCountsKilometres'] ? ' checked="checked" ' : '';
-	echo('<input  onchange="odoAdjust();" type="radio" name="OdoKms" id="OdoKmsK" value="'.$KONSTANTS['OdoCountsKilometres'].'"'.$chk.'></span>');
+	echo('<input  onchange="odoAdjust();enableSaveButton();" type="radio" name="OdoKms" id="OdoKmsK" value="'.$KONSTANTS['OdoCountsKilometres'].'"'.$chk.'></span>');
 
 	echo('<span  class="xlabel" title="'.$TAGS['OdoCheckStart'][1].' "><label for="OdoCheckStart">'.$TAGS['OdoCheckStart'][0].' </label> ');
-	echo('<input  onchange="odoAdjust();" type="number" step="any" name="OdoCheckStart" id="OdoCheckStart" value="'.$rd['OdoCheckStart'].'"> </span>');
+	echo('<input  onchange="odoAdjust();enableSaveButton();" type="number" step="any" name="OdoCheckStart" id="OdoCheckStart" value="'.$rd['OdoCheckStart'].'"> </span>');
 	
 	echo('<span  title="'.$TAGS['OdoCheckFinish'][1].' "><label for="OdoCheckFinish">'.$TAGS['OdoCheckFinish'][0].' </label> ');
-	echo('<input  onchange="odoAdjust();" type="number" step="any" name="OdoCheckFinish" id="OdoCheckFinish" value="'.$rd['OdoCheckFinish'].'"> </span>');
+	echo('<input  onchange="odoAdjust();enableSaveButton();" type="number" step="any" name="OdoCheckFinish" id="OdoCheckFinish" value="'.$rd['OdoCheckFinish'].'"> </span>');
 	
 	echo('<span  title="'.$TAGS['OdoCheckTrip'][1].' "><label for="OdoCheckTrip">'.$TAGS['OdoCheckTrip'][0].' </label> ');
-	echo('<input  onchange="odoAdjust(true);" type="number" step="any" name="OdoCheckTrip" id="OdoCheckTrip" value="'.$rd['OdoCheckTrip'].'"> </span>');
+	echo('<input  onchange="odoAdjust(true);enableSaveButton();" type="number" step="any" name="OdoCheckTrip" id="OdoCheckTrip" value="'.$rd['OdoCheckTrip'].'"> </span>');
 
 	echo('<span  class="xlabel" title="'.$TAGS['OdoScaleFactor'][1].'"><label for="OdoScaleFactor">'.$TAGS['OdoScaleFactor'][0].' </label> ');
-	echo('<input type="number" step="any" name="OdoScaleFactor" id="OdoScaleFactor" value="'.$rd['OdoScaleFactor'].'"> </span>');
+	echo('<input type="number" step="any" name="OdoScaleFactor" id="OdoScaleFactor"  onchange="enableSaveButton();" value="'.$rd['OdoScaleFactor'].'"> </span>');
 	
 	echo('<span  class="xlabel" title="'.$TAGS['OdoRallyStart'][1].' "><label for="OdoRallyStart">'.$TAGS['OdoRallyStart'][0].' </label> ');
-	echo('<input  onchange="odoAdjust();" type="number" step="any" name="OdoRallyStart" id="OdoRallyStart" value="'.$rd['OdoRallyStart'].'"> </span>');
+	echo('<input  onchange="odoAdjust();enableSaveData();" type="number" step="any" name="OdoRallyStart" id="OdoRallyStart" value="'.$rd['OdoRallyStart'].'"> </span>');
 	
 	echo('<span  title="'.$TAGS['OdoRallyFinish'][1].' "><label for="OdoRallyFinish">'.$TAGS['OdoRallyFinish'][0].' </label> ');
-	echo('<input  onchange="odoAdjust();" type="number" step="any" name="OdoRallyFinish" id="OdoRallyFinish" value="'.$rd['OdoRallyFinish'].'"> </span>');
+	echo('<input  onchange="odoAdjust();enableSaveData();" type="number" step="any" name="OdoRallyFinish" id="OdoRallyFinish" value="'.$rd['OdoRallyFinish'].'"> </span>');
 	
 	
 	echo('</fieldset>');
@@ -1139,7 +1195,7 @@ function showEntrantRecord($rd)
 	
 	echo('<fieldset  class="tabContent" id="tab_results"><legend>'.$TAGS['RallyResults'][0].'</legend>');
 	echo('<span  class="xlabel" title="'.$TAGS['EntrantStatus'][1].'"><label for="EntrantStatus">'.$TAGS['EntrantStatus'][0].' </label>');
-	echo('<select name="EntrantStatus" id="EntrantStatus">');
+	echo('<select name="EntrantStatus" id="EntrantStatus" onchange="enableSaveButton();">');
 	if ($rd['EntrantStatus']=='')
 		$rd['EntrantStatus'] = $KONSTANTS['DefaultEntrantStatus'];
 	echo('<option value="'.$KONSTANTS['EntrantDNS'].'" '.($rd['EntrantStatus']==$KONSTANTS['EntrantDNS'] ? ' selected="selected" ' : '').'>'.$TAGS['EntrantDNS'][0].'</option>');
@@ -1152,33 +1208,33 @@ function showEntrantRecord($rd)
 
 	echo('<span class="vlabel">');
 	echo('<label for="StartDate" class="vlabel">'.$TAGS['StartDate'][0].' </label>');
-	echo(' <input type="date" name="StartDate" id="StartDate" value="'.$dt[0].'" title="'.$TAGS['StartDate'][1].'"> ');
+	echo(' <input type="date" name="StartDate" id="StartDate" onchange="enableSaveButton();" value="'.$dt[0].'" title="'.$TAGS['StartDate'][1].'"> ');
 	echo('<label for="StartTime">'.$TAGS['StartTime'][0].' </label>');
-	echo(' <input type="time" name="StartTime" id="StartTime" value="'.$dt[1].'" title="'.$TAGS['StartTime'][1].'"> ');
+	echo(' <input type="time" name="StartTime" id="StartTime" onchange="enableSaveButton();" value="'.$dt[1].'" title="'.$TAGS['StartTime'][1].'"> ');
 	echo('</span>');
 
 	$dt = splitDatetime($rd['FinishTime']); 
 
 	echo('<span class="vlabel">');
 	echo('<label for="FinishDate" class="vlabel">'.$TAGS['FinishDate'][0].' </label>');
-	echo(' <input type="date" name="FinishDate" id="FinishDate" value="'.$dt[0].'" title="'.$TAGS['FinishDate'][1].'"> ');
+	echo(' <input type="date" name="FinishDate" id="FinishDate" value="'.$dt[0].'" onchange="enableSaveButton();" title="'.$TAGS['FinishDate'][1].'"> ');
 	echo('<label for="FinishTime">'.$TAGS['FinishTime'][0].' </label>');
-	echo(' <input type="time" name="FinishTime" id="FinishTime" value="'.$dt[1].'" title="'.$TAGS['FinishTime'][1].'"> ');
+	echo(' <input type="time" name="FinishTime" id="FinishTime" value="'.$dt[1].'" onchange="enableSaveButton();" title="'.$TAGS['FinishTime'][1].'"> ');
 	echo('</span>');
 
 	echo('<span class="vlabel">');
 	echo('<label for="CorrectedMiles" class="vlabel">'.$TAGS['CorrectedMiles'][0].' </label>');
-	echo(' <input type="number" name="CorrectedMiles" id="CorrectedMiles" value="'.$rd['CorrectedMiles'].'" title="'.$TAGS['CorrectedMiles'][1].'"> ');
+	echo(' <input type="number" name="CorrectedMiles" id="CorrectedMiles" value="'.$rd['CorrectedMiles'].'" onchange="enableSaveButton();" title="'.$TAGS['CorrectedMiles'][1].'"> ');
 	echo('</span>');
 	
 	echo('<span class="vlabel">');
 	echo('<label for="TotalPoints" class="vlabel">'.$TAGS['TotalPoints'][0].' </label>');
-	echo(' <input type="number" name="TotalPoints" id="TotalPoints" value="'.$rd['TotalPoints'].'" title="'.$TAGS['TotalPoints'][1].'"> ');
+	echo(' <input type="number" name="TotalPoints" id="TotalPoints" onchange="enableSaveButton();" value="'.$rd['TotalPoints'].'" title="'.$TAGS['TotalPoints'][1].'"> ');
 	echo('</span>');
 
 	echo('<span class="vlabel">');
 	echo('<label for="FinishPosition" class="vlabel">'.$TAGS['FinishPosition'][0].' </label>');
-	echo(' <input type="number" name="FinishPosition" id="FinishPosition" value="'.$rd['FinishPosition'].'" title="'.$TAGS['FinishPosition'][1].'"> ');
+	echo(' <input type="number" name="FinishPosition" id="FinishPosition" onchange="enableSaveButton();" value="'.$rd['FinishPosition'].'" title="'.$TAGS['FinishPosition'][1].'"> ');
 	echo('</span>');
 
 	echo('<span class="xlabel" title="'.$TAGS['ScoringNow'][1].'">');
@@ -1216,11 +1272,6 @@ function showEntrantRecord($rd)
 		echo('</fieldset>');
 
 	}
-	if ($rd['RiderName'] <> '')
-		$dis = '';
-	else
-		$dis = ' disabled ';
-	echo('<input type="submit"'.$dis.' id="savedata" name="savedata" value="'.$TAGS['SaveEntrantRecord'][0].'">');
 	echo('</form>');
 		
 }
@@ -1270,10 +1321,17 @@ function showNewEntrant()
 	}
 
 
-startHtml();
+startHtml($TAGS['ttEntrants'][0]);
+//echo(htmlspecialchars($_REQUEST['breadcrumbs']));
 
 if (isset($_REQUEST['savedata']))
+{
 	saveEntrantRecord();
+	if (retraceBreadcrumb())
+		;//exit;
+	
+}
+
 
 if (isset($_POST['c']) && $_POST['c']=='kill')
 {

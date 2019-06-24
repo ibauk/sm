@@ -255,7 +255,7 @@ function scoreEntrant($showBlankForm = FALSE)
 		$ScorerName = '__________';
 	}
 	
-	startHtml($TAGS['ttScoring'][0],$TAGS['Scorer'][0].': '.$ScorerName);
+	startHtml($TAGS['ttScoring'][0],$TAGS['Scorer'][0].': '.$ScorerName,false);
 
 	eval("\$evs = ".$TAGS['EntrantStatusV'][0]);
 	
@@ -346,6 +346,7 @@ function scoreEntrant($showBlankForm = FALSE)
 		$rd['EntrantID']		= '';
 		$rd['RiderName']		= '_________________';
 		$rd['FinishTime']		= '';
+		$rd['OdoCheckFinish']	= '';
 		$rd['CorrectedMiles']	= '';
 		$rd['TotalPoints']		= '';
 		//$rd['EntrantStatus']	= '';
@@ -355,6 +356,10 @@ function scoreEntrant($showBlankForm = FALSE)
 	}
 	
 	
+	$chk = $rd['OdoKms'] == $KONSTANTS['OdoCountsKilometres'] ? ' checked="checked" ' : ' ';
+	echo('<input type="hidden" id="OdoKmsK" '.$chk.'>');
+	echo('<input type="hidden" id="OdoScaleFactor" name="OdoScaleFactor" value="'.$rd['OdoScaleFactor'].'">');
+	echo('<input type="hidden" id="OdoRallyStart" name="OdoRallyStart" value="0'.$rd['OdoRallyStart'].'">');
 	echo('<input type="hidden" id="EntrantID" name="EntrantID" value="'.$_REQUEST['EntrantID'].'">');
 	echo('<input type="hidden" name="RejectedClaims" id="RejectedClaims" value="'.$rd['RejectedClaims'].'">');
 	echo("\r\n");
@@ -397,10 +402,12 @@ function scoreEntrant($showBlankForm = FALSE)
 		$timetype = 'text';
 		$numbertype = 'text';
 		$sbfro = ' readonly="readonly" ';
+		$codof = '_____';
 		$cmiles = '_____';
 	}
 	else
 	{
+		$codof = $rd['OdoRallyFinish'];
 		$cmiles = intval($rd['CorrectedMiles']);
 	}
 	echo('<span '.$hideclass.'title="'.$TAGS['FinishDate'][1].'"><label for="FinishDate">'.$TAGS['FinishDate'][0].' </label> ');
@@ -409,10 +416,11 @@ function scoreEntrant($showBlankForm = FALSE)
 	echo('<span id="Timings" title="'.$TAGS['FinishTime'][1].'"><label for="FinishTime">'.$TAGS['FinishTime'][0].' </label> ');
 	echo('<input '.$sbfro.'type="'.$timetype.'" id="FinishTime" name="FinishTime" value="'.$dt[1].'" onchange="calcScore(true)" />');
 	if ($ScoringMethod == $KONSTANTS['ManualScoring'])
-		echo(' <input type="button" value="'.$TAGS['nowlit'][0].'" onclick="setSplitNow(\'Finish\');" />');
-	
-	
+		echo(' <input type="button" value="'.$TAGS['nowlit'][0].'" onclick="setSplitNow(\'Finish\');" />');	
 	echo('</span> ');
+	
+	echo('<span title="'.$TAGS['OdoRallyFinish'][1].'"><label for="OdoRallyFinish">'.$TAGS['OdoRallyFinish'][0].' </label> ');
+	echo('<input '.$sbfro.'type="'.$numbertype.'" name="OdoRallyFinish" id="OdoRallyFinish" value="'.$codof.'" onchange="calcMiles()" /> ');
 	echo('<span title="'.$TAGS['CorrectedMiles'][1].'"><label for="CorrectedMiles">'.$TAGS['CorrectedMiles'][0].' </label> ');
 	echo('<input '.$sbfro.'type="'.$numbertype.'"  name="CorrectedMiles" id="CorrectedMiles" value="'.$cmiles.'" onchange="calcScore(true)" /> ');
 	echo('</span> ');

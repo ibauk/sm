@@ -250,8 +250,8 @@ $TAGS = array(
 	'OdoKmsK'			=> array('kilometres',''),																			// Miles/Kms
 	'OdoKmsM'			=> array('miles',''),																				// Miles/Kms
 	'Odometer'			=> array('Odo&nbsp;readings',''),																		// Miles/Kms
-	'OdoRallyStart'		=> array('Start of rally','The reading at the start of the rally'),									// Miles/Kms
-	'OdoRallyFinish'	=> array('At end of rally','The odometer reading at the end of the rally'),							// Miles/Kms
+	'OdoRallyStart'		=> array('Odo @ start','The reading at the start of the rally'),									// Miles/Kms
+	'OdoRallyFinish'	=> array('Odo @ end','The odometer reading at the end of the rally'),							// Miles/Kms
 	'OdoScaleFactor'	=> array('Correction factor','The number to multiply odo readings to get true distance'),			// Miles/Kms
 	
 	'OfferScore'		=> array('OfferScore','Would you like to help score this rally? If so, please tell me your name'),
@@ -525,15 +525,24 @@ $HTML_STARTED = false;
 
 // Common subroutines
 
-function buildBreadcrumbs($home,$step)
+function popBreadcrumb()
 {
 	if (!isset($_REQUEST['breadcrumbs']))
-		$_REQUEST['breadcrumbs'] = '';
-	if ($step != $home && $step != '')
-		if ($_REQUEST['breadcrumbs']=='')
-			$_REQUEST['breadcrumbs'] = $home.";".$step;
-		else
-			$_REQUEST['breadcrumbs'] .= ";".$step;
+		return;
+	$bc = strrpos($_REQUEST['breadcrumbs'],';');
+	if (!$bc)
+		return;
+	$_REQUEST['breadcrumbs'] = substr($_REQUEST['breadcrumbs'],0,$bc);
+	
+}
+
+function pushBreadcrumb($step)
+{
+	$bchome = "<a href='".'admin.php'."'> / </a>";
+
+	if (!isset($_REQUEST['breadcrumbs']))
+		$_REQUEST['breadcrumbs'] = $bchome;
+	$_REQUEST['breadcrumbs'] .= ";".$step;
 		
 }
 
@@ -599,11 +608,15 @@ function retraceBreadcrumb()
 	if ($i < 0)
 		return false;
 	$lnk = $bc[$i];
+	//echo("lnk==".htmlentities($lnk)."<br>");
 	$lnka = [];
 	if (preg_match('/href=\'([^\']*)\'/',$lnk,$lnka))
 	{
 		if ($i > 0)
 		{
+			// Strip out embedded breadcrumbs
+			
+			preg_replace('/(breadcrumbs=[^&])/','',$lnka[1]);
 			if (strpos($lnka[1],'?'))
 				$lnka[1] .= '&';
 			else
@@ -611,11 +624,20 @@ function retraceBreadcrumb()
 			$lnka[1] .= 'breadcrumbs=';
 			for ($j = 0; $j < $i; $j++)
 			{
+				echo(htmlentities($bc[$j]).'<br>');
 				if ($j > 0)
 					$lnka[1] .= ';';
 				$lnka[1] .= $bc[$j];
 			}
 		}
+		if (strpos($lnka[1],'?'))
+			$lnka[1] .= '&';
+		else
+			$lnka[1] .= '?';
+		$lnka[1] .= 'nobc';
+		
+		echo("<hr>".htmlentities($lnka[1])."<hr>");
+		//exit;
 		header('Location: '.$lnka[1]);
 	}
 	return true;
