@@ -146,7 +146,8 @@ function listEntrants($ord = "EntrantID")
 	if (!isset($_REQUEST['nobc']))
 		pushBreadcrumb($mybc);
 	else
-		pushBreadcrumb('#');
+		pushBreadcrumb($mybc);
+	$bcurldtl ='&amp;breadcrumbs='.urlencode($_REQUEST['breadcrumbs']);
 	emitBreadcrumbs();
 	if (isset($_REQUEST['nobc']))
 		popBreadcrumb();
@@ -215,7 +216,7 @@ function listEntrants($ord = "EntrantID")
 		}
 		$bclast = (isset($_REQUEST['nobc']) ? '' : '');
 		
-		echo('<tr class="link" onclick="window.location.href=\'entrants.php?c=entrant&amp;id='.$rd['EntrantID'].'&amp;mode='.$_REQUEST['mode'].'&breadcrumbs='.urlencode($_REQUEST["breadcrumbs"]).$bclast.'\'">');
+		echo('<tr class="link" onclick="window.location.href=\'entrants.php?c=entrant&amp;id='.$rd['EntrantID'].'&amp;mode='.$_REQUEST['mode'].$bcurldtl.'\'">');
 		echo('<td class="EntrantID">'.$rd['EntrantID'].'</td>');
 		echo('<td class="RiderName">'.$rd['RiderName'].'</td>');
 		echo('<td class="PillionName">'.$rd['PillionName'].'</td>');
@@ -646,6 +647,7 @@ echo('<title>'.$TAGS['ttFinishers'][0].'</title>');
 	echo('</tbody></table>');
 	if ($n < 1)
 		echo('<p>'.$TAGS['NoCerts2Print'][0].'</p>');
+	echo('<p>&nbsp;</p>'); //Spacer to facilitate screen capture
 ?>
 </body>
 </html>
@@ -707,7 +709,7 @@ echo('<title>'.$TAGS['ttScoreX'][0].'</title>');
 	$n = 0;
 	while ($rd = $R->fetchArray())
 	{
-		echo('<h1>'.$title.'</h1>');
+		echo('<h1 class="center">'.$title.'</h1>');
 		echo('<div class="scorex">');
 		echo($rd['ScoreX']);
 		echo('</div>');
@@ -1184,10 +1186,10 @@ function showEntrantRecord($rd)
 	echo('<input type="number" step="any" name="OdoScaleFactor" id="OdoScaleFactor"  onchange="enableSaveButton();" value="'.$rd['OdoScaleFactor'].'"> </span>');
 	
 	echo('<span  class="xlabel" title="'.$TAGS['OdoRallyStart'][1].' "><label for="OdoRallyStart">'.$TAGS['OdoRallyStart'][0].' </label> ');
-	echo('<input  onchange="odoAdjust();enableSaveData();" type="number" step="any" name="OdoRallyStart" id="OdoRallyStart" value="'.$rd['OdoRallyStart'].'"> </span>');
+	echo('<input  onchange="odoAdjust();enableSaveButton();" type="number" step="any" name="OdoRallyStart" id="OdoRallyStart" value="'.$rd['OdoRallyStart'].'"> </span>');
 	
 	echo('<span  title="'.$TAGS['OdoRallyFinish'][1].' "><label for="OdoRallyFinish">'.$TAGS['OdoRallyFinish'][0].' </label> ');
-	echo('<input  onchange="odoAdjust();enableSaveData();" type="number" step="any" name="OdoRallyFinish" id="OdoRallyFinish" value="'.$rd['OdoRallyFinish'].'"> </span>');
+	echo('<input  onchange="odoAdjust();enableSaveButton();" type="number" step="any" name="OdoRallyFinish" id="OdoRallyFinish" value="'.$rd['OdoRallyFinish'].'"> </span>');
 	
 	
 	echo('</fieldset>');

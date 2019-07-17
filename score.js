@@ -32,6 +32,7 @@
  *	2.1 kms/mile, mile/kms handling
  *	2.1 Odo check trip reading - used though not stored
  *  2.2	Variable specials
+ *	2.3	OdoScaleFactor SanityCheck
  *
  */
  
@@ -925,6 +926,8 @@ function odoAdjust(useTrip)
 	var odokms = document.getElementById('OdoKmsK').checked;
 	var odocheckmiles = parseFloat(document.getElementById('OdoCheckMiles').value);
 	var correctionfactor = parseFloat(document.getElementById('OdoScaleFactor').value);
+	if (correctionfactor < 0.5)	//SanityCheck
+		correctionfactor = 1.0;
 	if (odocheckmiles > 0.1)
 	{
 		var odocheckstart = parseFloat(document.getElementById('OdoCheckStart').value);
@@ -941,6 +944,8 @@ function odoAdjust(useTrip)
 			else if (!odokms && basickms) // Want kms, have miles
 				checkdistance = checkdistance * KmsPerMile;
 			correctionfactor = odocheckmiles / checkdistance ;
+			if (correctionfactor < 0.5)	//SanityCheck
+				correctionfactor = 1.0;
 			document.getElementById('OdoScaleFactor').value = correctionfactor.toString();
 		}
 	}		
@@ -968,6 +973,9 @@ function calcMiles()
 	var basickms = parseInt(document.getElementById('BasicDistanceUnits').value) != 0;
 	var odokms = document.getElementById('OdoKmsK').checked;
 	var correctionfactor = parseFloat(document.getElementById('OdoScaleFactor').value);
+	if (correctionfactor < 0.5)	//SanityCheck
+		correctionfactor = 1.0;
+	
 	var odorallystart = parseFloat(document.getElementById('OdoRallyStart').value);
 	var odorallyfinish = parseFloat(document.getElementById('OdoRallyFinish').value);
 	if (document.getElementById('OdoRallyStart').value != '' && odorallyfinish > odorallystart)
@@ -1085,12 +1093,12 @@ function setFinisherStatus()
 		//return;
 	var TS = parseInt(document.getElementById('TotalPoints').value);
 	var MP = parseInt(document.getElementById('MinPoints').value);
-	if (TS < MP)
+	if (MP > 0 && TS < MP)
 		return SFS(EntrantDNF,DNF_TOOFEWPOINTS);
 	
 	var CM = parseInt(document.getElementById('CorrectedMiles').value);
 	var MM = parseInt(document.getElementById('MinMiles').value);
-	if (CM < MM)
+	if (MM > 0 && CM < MM)
 		return SFS(EntrantDNF,DNF_TOOFEWMILES);
 	var PM = parseInt(document.getElementById('PenaltyMilesDNF').value);
 	if (PM > 0 && CM > PM)

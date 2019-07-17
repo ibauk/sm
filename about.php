@@ -24,7 +24,7 @@
  */
 
 
-$PROGRAM = array("version" => "2.3",	"title"	=> "ScoreMaster");
+$PROGRAM = array("version" => "2.3.1",	"title"	=> "ScoreMaster");
 /*
  *	2.0	25May18	Used live at BBR18
  *
@@ -48,6 +48,9 @@ $PROGRAM = array("version" => "2.3",	"title"	=> "ScoreMaster");
  *
  *	2.3	13Jun19	Post BBR19
  *				Breadcrumbs, new CSS, MIT licence, Tabnames
+ *
+ *	2.3.1		Post BBL19
+ *				OdoScaleFactor SanityCheck, QuickList spacing, Ticksheet print font size
  */
 $HOME_URL = "admin.php";
 require_once("common.php");

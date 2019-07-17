@@ -302,5 +302,5 @@ table.qdfinishers th {
 @media print {
 .noprint		{ display: none !important; }
 .scorex			{ font-size: 0.7em; page-break-after: always; }
-#ScoreSheet		{ font-size: 0.7em; }
+#ScoreSheet		{ font-size: 1.2em; }
 }
