@@ -233,7 +233,7 @@ function saveSpecials()
 
 function scoreEntrant($showBlankForm = FALSE)
 {
-	global $DB, $TAGS, $KONSTANTS;
+	global $DB, $TAGS, $KONSTANTS, $DBVERSION;
 
 	
 	if (!$showBlankForm) 
@@ -271,7 +271,7 @@ function scoreEntrant($showBlankForm = FALSE)
 	// Flag this page as a scoresheet so the javascript knows what to do.
 	echo('<input type="hidden" name="scoresheetpage" id="scoresheetpage" value="scoresheetpage">');
 
-	for ($i = 1; $i <= $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $i++)
+	for ($i = 0; $i <= $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $i++)
 	{
 		echo('<input type="hidden" name="AxisScores[]" id="Axis'.$i.'Score" value="'.htmlspecialchars($rd['Cat'.$i.'Label']).'" data-bonuses="0" data-points="0" data-mults="0" data-axis="'.$i.'">');
 		$axisnames[$i] = $rd['Cat'.$i.'Label'];
@@ -328,9 +328,10 @@ function scoreEntrant($showBlankForm = FALSE)
 	while ($rd = $R->fetchArray())
 		echo('<input type="hidden" name="TimePenalty[]" data-start="'.$rd['PenaltyStart'].'" data-end="'.$rd['PenaltyFinish'].'" data-factor="'.$rd['PenaltyFactor'].'" data-method="'.$rd['PenaltyMethod'].'">');
 	//echo(" 2 ");
-	$R = $DB->query('SELECT rowid AS id,Axis,Cat,NMethod,ModBonus,NMin,PointsMults,NPower FROM catcompound ORDER BY Axis,NMin DESC');
+	$sql = ($DBVERSION < 3 ? ',0 as Compulsory' : ',Compulsory');
+	$R = $DB->query('SELECT rowid AS id,Axis,Cat,NMethod,ModBonus,NMin,PointsMults,NPower'.$sql.' FROM catcompound ORDER BY Axis,NMin DESC');
 	while ($rd = $R->fetchArray())
-		echo('<input type="hidden" name="catcompound[]" data-axis="'.$rd['Axis'].'" data-cat="'.$rd['Cat'].'" data-method="'.$rd['NMethod'].'" data-mb="'.$rd['ModBonus'].'" data-min="'.$rd['NMin'].'" data-pm="'.$rd['PointsMults'].'" data-power="'.$rd['NPower'].'">');
+		echo('<input type="hidden" name="catcompound[]" data-axis="'.$rd['Axis'].'" data-cat="'.$rd['Cat'].'" data-method="'.$rd['NMethod'].'" data-mb="'.$rd['ModBonus'].'" data-min="'.$rd['NMin'].'" data-pm="'.$rd['PointsMults'].'" data-power="'.$rd['NPower'].'" data-reqd="'.$rd['Compulsory'].'">');
 	//echo(" 3 ");
 	$sql = 'SELECT * FROM entrants';
 	if ($showBlankForm) 
@@ -474,6 +475,17 @@ function scoreEntrant($showBlankForm = FALSE)
 	
 	if ($ScoringMethod <> $KONSTANTS['ManualScoring'])
 	{
+		if ($showBlankForm)
+		{
+			echo('<ul id="BlankFormRejectReasons">');
+			foreach($rejectreasons as $rrline)
+			{
+				echo('<li>'.$rrline.'</li>');
+			}
+			echo('</ul>');
+		}
+		
+		
 		echo('<fieldset id="tab_bonuses"><legend>'.$TAGS['BonusesLit'][0].'</legend>');
 		showBonuses($rd['BonusesVisited']);
 		echo('</fieldset><!-- showBonuses -->'."\r\n");
@@ -497,7 +509,7 @@ function scoreEntrant($showBlankForm = FALSE)
 	echo('</div>'."\r\n"); // End ScoreSheet
 
 
-	if ($ScoringMethod == $KONSTANTS['CompoundScoring'])
+	if ($ScoringMethod == $KONSTANTS['CompoundScoring'] && !$showBlankForm)
 	{
 		echo('<div id="cat_results">');
 		for ($i = 1; $i <= $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $i++)

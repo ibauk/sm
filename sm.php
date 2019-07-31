@@ -222,13 +222,16 @@ function saveCombinations()
 
 function saveCompoundCalcs()
 {
-	global $DB, $TAGS, $KONSTANTS;
+	global $DB, $TAGS, $KONSTANTS, $DBVERSION;
 
 	//var_dump($_REQUEST);
 	
 	if (isset($_REQUEST['newcc']))
 	{
-		$sql = "INSERT INTO catcompound (Axis,Cat,NMethod,ModBonus,NMin,PointsMults,NPower) VALUES(";
+		$sql = "INSERT INTO catcompound (Axis,Cat,NMethod,ModBonus,NMin,PointsMults,NPower";
+		if ($DBVERSION >= 3)
+			$sql .= ",Compulsory";
+		$sql .= ") VALUES(";
 		$sql .= intval($_REQUEST['axis']);
 		$sql .= ",".intval($_REQUEST['Cat']);
 		$sql .= ",".intval($_REQUEST['NMethod']);
@@ -236,6 +239,8 @@ function saveCompoundCalcs()
 		$sql .= ",".intval($_REQUEST['NMin']);
 		$sql .= ",".intval($_REQUEST['PointsMults']);
 		$sql .= ",".intval($_REQUEST['NPower']);
+		if ($DBVERSION >= 3)
+			$sql .= ",".intval($_REQUEST['Compulsory']);
 		$sql .= ")";
 		//echo($sql.'<hr>');
 		$DB->exec($sql);
@@ -257,6 +262,8 @@ function saveCompoundCalcs()
 		$sql .= ",NMin=".intval($_REQUEST['NMin'][$i]);
 		$sql .= ',PointsMults='.intval($_REQUEST['PointsMults'][$i]);
 		$sql .= ',NPower='.intval($_REQUEST['NPower'][$i]);
+		if ($DBVERSION >= 3)
+			$sql .= ',Compulsory='.intval($_REQUEST['Compulsory'][$i]);
 		$sql .= " WHERE rowid=".intval($_REQUEST['id'][$i]);
 		$DB->exec($sql);
 		if ($DB->lastErrorCode() <> 0)
@@ -741,6 +748,8 @@ function triggerNewRow(obj)
 	$CatLabel = $rd['CatLabel'];
 	echo('<p>'.$TAGS['CatExplainer'][1].'</p>');
 	echo('<form method="post" action="sm.php">');
+	$bcurldtl ='&amp;breadcrumbs='.urlencode($_REQUEST['breadcrumbs']);
+
 	pushBreadcrumb('#');
 	emitBreadcrumbs();
 	echo('<input type="hidden" name="c" value="showcat">');
@@ -749,8 +758,8 @@ function triggerNewRow(obj)
 	echo('<input type="hidden" name="menu" value="setup">');
 	
 	echo('<table id="cats"><caption>'.$TAGS['AxisLit'][0].' '.$axis.'  <input type="text" name="catlabel" value="'.htmlspecialchars($CatLabel).'"></caption>');
-	echo('<thead><tr><th><a href="sm.php?c=showcat&amp;axis='.$axis.'&amp;ord=Entry">'.$TAGS['CatEntry'][0].'</a></th>');
-	echo('<th><a href="sm.php?c=showcat&amp;axis='.$axis.'&amp;ord=BriefDesc">'.$TAGS['CatBriefDesc'][0].'</a></th><th>'.$TAGS['DeleteEntryLit'][0].'</th></tr>');
+	echo('<thead><tr><th><a href="sm.php?c=showcat&amp;axis='.$axis.'&amp;ord=Cat'.$bcurldtl.'">'.$TAGS['CatEntry'][0].'</a></th>');
+	echo('<th><a href="sm.php?c=showcat&amp;axis='.$axis.'&amp;ord=BriefDesc'.$bcurdtl.'">'.$TAGS['CatBriefDesc'][0].'</a></th><th>'.$TAGS['DeleteEntryLit'][0].'</th></tr>');
 	echo('</thead><tbody>');
 	
 	$sql = 'SELECT * FROM categories WHERE Axis='.$axis;
@@ -782,8 +791,8 @@ function triggerNewRow(obj)
 	$R = $DB->query('SELECT Cat'.$CatA.'Label AS CatALabel,Cat'.$CatB.'Label AS CatBLabel FROM rallyparams');
 	if ($rd = $R->fetchArray())
 	{
-		echo('<hr>[ <a href="sm.php?c=showcat&amp;ord=Entry&amp;axis='.$CatA.'">'.$CatA.'-'.$rd['CatALabel'].'</a> ] ');
-		echo(' [ <a href="sm.php?c=showcat&amp;ord=Entry&amp;axis='.$CatB.'">'.$CatB.'-'.$rd['CatBLabel'].'</a> ]');
+		echo('<hr>[ <a href="sm.php?c=showcat&amp;ord=Cat&amp;axis='.$CatA.$bcurldtl.'">'.$CatA.'-'.$rd['CatALabel'].'</a> ] ');
+		echo(' [ <a href="sm.php?c=showcat&amp;ord=Cat&amp;axis='.$CatB.$bcurldtl.'">'.$CatB.'-'.$rd['CatBLabel'].'</a> ]');
 	}
 	
 	echo('</form>');
@@ -883,7 +892,7 @@ function triggerNewRow(obj)
 
 function showCompoundCalcs()
 {
-	global $DB, $TAGS, $KONSTANTS;
+	global $DB, $TAGS, $KONSTANTS, $DBVERSION;
 	
 	$cats = fetchCategoryArrays();
 	
@@ -894,7 +903,10 @@ function showCompoundCalcs()
 			$AxisLabels['Cat'.$i.'Label']="$i (not used)";
 		else
 			$AxisLabels['Cat'.$i.'Label']=$AxisLabels['Cat'.$i.'Label'];
-	$R = $DB->query('SELECT rowid as id,Cat,Axis,NMethod,ModBonus,NMin,PointsMults,NPower FROM catcompound ORDER BY Axis,Cat,NMin DESC');
+	$AxisLabels['Cat0Label'] = $TAGS['Cat0Label'][0];
+
+	$sql = ($DBVERSION < 3 ? ',0 as Compulsory' : ',Compulsory');
+	$R = $DB->query('SELECT rowid as id,Cat,Axis,NMethod,ModBonus,NMin,PointsMults,NPower'.$sql.' FROM catcompound ORDER BY Axis,Cat,NMin DESC');
 	if ($DB->lastErrorCode() <> 0)
 		echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
 	if (!$rd = $R->fetchArray())
@@ -915,7 +927,8 @@ function triggerNewRow(obj)
 <?php	
 
 	echo('<form method="post" action="sm.php">');
-	pushBreadcrumb('#');
+	$myurl =  "<a href='sm.php?c=catcalcs'>".$TAGS['AdmCompoundCalcs'][0].'</a>';
+	pushBreadcrumb($myurl);
 	emitBreadcrumbs();
 	for ($i = 0; $i < $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $i++)
 	{
@@ -937,6 +950,7 @@ function triggerNewRow(obj)
 	echo('<th>'.$TAGS['NMinLit'][0].'</th>');
 	echo('<th>'.$TAGS['PointsMults'][0].'</th>');
 	echo('<th>'.$TAGS['NPowerLit'][0].'</th>');
+	echo('<th>'.$TAGS['ccCompulsory'][0].'</th>');
 	echo('<th>'.$TAGS['DeleteEntryLit'][0].'</th>');
 	echo('</tr>');
 	echo('</thead><tbody>');
@@ -948,7 +962,7 @@ function triggerNewRow(obj)
 		echo('<tr class="hoverlite">');
 
 		echo('<td title="'.$TAGS['AxisLit'][1].'"><input type="hidden" name="id[]" value="'.$rd['id'].'"><select onchange="enableSaveButton();ccShowSelectAxisCats(this.value,document.getElementById(\'selcat'.$rowid.'\'));" name="axis[]">');
-		for ($i=1;$i<=3;$i++)
+		for ($i=0;$i<=$KONSTANTS['NUMBER_OF_COMPOUND_AXES'];$i++)
 		{
 			echo("<option value=\"$i\"");
 			if ($i==$rd['Axis'])
@@ -1010,6 +1024,8 @@ function triggerNewRow(obj)
 		}
 		echo('</select>');
 		echo('<td title="'.$TAGS['NPowerLit'][1].'"><input onchange="enableSaveButton();" type="number" name="NPower[]"  value="'.$rd['NPower'].'"></td>');
+		echo('<td title="'.$TAGS['ccCompulsory'][1].'">');
+		echo('<input onchange="enableSaveButton();" type="number" name="Compulsory[]" value="'.$rd['Compulsory'].'"></td>');
 		echo('<td><input onchange="enableSaveButton();" type="checkbox" name="DeleteEntry[]" value="'.$rd['id'].'">');
 		echo('</tr>');
 	}
@@ -1024,6 +1040,7 @@ function triggerNewRow(obj)
 	
 	echo('<form method="get" action="sm.php">');
 	echo('<input type="hidden" name="c" value="newcc">');
+	echo('<input type="hidden" name="breadcrumbs" value="'.$_REQUEST['breadcrumbs'].'">');
 	echo('<input type="submit" value="'.$TAGS['InsertNewCC'][0].'">');
 	echo('</form>');
 	//showFooter();
@@ -1053,11 +1070,14 @@ function showNewCompoundCalc()
 	
 	for ($i=1;$i<=$KONSTANTS['NUMBER_OF_COMPOUND_AXES'];$i++)
 		if ($AxisLabels['Cat'.$i.'Label']=='')
-			$AxisLabels['Cat'.$i.'Label']="$i (not used)";
+			$AxisLabels['Cat'.$i.'Label']="$i ".$TAGS['CatNotUsed'][0];
 		else
 			$AxisLabels['Cat'.$i.'Label']=$AxisLabels['Cat'.$i.'Label'];
-
+	$AxisLabels['Cat0Label'] = $TAGS['Cat0Label'][0];
+	
 	echo('<form method="post" action="sm.php">');
+	pushBreadcrumb('#');
+	emitBreadcrumbs();
 	for ($i = 0; $i < $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $i++)
 	{
 		$j = $i + 1;
@@ -1073,7 +1093,7 @@ function showNewCompoundCalc()
 	echo('<span class="vlabel" title="'.$TAGS['AxisLit'][1].'">');
 	echo('<label class="wide" for="axis">'.$TAGS['AxisLit'][0].'</label> ');
 	echo('<select id="axis" name="axis" onchange="ccShowSelectAxisCats(this.value,document.getElementById(\'selcat\'));">');
-	for ($i=1;$i<=3;$i++)
+	for ($i=0;$i<=$KONSTANTS['NUMBER_OF_COMPOUND_AXES'];$i++)
 	{
 		echo("<option value=\"$i\"");
 		if ($i==1)
@@ -1138,6 +1158,10 @@ function showNewCompoundCalc()
 	echo('<input type="number" name="NPower"  value="0">');
 	echo('</span>');
 
+	echo('<span class="vlabel" title="'.$TAGS['ccCompulsory'][1].'">');
+	echo('<label class="wide" for="ccCompulsory">'.$TAGS['ccCompulsory'][0].'</label> ');
+	echo('<input type="number" id="ccCompulsory" name="Compulsory" value="0">');
+	echo('</span>');
 	echo('<br><br><input type="submit" name="savedata" value="'.$TAGS['SaveNewCC'][0].'"> ');
 
 	echo('</form>');
@@ -1702,7 +1726,11 @@ if (isset($_REQUEST['c']))
 			break;
 		case 'catcalcs':
 			if (isset($_REQUEST['savedata']))
+			{
 				saveCompoundCalcs();
+				if (retraceBreadcrumb())
+					exit;
+			}
 			showCompoundCalcs();
 			break;
 		case 'newcc':

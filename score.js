@@ -41,6 +41,7 @@ const DNF_TOOFEWMILES = "Not enough miles";
 const DNF_TOOMANYMILES = "Too many miles";
 const DNF_FINISHEDTOOLATE = "Finished too late";
 const DNF_MISSEDCOMPULSORY = "Missed a compulsory bonus";
+const DNF_COMPOUNDRULE = "Breached a compound rule";
 
 // Elements of Score explanation, include trailing space, etc
 const RPT_Tooltip	= "Click for explanation";
@@ -71,6 +72,10 @@ const EntrantFinisher = 8;
 const EntrantDNF = 3;
 
 const COMPULSORYBONUS = '1';
+const MUSTNOTMATCH = '2';
+
+const RULE_TRIGGERED = '1';
+const RULE_NOT_TRIGGERED = '0';
 
 const MMM_FixedPoints = 0;
 const MMM_Multipliers = 1;
@@ -91,7 +96,11 @@ const CMB_ScoreMults = 1;
  * the database structure, it may not be
  * arbitrarily increased.
  */ 
-const CALC_AXIS_COUNT = 3;
+/*const CALC_AXIS_COUNT = 3;*/
+
+/* This is now overridden in bodyLoaded using DBVERSION */
+var CALC_AXIS_COUNT = 3;
+var COMBOS_USE_CATS = false;
 
 const CAT_NumBonusesPerCatMethod = 0;
 const CAT_ResultPoints = 0;
@@ -196,6 +205,15 @@ function bodyLoaded()
 	//		B[i].parentElement.childNodes[j].addEventListener('contextmenu',function(e){e.preventDefault()});
 	//}
 	
+	var dbv = document.getElementById('DBVERSION');
+	if (dbv)
+		switch(parseInt(dbv))
+		{
+			case 3:
+				CALC_AXIS_COUNT = 9;
+				COMBOS_USE_CATS = true;
+		}
+	
 	showBreadcrumbs();
 	
 	var isScoresheetpage = document.getElementById("scoresheetpage");
@@ -240,6 +258,12 @@ function calcComplexScore(res)
 		axisScores[i].setAttribute('data-points',0);
 		axisScores[i].setAttribute('data-mults',0);
 	}
+	// Fake catCounts[0]
+	for (var i = 0; i < axisScores.length; i++)
+		catCounts[0][i] = 0;
+	
+	for (var i = 0; i < compoundCalcRules.length; i++)
+		compoundCalcRules[i].setAttribute('data-triggered',RULE_NOT_TRIGGERED);
 	
 	if (debug) alert("ccs2");
 	// Now process individual bonuses
@@ -260,6 +284,10 @@ function calcComplexScore(res)
 					catCounts[axis][cat] = 1;
 				else
 					catCounts[axis][cat]++;
+				if (typeof(catCounts[0][cat]) == 'undefined')
+					catCounts[0][cat] = 1;
+				else
+					catCounts[0][cat]++;
 				
 			}
 			
@@ -271,8 +299,21 @@ function calcComplexScore(res)
 				{
 					var axis = parseInt(compoundCalcRules[j].getAttribute('data-axis'));  // 1, 2 or 3
 					var matchcat = parseInt(compoundCalcRules[j].getAttribute('data-cat'));
-					var axisScore = axisScores[axis - 1];
-					var cat = parseInt(bonuses[i].getAttribute('data-cat'+axis));
+					
+					/* Find appropriate comparator score */
+					var axisScore = 0;
+					var cat = 0;
+					if (axis == 0)
+					{
+						for (var axix = 0; axix < axisScores.length; axix++)
+							axisScore += axisScores[axix];
+						cat = matchcat;						/* Take cat, which must not be zero, from compound rule record */
+					}
+					else
+					{
+						axisScore = axisScores[axis];
+						cat = parseInt(bonuses[i].getAttribute('data-cat'+axis));
+					}
 					var minBonusesPerCat = parseInt(compoundCalcRules[j].getAttribute('data-min'));
 					var scoreFactor = parseInt(compoundCalcRules[j].getAttribute('data-power'));
 					
@@ -281,17 +322,31 @@ function calcComplexScore(res)
 					switch (parseInt(compoundCalcRules[j].getAttribute('data-method')))
 					{
 						case CAT_NumBonusesPerCatMethod:
-							np = catCounts[axis][cat];
+							if (axis < 1)
+							{
+								np = 0;
+								for (var axix = 0; axix < axisScores.length; axix++)
+									np += catCounts[axix][cat];
+							}
+							else
+								np = catCounts[axis][cat];
 							break;
 							
 						case CAT_NumNZCatsPerAxisMethod:
 							bonusPoints = 1;	// Override the bonus value because calculation based on number of bonuses only
-							
-							// Count the number of non-zero category entries in this axis
-							for (var k = 0; k < catCounts[axis].length; k++ )
-								if ( (typeof(catCounts[axis][k]) != 'undefined') && (catCounts[axis][k] > 0) )
-									np++;
-								break;
+							var axix = axis;
+							var axlim = axix + 1;
+							if (axix == 0)
+								axlim = axisScores.length;
+							while (axix < axlim)
+							{
+								// Count the number of non-zero category entries in this axis
+								for (var k = 0; k < catCounts[axix].length; k++ )
+									if ( (typeof(catCounts[axix][k]) != 'undefined') && (catCounts[axix][k] > 0) )
+										np++;
+								axix++;
+							}
+							break;
 								
 						default:
 							alert(String.format(CFGERR_MethodNIY,compoundCalcRules[j].getAttribute('data-method')));
@@ -342,20 +397,28 @@ function calcComplexScore(res)
 	
 	
 	if (debug) alert("ccs4");
-	var lastAxis = -1;
+	var lastAxis = -1; 
 	for (var i = 0; i < compoundCalcRules.length; i++)
 	{
-		if (compoundCalcRules[i].getAttribute('data-method') == CAT_NumNZCatsPerAxisMethod && compoundCalcRules[i].getAttribute('data-mb') == CAT_ModifyAxisScore)
+		if (compoundCalcRules[i].getAttribute('data-method') == CAT_NumNZCatsPerAxisMethod && compoundCalcRules[i].getAttribute('data-mb') == CAT_ModifyAxisScore) 
 		{
 			var axis = parseInt(compoundCalcRules[i].getAttribute('data-axis'));  // 1, 2 or 3
-			var axisScore = axisScores[axis - 1];
+			var axisScore = axisScores[axis];
 			if (axis > lastAxis) // We want to process each axis only once at this stage
 			{
-				if (nzEntriesPerAxis[axis] >= parseInt(compoundCalcRules[i].getAttribute('data-min')))
+				var nzCount = 0;
+				if (axis > 0)
+					nzCount = nzEntriesPerAxis[axis];
+				else
+					for (var axix = 1; axix <= CALC_AXIS_COUNT; axix++)
+						nzCount += nzEntriesPerAxis[axix];
+				
+				if (nzCount >= parseInt(compoundCalcRules[i].getAttribute('data-min')))
 				{	
+					compoundCalcRules[i].setAttribute('data-triggered',RULE_TRIGGERED);
 					var scoreFactor = parseInt(compoundCalcRules[i].getAttribute('data-power'));
 
-					var points = chooseNZ(scoreFactor,nzEntriesPerAxis[axis]);
+					var points = chooseNZ(scoreFactor,nzCount);
 					if (compoundCalcRules[i].getAttribute('data-pm') == CAT_ResultPoints)
 					{
 						axisScore.setAttribute('data-points',parseInt(axisScore.getAttribute('data-points')) + points);
@@ -379,17 +442,27 @@ function calcComplexScore(res)
 	// Now process catcompound entries that depend on number of non-zero entries per category within axis
 	
 	
-	for (var i = 1; i <= CALC_AXIS_COUNT; i++)
+	for (var i = 0; i <= CALC_AXIS_COUNT; i++)
 	{
+		//alert('cc '+i+' == '+catCounts[i].length);
 		for (var j = 0; j < catCounts[i].length; j++)
 		{
 			lastAxis = -1;
 			for (var k = 0; k < compoundCalcRules.length; k++)
 			{
 				var axis = parseInt(compoundCalcRules[k].getAttribute('data-axis'));  // 1, 2 or 3
-				if (axis == i && typeof(catCounts[i][j]) != 'undefined')
+				if (axis == i && (axis == 0 || typeof(catCounts[i][j]) != 'undefined'))
 				{
-					var catCount = catCounts[i][j];
+					var catCount = 0;
+					if (axis == 0)
+					{
+						for (var axix = 1; axix <= CALC_AXIS_COUNT; axix++)
+							if (typeof(catCounts[axix][j]) != 'undefined')
+								catCount += catCounts[axix][j];
+						//alert('Hello sailor '+i+': '+j+' == '+catCount);
+					}
+					else
+						catCount = catCounts[i][j];
 					
 					var matchcat = parseInt(compoundCalcRules[k].getAttribute('data-cat'));
 					
@@ -398,22 +471,31 @@ function calcComplexScore(res)
 							compoundCalcRules[k].getAttribute('data-mb') == CAT_ModifyAxisScore &&
 							(matchcat == 0 || matchcat == j))
 					{
+						compoundCalcRules[k].setAttribute('data-triggered',RULE_TRIGGERED);
 						//if (axis == 1) alert("ccs5.1; i=" + i + "; j=" + j + "; k =" + k + "; axis=" + axis + "; catCount=" + catCount);
 						var scoreFactor = parseInt(compoundCalcRules[k].getAttribute('data-power'));
 
 						var points = chooseNZ(scoreFactor,catCount);
-						var catdesc = document.getElementById('cat'+i+'_'+j).parentNode.firstChild.innerHTML;
+						
+						var iplus = i;
+						if (iplus < 1)
+							iplus = 1;
+						
+						var catdesc = document.getElementById('cat'+iplus+'_'+j).parentNode.firstChild.innerHTML;
 						if (compoundCalcRules[k].getAttribute('data-pm') == CAT_ResultPoints)
 						{
-							axisScores[i-1].setAttribute('data-points',parseInt(axisScores[i-1].getAttribute('data-points')) + points);
+							//if (i==0) alert('hsn1 '+catdesc+'; '+catCount);
+							axisScores[i].setAttribute('data-points',parseInt(axisScores[i].getAttribute('data-points')) + points);
+							//if (i==0) alert('hsn2 '+catdesc+'; '+catCount);
 							totalBonusPoints += points;
-							sxappend('R'+k,axisScores[i-1].value+':nc['+catdesc+']&gt;='+compoundCalcRules[k].getAttribute('data-min'),points,0,totalBonusPoints);
+							sxappend('R'+k,axisScores[i].value+':nc['+catdesc+']&gt;='+compoundCalcRules[k].getAttribute('data-min'),points,0,totalBonusPoints);
+							//if (i==0) alert('hsn3 '+catdesc+'; '+catCount);
 						}
 						else // Multipliers
 						{
-							axisScores[i-1].setAttribute('data-mults',points);
+							axisScores[i].setAttribute('data-mults',points);
 							totalMultipliers += points;
-							sxappend('R'+k,axisScores[i-1].value+':nc['+catdesc+']&gt;='+compoundCalcRules[k].getAttribute('data-min'),0,points,totalBonusPoints);
+							sxappend('R'+k,axisScores[i].value+':nc['+catdesc+']&gt;='+compoundCalcRules[k].getAttribute('data-min'),0,points,totalBonusPoints);
 						}
 						lastAxis = axis;
 						break;		// Only process one calc
@@ -1133,6 +1215,13 @@ function setFinisherStatus()
 	BL = document.getElementsByName('ComboID[]');
 	for (var i = 0 ; i < BL.length; i++ )
 		if (BL[i].getAttribute('data-reqd')==COMPULSORYBONUS && !BL[i].checked)
+			return SFS(EntrantDNF,DNF_MISSEDCOMPULSORY);
+	
+	BL = document.getElementsByName('catcompound[]');
+	for (var i = 0 ; i < BL.length; i++ )
+		if (BL[i].getAttribute('data-reqd')==COMPULSORYBONUS && BL[i].getAttribute('data-triggered')!=RULE_TRIGGERED)
+			return SFS(EntrantDNF,DNF_MISSEDCOMPULSORY);
+		else if (BL[i].getAttribute('data-reqd')==MUSTNOTMATCH && BL[i].getAttribute('data-triggered')==RULE_TRIGGERED)
 			return SFS(EntrantDNF,DNF_MISSEDCOMPULSORY);
 	
 	SFS(EntrantFinisher,'');

@@ -131,15 +131,24 @@ $TAGS = array(
 	'BonusPoints'		=> array('Points','The basic points value of this bonus'),
 	'BriefDescLit'		=> array('Brief description',''),
 	'CalcMaintHead'		=> array('Compound Calculation Rules','List of rules for compound score calculations'),
+	'Cat0Label'			=> array('Total','If summing across axes, use this label'),
 	'Cat1Label'			=> array('X-axis is','What do values on the X-axis represent?'),
 	'Cat2Label'			=> array('Y-axis is','What do values on the Y-axis represent?'),	
 	'Cat3Label'			=> array('Z-axis is','What do values on the Z-axis represent?'),
+	'Cat4Label'			=> array('Axis 4 is','What do values on this axis represent?'),
+	'Cat5Label'			=> array('Axis 5 is','What do values on this axis represent?'),
+	'Cat6Label'			=> array('Axis 6 is','What do values on this axis represent?'),
+	'Cat7Label'			=> array('Axis 7 is','What do values on this axis represent?'),
+	'Cat8Label'			=> array('Axis 8 is','What do values on this axis represent?'),
+	'Cat9Label'			=> array('Axis 9 is','What do values on this axis represent?'),
 	'CatBriefDesc'		=> array('Description',''),
 	'CategoryLit'		=> array('Category',''),
 	'CatEntry'			=> array('Category','The number of this category within the axis'),
 	'CatEntryCC'		=> array('Which category','Which cat(s) does this rule apply to'),
-	'CatExplainer'		=> array('CatExplainer','You can amend the description of entries or delete them entirely. New entries must have an entry number which is unique within the axis.'),
+	'CatExplainer'		=> array('CatExplainer','You can amend the description of categories or delete them entirely. New entries must have an category number which is unique within the axis.'),
+	'CatNotUsed'		=> array('(not used)',''),
 	'ccApplyToAll'		=> array('all cats','applies to all cats'),
+	'ccCompulsory'		=> array('Compulsory','1=DNF if not triggered;2=DNF if triggered; else 0'),
 	
 	'CertExplainer'		=> array('Certificates are "web" documents comprising well-formed HTML and CSS parts.',
 									'Please carefully specify the certificate layout and content in the texts below.'),
@@ -699,7 +708,7 @@ function showNav()
 function startHtml($pagetitle,$otherInfo = '',$showNav=true)
 {
 	global $DB, $TAGS, $KONSTANTS, $HTML_STARTED;
-	global $HOME_URL;
+	global $HOME_URL, $DBVERSION;
 	
 	if ($HTML_STARTED)
 		return;
@@ -723,6 +732,7 @@ echo('<title>'.$pagetitle.'</title>');
 </head>
 <body onload="bodyLoaded();">
 <?php echo('<input type="hidden" id="BasicDistanceUnits" value="'.$KONSTANTS['BasicDistanceUnits'].'"/>'); ?>
+<?php echo('<input type="hidden" id="DBVERSION" value="'.$DBVERSION.'"/>'); ?>
 <div id="header">
 <?php	
 	echo("<a href=\"".$HOME_URL);

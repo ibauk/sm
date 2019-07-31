@@ -48,6 +48,12 @@ CREATE TABLE IF NOT EXISTS `rallyparams` (
 	`Cat1Label`	TEXT,
 	`Cat2Label`	TEXT,
 	`Cat3Label`	TEXT,
+	`Cat4Label`	TEXT,
+	`Cat5Label`	TEXT,
+	`Cat6Label`	TEXT,
+	`Cat7Label`	TEXT,
+	`Cat8Label`	TEXT,
+	`Cat9Label`	TEXT,
 	`RejectReasons`	TEXT DEFAULT "1=No/wrong photo
 2=Photo unclear
 3=Out of hours
@@ -58,7 +64,7 @@ CREATE TABLE IF NOT EXISTS `rallyparams` (
 8=Missing receipt
 9=Rallymaster!",
 	`DBState` INTEGER NOT NULL DEFAULT 0,
-	`DBVersion` INTEGER NOT NULL DEFAULT 1
+	`DBVersion` INTEGER NOT NULL DEFAULT 3
 );
 
 
@@ -158,8 +164,18 @@ CREATE TABLE IF NOT EXISTS `combinations` (
 	`ComboID`	TEXT,
 	`BriefDesc`	TEXT,
 	`ScoreMethod`	INTEGER DEFAULT 0,
-	`ScorePoints`	INTEGER DEFAULT 0,
+	`MinimumTicks`	INTEGER DEFAULT 0,
+	`ScorePoints`	TEXT DEFAULT '0',
 	`Bonuses`	TEXT,
+	`Cat1`	INTEGER DEFAULT 0,
+	`Cat2`	INTEGER DEFAULT 0,
+	`Cat3`	INTEGER DEFAULT 0,
+	`Cat4`	INTEGER DEFAULT 0,
+	`Cat5`	INTEGER DEFAULT 0,
+	`Cat6`	INTEGER DEFAULT 0,
+	`Cat7`	INTEGER DEFAULT 0,
+	`Cat8`	INTEGER DEFAULT 0,
+	`Cat9`	INTEGER DEFAULT 0,
 	`Compulsory`	INTEGER DEFAULT 0,
 	PRIMARY KEY(`ComboID`)
 );
@@ -185,7 +201,8 @@ CREATE TABLE IF NOT EXISTS `catcompound` (
 	`ModBonus`	INTEGER DEFAULT 0,
 	`NMin`	INTEGER DEFAULT 1,
 	`PointsMults`	INTEGER DEFAULT 0,
-	`NPower`	INTEGER DEFAULT 2
+	`NPower`	INTEGER DEFAULT 2,
+	`Compulsory`INTEGER DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS `bonuses` (
 	`BonusID`	TEXT,
@@ -194,6 +211,12 @@ CREATE TABLE IF NOT EXISTS `bonuses` (
 	`Cat1`	INTEGER DEFAULT 0,
 	`Cat2`	INTEGER DEFAULT 0,
 	`Cat3`	INTEGER DEFAULT 0,
+	`Cat4`	INTEGER DEFAULT 0,
+	`Cat5`	INTEGER DEFAULT 0,
+	`Cat6`	INTEGER DEFAULT 0,
+	`Cat7`	INTEGER DEFAULT 0,
+	`Cat8`	INTEGER DEFAULT 0,
+	`Cat9`	INTEGER DEFAULT 0,
 	`Compulsory`	INTEGER DEFAULT 0,
 	PRIMARY KEY(`BonusID`)
 );
