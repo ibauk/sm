@@ -139,6 +139,17 @@ $tens = array(
 
 function formattedPlace($place)
 {
+	global $CERTOPTS;
+
+	if (isset($CERTOPTS['optNakedPlace']))
+	{
+		switch($CERTOPTS['optNakedPlace'])
+		{
+			case 'ON':
+				return $place;
+		}
+	}
+
 	switch($place)
 	{
 		case 11:
