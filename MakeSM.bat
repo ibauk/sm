@@ -98,7 +98,8 @@ echo     images
 mkdir %DESTFOLDER%\sm\images
 for %%a in (ibauk.png,ibauk90.png) do copy %SMFOLDER%\images\%%a %DESTFOLDER%\sm\images>nul
 
-if #%DB2USE% == #RBLR for %%a in (ss1000.jpg,smallpoppy.png,rblrhead.png,bb1500.jpg,bbg1500.png,route500AC.png,route500CW.png) do copy %SMFOLDER%\images\%%a %DESTFOLDER%\sm\images>nul
+if #%DB2USE% == #RBLR for %%a in (ss1000.jpg,smallpoppy.png,rblr.png,poppy.png,
+				rblrhead.png,bb1500.jpg,bbg1500.png,route500AC.jpg,route500CW.jpg) do copy %SMFOLDER%\images\%%a %DESTFOLDER%\sm\images>nul
 ::echo     certificates
 :: xcopy %SMFOLDER%\certificates %DESTFOLDER%\sm\certificates /e /i>nul
 echo.
@@ -194,7 +195,7 @@ goto :EOJ
 :HELP
 echo.
 echo.
-echo %~n0 destinationfolder [ OK ] [ V | L ] [ RBLR ]
+echo %~n0 destinationfolder [ OK ] [ V ^| L ] [ RBLR ]
 echo.
 echo I make distributions of ScoreMaster but I do need you to specify
 echo a destination folder. 

@@ -137,7 +137,7 @@ function inviteScorer()
 	startHtml($TAGS['ttWelcome'][0]);
 	echo('<div id="frontpage"><p>'.$TAGS['OfferScore'][1].'</p>');
 	echo('<form method="post" action="score.php">');
-	echo('<input type="text" autofocus name="ScorerName">');
+	echo('<input type="text" autofocus name="ScorerName" value="'.$KONSTANTS['DefaultScorer'].'" onfocus="this.select();">');
 	echo('<input type="submit" name="login" value="'.$TAGS['login'][1].'">');
 	echo('</form></div>');
 	showFooter();
@@ -265,6 +265,8 @@ function scoreEntrant($showBlankForm = FALSE)
 	$dts = splitDatetime($rd['StartTime']);
 	$dtf = splitDatetime($rd['FinishTime']);
 	$OneDayRally = $dts[0] == $dtf[0];
+	$rallyTimeDNF = $rd['FinishTime'];
+	$certhours = $rd['CertificateHours'];
 	
 	$axisnames = [];
 
@@ -321,7 +323,6 @@ function scoreEntrant($showBlankForm = FALSE)
 	echo('<input type="hidden" id="PenaltyMilesDNF" value="'.$rd['PenaltyMilesDNF'].'">');
 	echo('<input type="hidden" id="ScoringMethod" value="'.$ScoringMethod.'">');
 	echo('<input type="hidden" id="ShowMults" value="'.$ShowMults.'">');
-	echo('<input type="hidden" id="FinishTimeDNF" value="'.$rd['FinishTime'].'">');
 	echo('<input type="hidden" name="ScoreX" id="scorexstore" value=""/>');
 	//echo(" 1 ");
 	$R = $DB->query('SELECT rowid AS id,PenaltyStart,PenaltyFinish,PenaltyMethod,PenaltyFactor FROM timepenalties ORDER BY PenaltyStart,PenaltyFinish');
@@ -355,7 +356,18 @@ function scoreEntrant($showBlankForm = FALSE)
 		$rd['SpecialsTicked']	= '';
 		$rd['CombosTicked']		= '';
 	}
-	
+	$mtDNF = DateTime::createFromFormat('Y\-m\-d\TH\:i',$rd['StartTime']);
+	try {
+		$mtDNF = date_add($mtDNF,new DateInterval("PT".$certhours."H"));
+	} catch(Exception $e) {
+		echo('omg! '.$e->getMessage());
+	}
+	$myTimeDNF = date_format($mtDNF,'Y-m-d').'T'.date_format($mtDNF,'H:i');
+	if ($rallyTimeDNF < $myTimeDNF)
+		$myTimeDNF = $rallyTimeDNF;
+		
+		
+	echo('<input type="hidden" id="FinishTimeDNF" value="'.$myTimeDNF.'">');
 	
 	$chk = $rd['OdoKms'] == $KONSTANTS['OdoCountsKilometres'] ? ' checked="checked" ' : ' ';
 	echo('<input type="hidden" id="OdoKmsK" '.$chk.'>');
@@ -574,14 +586,17 @@ function showCategory($axis,$axisdesc)
 
 function showCombinations($Combos)
 {
-	global $DB, $TAGS, $KONSTANTS;
+	global $DB, $TAGS, $KONSTANTS, $DBVERSION;
 
 	$BA = explode(',',','.$Combos); // The leading comma means that the first element is index 1 not 0
 	
 	$R = $DB->query('SELECT * FROM combinations ORDER BY ComboID');
 	while ($rd = $R->fetchArray())
 	{
-		$BP[$rd['ComboID']] = array($rd['BriefDesc'],$rd['ScoreMethod'],$rd['ScorePoints'],$rd['Bonuses'],$rd['Compulsory']);
+		if ($DBVERSION < 3)
+			$rd['MinimumTicks'] = 0;
+		
+		$BP[$rd['ComboID']] = array($rd['BriefDesc'],$rd['ScoreMethod'],$rd['ScorePoints'],$rd['Bonuses'],$rd['Compulsory'],$rd['MinimumTicks']);
 	}
 	echo('<input type="hidden" name="update_combos" value="1" />'."\r\n");
 	foreach($BP as $bk => $b)
@@ -596,7 +611,10 @@ function showCombinations($Combos)
 			echo(' ]" oncontextmenu="showPopup(this);">');
 			echo('<label for="C'.$bk.'">'.htmlspecialchars($b[0]).' </label>');
 			echo('<input type="checkbox"'.$chk.' name="ComboID[]" disabled="disabled" id="C'.$bk.'" value="'.$bk.'"');
-			echo(' data-method="'.$b[1].'" data-points="'.$b[2].'" data-bonuses="'.$b[3].'" data-reqd="'.$b[4].'" /> ');
+			echo(' data-method="'.$b[1].'" data-points="'.$b[2].'" data-bonuses="'.$b[3].'" data-reqd="'.$b[4].'"');
+			echo(' data-minticks="'.$b[5].'"');
+			echo(' data-pointsarray="'.$b[2].'"'); // Combos might have different values depending on MinimumTicks
+			echo('/> ');
 			echo(' &nbsp;&nbsp;</span> ');
 			echo("\r\n");
 		}

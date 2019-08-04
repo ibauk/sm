@@ -333,6 +333,7 @@ while ($row++ >= 0) {
 		
 			if ($entrantid != '')
 				$fl .= 'EntrantID';
+			$fl = buildList($fl,'OdoKms');
 			$fl = buildList($fl,'RiderName');
 		
 			$fl = buildList($fl,'RiderFirst');
@@ -370,6 +371,7 @@ while ($row++ >= 0) {
 			$fl = '';
 			if ($entrantid != '')
 				$fl .= ':EntrantID';
+			$fl = buildList($fl,$KONSTANTS['DefaultKmsOdo']);
 			$fl = buildList($fl,':RiderName');
 		
 			$fl = buildList($fl,':RiderFirst');

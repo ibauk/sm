@@ -170,7 +170,7 @@ function saveCategories()
 
 function saveCombinations()
 {
-	global $DB, $TAGS, $KONSTANTS;
+	global $DB, $TAGS, $KONSTANTS, $DBVERSION;
 
 	//var_dump($_REQUEST); echo('<br>');
 	$arr = $_REQUEST['ComboID'];
@@ -181,12 +181,17 @@ function saveCombinations()
 		$bl = str_replace(' ',',',$_REQUEST['Bonuses'][$i]); // we want commas as separators not spaces
 		$bls = explode(',',$bl);
 		// On second thoughts, let's not bothering validating them here.
-		$sql = "INSERT OR REPLACE INTO combinations (ComboID,BriefDesc,ScoreMethod,ScorePoints,Bonuses) VALUES(";
+		$sql = "INSERT OR REPLACE INTO combinations (ComboID,BriefDesc,ScoreMethod,ScorePoints,Bonuses";
+		if ($DBVERSION >= 3)
+			$sql .= ",MinimumTicks";
+		$sql .=") VALUES(";
 		$sql .= "'".$DB->escapeString($_REQUEST['ComboID'][$i])."'";
 		$sql .= ",'".$DB->escapeString($_REQUEST['BriefDesc'][$i])."'";
 		$sql .= ','.intval($_REQUEST['ScoreMethod'][$i]);
-		$sql .= ','.intval($_REQUEST['ScorePoints'][$i]);
+		$sql .= ",'".$_REQUEST['ScorePoints'][$i]."'";
 		$sql .= ",'".$DB->escapeString($bl)."'";
+		if ($DBVERSION >= 3)
+			$sql .=','.intval($_REQUEST['MinimumTicks'][$i]);
 		$sql .= ")";
 		if ($_REQUEST['ComboID'][$i]<>'')
 		{
@@ -802,7 +807,7 @@ function triggerNewRow(obj)
 
 function showCombinations()
 {
-	global $DB, $TAGS, $KONSTANTS;
+	global $DB, $TAGS, $KONSTANTS, $DBVERSION;
 	
 
 	$showclaimsbutton = (getValueFromDB("SELECT count(*) As rex FROM entrants","rex",0)>0);
@@ -810,6 +815,8 @@ function showCombinations()
 	$R = $DB->query('SELECT * FROM combinations ORDER BY ComboID');
 	if (!$rd = $R->fetchArray())
 		$rd = [];
+	if ($DBVERSION < 3)
+		$rd['MinimumTicks'] = 0;
 
 ?>
 <script>
@@ -837,8 +844,9 @@ function triggerNewRow(obj)
 	echo('<thead><tr><th>'.$TAGS['ComboIDLit'][0].'</th>');
 	echo('<th>'.$TAGS['BriefDescLit'][0].'</th>');
 	echo('<th>'.$TAGS['ScoreMethodLit'][0].'</th>');
-	echo('<th>'.$TAGS['PointsMults'][0].'</th>');
 	echo('<th>'.$TAGS['BonusListLit'][0].'</th>');
+	echo('<th>'.$TAGS['MinimumTicks'][0].'</th>');
+	echo('<th>'.$TAGS['PointsMults'][0].'</th>');
 	echo('<th>'.$TAGS['DeleteEntryLit'][0].'</th>');
 	if ($showclaimsbutton)
 		echo('<th class="ClaimsCount">'.$TAGS['ShowClaimsCount'][0].'</th>');
@@ -852,14 +860,17 @@ function triggerNewRow(obj)
 		echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
 	while ($rd = $R->fetchArray())
 	{
+		if ($DBVERSION < 3)
+			$rd['MinimumTicks'] = 0;
 		echo('<tr class="hoverlite"><td><input class="ComboID" type="text" name="ComboID[]" readonly value="'.$rd['ComboID'].'"></td>');
 		echo('<td><input class="BriefDesc" type="text" name="BriefDesc[]" value="'.$rd['BriefDesc'].'"></td>');
 		echo('<td><select name="ScoreMethod[]">');
 		echo('<option value="0" '.($rd['ScoreMethod']<>1 ? 'selected="selected" ' : '').'>'.$TAGS['AddPoints'][0].'</option>');
 		echo('<option value="1" '.($rd['ScoreMethod']==1 ? 'selected="selected" ' : '').'>'.$TAGS['AddMults'][0].'</option>');
 		echo('</select></td>');
-		echo('<td><input class="ScorePoints" type="number" name="ScorePoints[]" value="'.$rd['ScorePoints'].'"></td>');
 		echo('<td><input title="'.$TAGS['BonusListLit'][1].'" class="Bonuses" type="text" name="Bonuses[]" value="'.$rd['Bonuses'].'" ></td>');
+		echo('<td><input title="'.$TAGS['MinimumTicks'][1].'" type="number" name="MinimumTicks[]" value="'.$rd['MinimumTicks'].'"></td>');
+		echo('<td><input title="'.$TAGS['PointsMults'][1].'" class="ScorePoints" type="text" name="ScorePoints[]" value="'.$rd['ScorePoints'].'"></td>');
 		echo('<td class="center"><input type="checkbox" name="DeleteEntry[]" value="'.$rd['ComboID'].'">');
 		if ($showclaimsbutton)
 		{
@@ -877,8 +888,9 @@ function triggerNewRow(obj)
 	echo('<option value="0" selected="selected" >'.$TAGS['AddPoints'][0].'</option>');
 	echo('<option value="1" >'.$TAGS['AddMults'][0].'</option>');
 	echo('</select></td>');
-	echo('<td><input class="ScorePoints" type="number" name="ScorePoints[]" ></td>');
 	echo('<td><input title="'.$TAGS['BonusListLit'][1].'" class="Bonuses" type="text" name="Bonuses[]" placeholder="'.$TAGS['CommaSeparated'][0].'"></td>');
+	echo('<td><input title="'.$TAGS['MinimumTicks'][1].'" type="number" name="MinimumTicks[]" ></td>');
+	echo('<td><input title="'.$TAGS['PointsMults'][1].'" class="ScorePoints" type="text" name="ScorePoints[]" ></td>');
 	echo('</tr>');
 	
 	echo('</tbody></table>');

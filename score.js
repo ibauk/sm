@@ -33,6 +33,7 @@
  *	2.1 Odo check trip reading - used though not stored
  *  2.2	Variable specials
  *	2.3	OdoScaleFactor SanityCheck
+ *	2.4	Variable combos, flexible axes
  *
  */
  
@@ -279,16 +280,18 @@ function calcComplexScore(res)
 			{
 				var axis = parseInt(axisScores[j].getAttribute('data-axis'));
 				var cat = parseInt(bonuses[i].getAttribute('data-cat' + axis));
-				
-				if (typeof(catCounts[axis][cat]) == 'undefined')
-					catCounts[axis][cat] = 1;
-				else
-					catCounts[axis][cat]++;
-				if (typeof(catCounts[0][cat]) == 'undefined')
-					catCounts[0][cat] = 1;
-				else
-					catCounts[0][cat]++;
-				
+
+				if (cat > 0)
+				{
+					if (typeof(catCounts[axis][cat]) == 'undefined')
+						catCounts[axis][cat] = 1;
+					else
+						catCounts[axis][cat]++;
+					if (typeof(catCounts[0][cat]) == 'undefined')
+						catCounts[0][cat] = 1;
+					else
+						catCounts[0][cat]++;
+				}
 			}
 			
 			
@@ -353,21 +356,22 @@ function calcComplexScore(res)
 					}
 					if ( (matchcat == 0 || matchcat == cat) && (np >= minBonusesPerCat) )
 					{
-						switch (parseInt(compoundCalcRules[j].getAttribute('data-pm')))
-						{
-							case CAT_ResultPoints:
+						if (compoundCalcRules[j].getAttribute('data-reqd') == '0')
+							switch (parseInt(compoundCalcRules[j].getAttribute('data-pm')))
+							{
+								case CAT_ResultPoints:
 						
 								// 2017 - bps = bps * (Math.pow(np,(ccounts[dc][cat] - 1)))
 								//alert('Updating data-points for axis=' + axis + '; cat=' + cat + '; bps =' + bonusPoints+"; sf="+scoreFactor+"; cc="+catCounts[axis][cat]);
-								if (scoreFactor == 0)
-									bonusPoints = bonusPoints * (np - 1);
-								else
-									bonusPoints = bonusPoints * (Math.pow(scoreFactor,(np - 1)));
-								break;
+									if (scoreFactor == 0)
+										bonusPoints = bonusPoints * (np - 1);
+									else
+										bonusPoints = bonusPoints * (Math.pow(scoreFactor,(np - 1)));
+									break;
 								
-							default:
-								alert(String.format(CFGERR_NotBonuses,compoundCalcRules[j].getAttribute('data-pm')));
-						}
+								default:
+									alert(String.format(CFGERR_NotBonuses,compoundCalcRules[j].getAttribute('data-pm')));
+							}
 					
 					} // np > min
 				} // ModifyBonusScore
@@ -419,6 +423,8 @@ function calcComplexScore(res)
 					var scoreFactor = parseInt(compoundCalcRules[i].getAttribute('data-power'));
 
 					var points = chooseNZ(scoreFactor,nzCount);
+					if (compoundCalcRules[i].getAttribute('data-reqd') != '0')
+						points = 0;
 					if (compoundCalcRules[i].getAttribute('data-pm') == CAT_ResultPoints)
 					{
 						axisScore.setAttribute('data-points',parseInt(axisScore.getAttribute('data-points')) + points);
@@ -588,25 +594,28 @@ function calcComplexScore(res)
 	{
 		// Combination bonuses are scored by scoring their component ordinary bonuses
 		// So we'll now test whether those referenced bonuses are set or not.
-		var cb = bonuses[i].getAttribute('data-bonuses').split(',');
-		bonuses[i].checked = true;
-		for (var j = 0; j < cb.length; j++)
-		{
-			var bid = 'B' + cb[j];
-			if (!document.getElementById(bid) || !document.getElementById(bid).checked)
-				bonuses[i].checked = false;
-		}
+//		var cb = bonuses[i].getAttribute('data-bonuses').split(',');
+//		bonuses[i].checked = true;
+//		for (var j = 0; j < cb.length; j++)
+//		{
+//			var bid = 'B' + cb[j];
+//			if (!document.getElementById(bid) || !document.getElementById(bid).checked)
+//				bonuses[i].checked = false;
+//		}
 		if (bonuses[i].checked)
 		{
+			//alert(bonuses[i].getAttribute('id')+' checked = '+bonuses[i].getAttribute('data-points'));
 			if (parseInt(bonuses[i].getAttribute('data-method')) == CMB_ScoreMults)
 			{
-				mults += parseInt(bonuses[i].getAttribute('data-points'));
-				sxappend(bonuses[i].getAttribute('id'),bonuses[i].parentNode.firstChild.innerHTML,0,bonuses[i].getAttribute('data-points'),bps);			
+				mults = parseInt(bonuses[i].getAttribute('data-points'));
+				totalMultipliers += mults;
+				sxappend(bonuses[i].getAttribute('id'),bonuses[i].parentNode.firstChild.innerHTML,0,mults,totalMultipliers);			
 			}
 			else
 			{
-				bps += parseInt(bonuses[i].getAttribute('data-points'));
-				sxappend(bonuses[i].getAttribute('id'),bonuses[i].parentNode.firstChild.innerHTML,bonuses[i].getAttribute('data-points'),0,bps);			
+				bps = parseInt(bonuses[i].getAttribute('data-points'));
+				totalBonusPoints += bps;
+				sxappend(bonuses[i].getAttribute('id'),bonuses[i].parentNode.firstChild.innerHTML,bps,0,totalBonusPoints);			
 			}
 		}
 	}
@@ -617,8 +626,6 @@ function calcComplexScore(res)
 		if (bps != 0)
 			scoreReason += "\r\n" + RPT_Combos + ': ' + bps;
 	
-	totalMultipliers += mults;
-	totalBonusPoints += bps;
 
 
 	if (debug) alert("ccs9");
@@ -967,7 +974,7 @@ function findEntrant()
 	return false;
 }
 
-function formatNumberScore(n)
+function formatNumberScore(n,prettyPrint)
 /*
  * If n is a number and not equal zero, return its value
  * formatted as the machine's locale
@@ -975,6 +982,10 @@ function formatNumberScore(n)
  *
  */
 {
+	if (prettyPrint===undefined)
+	{
+		return n;
+	}
 	var NF = new Intl.NumberFormat();
 	
 	if (parseInt(n) > 0)
@@ -1165,10 +1176,14 @@ function setFinisherStatus()
 {
 	function SFS(status,x)
 	{
-		document.getElementById('EntrantStatus').value = status;
-		document.getElementById('EntrantStatus').setAttribute('title',x);
+		var es = document.getElementById('EntrantStatus');
+		es.value = status;
+		es.setAttribute('title',x);
 		if (x != '')
-			sxappend(' '+document.getElementById('EntrantStatus').options[status].text,x,'','',0);
+			sxappend(' '+es.options[status].text,x,'','',0);
+		var sxsfs = document.getElementById('sxsfs');
+		if (sxsfs)
+			sxsfs.innerHTML = es.options[es.selectedIndex].text;
 	}
 	var CS = parseInt(document.getElementById('EntrantStatus').value);
 	//if (CS != EntrantOK && CS != EntrantFinisher)
@@ -1189,7 +1204,7 @@ function setFinisherStatus()
 	var DT = document.getElementById('FinishTimeDNF').value;
 	var FT = document.getElementById('FinishDate').value + 'T' + document.getElementById('FinishTime').value;
 	if (FT != 'T' && FT > DT)
-		return SFS(EntrantDNF,DNF_FINISHEDTOOLATE);
+		return SFS(EntrantDNF,DNF_FINISHEDTOOLATE+' > '+DT.replace('T',' '));
 	
 	var BL = document.getElementsByName('BonusID[]');
 	for (var i = 0 ; i < BL.length; i++ )
@@ -1420,7 +1435,7 @@ function sxappend(id,desc,bp,bm,tp)
 	
 	var estat = document.getElementById('EntrantStatus');
 	
-	document.getElementById('sxsfs').innerHTML = estat.options[estat.selectedIndex].text;
+	//document.getElementById('sxsfs').innerHTML = estat.options[estat.selectedIndex].text;
 	
 	
 	var row = sxb.insertRow(-1);
@@ -1436,7 +1451,7 @@ function sxappend(id,desc,bp,bm,tp)
 	td_desc.innerHTML = desc;
 	td_desc.className = 'desc';
 	var td_bp = row.insertCell(-1);
-	td_bp.innerHTML = formatNumberScore(bp);
+	td_bp.innerHTML = formatNumberScore(bp,true);
 	td_bp.className = 'bp';
 	if (showMults)
 	{
@@ -1445,7 +1460,7 @@ function sxappend(id,desc,bp,bm,tp)
 		td_bm.className = 'bm';
 	}
 	var td_tp = row.insertCell(-1);
-	td_tp.innerHTML = formatNumberScore(tp);
+	td_tp.innerHTML = formatNumberScore(tp,true);
 	td_tp.className = 'tp';
 }
 function sxhide()
@@ -1579,6 +1594,12 @@ function tabsShowTab()
 
 
 function tickCombos()
+/*
+ * This ticks or unticks combinations depending on the ticked status of their underlying
+ * bonuses. A combo is ticked if some or all of its bonuses are ticked, controlled by the
+ * value of MinimumTicks in the combo record.
+ *
+ */
 {
 	var cmbs = document.getElementsByName('ComboID[]');
 	for (var i = 0; i < cmbs.length; i++ )
@@ -1586,20 +1607,42 @@ function tickCombos()
 		var tick = true;
 		if (cmbs[i].getAttribute('data-rejected') > 0)
 			tick = false;
-		var bps = cmbs[i].getAttribute('data-bonuses').split(',');
-		for (var j = 0; j < bps.length; j++ )
-			if (bps[j] != '') 
-			{
-				var bp = document.getElementById('B'+bps[j]);
-				var sp = document.getElementById('S'+bps[j]);
-				if ((bp != null && bp.checked) || (sp != null && sp.checked))
-					;
-				else
+		else
+		{
+			var bps = cmbs[i].getAttribute('data-bonuses').split(',');
+			var ticks = 0;
+			var nticks = 0;
+			for (var j = 0; j < bps.length; j++ )
+				if (bps[j] != '') 
 				{
-					tick = false
-					break;
+					var bp = document.getElementById('B'+bps[j]);
+					var sp = document.getElementById('S'+bps[j]);
+					var cp = document.getElementById('C'+bps[j]);
+					if ((bp != null && bp.checked) || (sp != null && sp.checked) || (cp != null && cp.checked))
+						ticks++;
+					else
+						nticks++;
 				}
-			}
+				var minticks = cmbs[i].getAttribute('data-minticks');
+				if (minticks == 0)
+					tick = ticks > 0 && nticks == 0;
+				else
+					tick = ticks >= minticks;
+				var ptsa = cmbs[i].getAttribute('data-pointsarray').split(',');
+				var pts = 0;
+				if (ptsa.length < 2)
+					pts = ptsa[0];
+				else
+					if (ticks > 0)
+					{
+						ticks = ticks - minticks;
+						if (minticks == 0 || ticks >= ptsa.length)
+							pts = ptsa[ptsa.length - 1];
+						else
+							pts = ptsa[ticks];
+					}
+				document.getElementById(cmbs[i].getAttribute('id')).setAttribute('data-points',pts);
+		}
 		document.getElementById(cmbs[i].getAttribute('id')).checked = tick && 
 					(document.getElementById(cmbs[i].getAttribute('id')).getAttribute('data-rejected') < 1);
 	}

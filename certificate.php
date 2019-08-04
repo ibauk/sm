@@ -187,6 +187,18 @@ function formattedRallyTitle($rt,$full,$split)
 }
 function formattedField($fldname,$fldval)
 {
+	global $KONSTANTS;
+	
+	if ($KONSTANTS['DecimalPointIsComma'])
+	{
+		$dp = ',';
+		$cm = '.';
+	}
+	else
+	{
+		$dp = '.';
+		$cm = ',';
+	}
 	//echo('fF{'.$fldname.'=='.$fldval.'}');
 	if (preg_match("/DateRallyRange/",$fldname)) {
 		return formattedDateRange($fldval);
@@ -203,7 +215,7 @@ function formattedField($fldname,$fldval)
 	} else if (preg_match("/Date/",$fldname))	{
 		return formattedDate($fldval);
 	} else if (preg_match("/CorrectedMiles|TotalPoints/",$fldname)) {
-		return number_format(floatval($fldval),0);
+		return number_format(floatval($fldval),0,$dp,$cm);
 	} else
 		return $fldval;
 }

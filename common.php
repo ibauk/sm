@@ -55,6 +55,7 @@ $KONSTANTS['BasicDistanceUnits'] = $KONSTANTS['DistanceIsMiles'];
 // This setting should normally reflect BasicDistanceUnits above
 $KONSTANTS['DefaultKmsOdo'] = $KONSTANTS['OdoCountsMiles']; 
 // $KONSTANTS['DefaultKmsOdo'] = $KONSTANTS['OdoCountsKilometres'];
+$KONSTANTS['DecimalPointIsComma']  = false;
 
 
 
@@ -62,6 +63,9 @@ $KONSTANTS['DefaultKmsOdo'] = $KONSTANTS['OdoCountsMiles'];
 
 $KONSTANTS['DefaultCountry'] = 'UK';
 
+
+// Assume this value, which may be blank, if not overridden at run time
+$KONSTANTS['DefaultScorer'] = 'Bob';
 
 
 
@@ -222,6 +226,7 @@ $TAGS = array(
 	'MaxMilesPoints'	=> array('Points or Multipliers deducted','Number of points or multipliers for excess mileage'),	// Miles/Kms
 	'MaxMilesUsed'		=> array('Tick if maximum miles used','Will entrants be DNF if they exceed a maximum distance?'),	// Miles/Kms
 	'MilesPenaltyText'	=> array('Mileage penalty deduction',''),															// Miles/Kms
+	'MinimumTicks'		=> array('MinTicks','Minimum bonus ticks for this combo; 0=all'),
 	'MinMiles'			=> array('Minimum miles','Minimum number of miles to qualify as a finisher'),						// Miles/Kms
 	'MinMilesUsed'		=> array('Tick if minimum miles used','Will entrants need to ride a minimum distance in order to qualify as finishers?'), // Miles/Kms
 	
@@ -272,7 +277,7 @@ $TAGS = array(
 	'PillionFirst'		=> array('Informal name',"Used for repeat mentions on finisher's certificate"),
 	'PillionIBA'		=> array('IBA #',"Pillion's IBA number if known"),
 	'PillionName'		=> array('Pillion','Full name of the pillion rider'),
-	'PointsMults'		=> array('Points/Mults','The value of this is either points or multipliers'),
+	'PointsMults'		=> array('Points/Mults','The number of points or multipliers; use commas for variable values starting with MinTicks'),
 	'PointsMults0'		=> array('PointsMults0','Points'),
 	'PointsMults1'		=> array('PointsMults1','Multipliers'),
 	

@@ -1060,7 +1060,10 @@ function showEntrantRecord($rd)
 	echo('<input type="hidden" name="c" value="entrants">');
 	echo('<span class="vlabel"  style="font-weight: bold;" title="'.$TAGS['EntrantID'][1].'"><label for="EntrantID">'.$TAGS['EntrantID'][0].' </label> ');
 	if ($is_new_record)
+	{
 		$ro = '';
+		$rd['OdoKms'] = $KONSTANTS['DefaultKmsOdo'];
+	}
 	else
 		$ro = ' readonly ';
 	echo('<input type="text" onchange="enableSaveButton();"  class="number"  '.$ro.' name="EntrantID" id="EntrantID" value="'.$rd['EntrantID'].'">');
