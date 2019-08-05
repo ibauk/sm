@@ -107,8 +107,8 @@ echo Copying main SM application ...
 for %%a in (about.php,admin.php,bbrspec.php,certificate.php,common.php,
 			score.css,setup.php,favicon.ico,bblspec.php,utils.php,
 			entrants.php,exportxls.php,importxls.php,index.php,
-			jorvicspec.php,licence.txt,rblrspec.php,readme.txt,
-			score.js,score.php,sm.php,specfiles.php) do copy %SMFOLDER%\%%a %DESTFOLDER%\sm>nul
+			jorvicspec.php,licence.txt,rblrspec.php,readme.txt,customvars.php,
+			custom.js,score.js,score.php,sm.php,specfiles.php) do copy %SMFOLDER%\%%a %DESTFOLDER%\sm>nul
 
 echo Copying %DB2USE% database ...
 if NOT %DB2USE%==LIVE sqlite3 %DESTFOLDER%\sm\ScoreMaster.db <%SMFOLDER%\scoremaster.sql

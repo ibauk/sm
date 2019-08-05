@@ -447,7 +447,7 @@ function scoreEntrant($showBlankForm = FALSE)
 		$ro = 'readonly="readonly" ';
 	else
 		$ro = '';
-	echo('<input  class="clickme" onclick="sxtoggle();" title="'.$TAGS['TotalPoints'][1].'" type="'.($ro != ''? 'text' : 'number').'" '.$ro.' name="TotalPoints" id="TotalPoints" value="'.$rd['TotalPoints'].'" onchange="calcScore(true)" /> ');
+	echo('<input  class="clickme"  ondblclick="sxprint();" onclick="sxtoggle();" title="'.$TAGS['TotalPoints'][1].'" type="'.($ro != ''? 'text' : 'number').'" '.$ro.' name="TotalPoints" id="TotalPoints" value="'.$rd['TotalPoints'].'" onchange="calcScore(true)" /> ');
 	echo('</span> ');
 	// echo(' <span class="clickme noprint" onclick="sxtoggle();"> ? </span>');
 	if ($ScoringMethod == $KONSTANTS['CompoundScoring'])

@@ -37,29 +37,6 @@
  *
  */
  
-const DNF_TOOFEWPOINTS = "Not enough points";
-const DNF_TOOFEWMILES = "Not enough miles";
-const DNF_TOOMANYMILES = "Too many miles";
-const DNF_FINISHEDTOOLATE = "Finished too late";
-const DNF_MISSEDCOMPULSORY = "Missed a compulsory bonus";
-const DNF_COMPOUNDRULE = "Breached a compound rule";
-
-// Elements of Score explanation, include trailing space, etc
-const RPT_Tooltip	= "Click for explanation";
-const RPT_Bonuses	= "Bonuses";
-const RPT_Specials	= "Specials";
-const RPT_Combos	= "Combos";
-const RPT_MPenalty	= "Mileage penalty";
-const RPT_TPenalty	= "Late penalty";
-const RPT_Total 	= "TOTAL";
-
-const CFGERR_MethodNIY = "Error: compoundCalcRuleMethod {0} not implemented yet";
-const CFGERR_NotBonuses = "Error: compoundCalcRuleType {0} not applicable to bonuses";
-
-const ASK_POINTS = "Please enter the points for";
-const LOOKUP_ENTRANT = "Find entrant record matching what?";
-const CLAIM_REJECTED = "Claim rejected";
-const FINISHERS_EXPORTED = "Finishers Exported!";
 
 // No translateable literals below here
 
@@ -523,12 +500,6 @@ function calcComplexScore(res)
 		axisName  = axisScores[i].getAttribute('value');			// The label associated with this axis
 		pp = parseInt(axisScores[i].getAttribute('data-points'));
 		mm = parseInt(axisScores[i].getAttribute('data-mults'));
-		if (axisName != '')
-			if (showMults)
-				scoreReason += "\r\n" + axisName + ": P-" + pp + " (M-" + mm + ")";	
-			else
-				if (pp != 0)
-					scoreReason += "\r\n" + axisName + ": " + pp;	
 	}
 	
 	
@@ -548,20 +519,13 @@ function calcComplexScore(res)
 			for (var i = 0, bps = 0, mults = 0; i < bonuses.length; i++ )
 				if (bonuses[i].checked)
 				{
-					bps += parseInt(bonuses[i].getAttribute('data-points'));
-					mults += parseInt(bonuses[i].getAttribute('data-mult'));
-					sxappend(bonuses[i].getAttribute('id'),bonuses[i].parentNode.firstChild.innerHTML,bonuses[i].getAttribute('data-points'),bonuses[i].getAttribute('data-mult'),bps);
+					bps = parseInt(bonuses[i].getAttribute('data-points'));
+					totalBonusPoints += bps;
+					mults = parseInt(bonuses[i].getAttribute('data-mult'));
+					totalMultipliers += mults;
+					sxappend(bonuses[i].getAttribute('id'),bonuses[i].parentNode.firstChild.innerHTML,bonuses[i].getAttribute('data-points'),bonuses[i].getAttribute('data-mult'),totalBonusPoints);
 				}
-		
-			if (showMults)
-				scoreReason += "\r\n" + sg[j] + ': ' + 'P-' + bps + " (M-" + mults + ")";
-			else
-				if (bps != 0)
-					scoreReason += "\r\n" + sg[j] + ': ' + bps;
-	
-			totalMultipliers += mults;
-			totalBonusPoints += bps;
-		
+				
 		}
 	}
 	
@@ -572,19 +536,13 @@ function calcComplexScore(res)
 	{
 		if (bonuses[i].checked)
 		{
-			bps += parseInt(bonuses[i].getAttribute('data-points'));
-			mults += parseInt(bonuses[i].getAttribute('data-mult'));
-			sxappend(bonuses[i].getAttribute('id'),bonuses[i].parentNode.firstChild.innerHTML,bonuses[i].getAttribute('data-points'),bonuses[i].getAttribute('data-mult'),bps);			
+			bps = parseInt(bonuses[i].getAttribute('data-points'));
+			totalBonusPoints += bps;
+			mults = parseInt(bonuses[i].getAttribute('data-mult'));
+			totalMultipliers += mults;
+			sxappend(bonuses[i].getAttribute('id'),bonuses[i].parentNode.firstChild.innerHTML,bonuses[i].getAttribute('data-points'),bonuses[i].getAttribute('data-mult'),totalBonusPoints);			
 		}
 	}
-	if (showMults)
-		scoreReason += "\r\n" + RPT_Specials + ': ' + 'P-' + bps + " (M-" + mults + ")";
-	else
-		if (bps != 0)
-			scoreReason += "\r\n" + RPT_Specials + ': ' + bps;
-	
-	totalMultipliers += mults;
-	totalBonusPoints += bps;
 
 	if (debug) alert("ccs8");
 
@@ -620,11 +578,6 @@ function calcComplexScore(res)
 		}
 	}
 	
-	if (showMults)
-		scoreReason += "\r\n" + RPT_Combos + ': P-' + bps + " (M-" + mults + ")";
-	else
-		if (bps != 0)
-			scoreReason += "\r\n" + RPT_Combos + ': ' + bps;
 	
 
 
@@ -794,13 +747,11 @@ function calcSimpleScore(res)
 			for (var i = 0, bps = 0; i < bp.length; i++ )
 				if (bp[i].checked)
 				{
-					bps += parseInt(bp[i].getAttribute('data-points'));
-					sxappend(bp[i].getAttribute('id'),bp[i].parentNode.firstChild.innerHTML,bp[i].getAttribute('data-points'),0,TS + bps);
+					bps = parseInt(bp[i].getAttribute('data-points'));
+					TS += bps;
+					sxappend(bp[i].getAttribute('id'),bp[i].parentNode.firstChild.innerHTML,bp[i].getAttribute('data-points'),0,TS);
 				}
 		
-			TS += bps;
-			if (bps != 0)
-				reason += "\r\n" + sg[j] + ': ' + bps;
 		}
 	}
 	
@@ -814,9 +765,6 @@ function calcSimpleScore(res)
 		}
 		
 	TS += bps;
-	if (bps != 0)
-		reason += "\r\n" + RPT_Specials + ': ' + bps;
-
 		
 
 	bp = document.getElementsByName("ComboID[]");
@@ -829,8 +777,6 @@ function calcSimpleScore(res)
 		}
 		
 	TS += bps;
-	if (bps != 0)
-		reason += "\r\n" + RPT_Combos + ': ' +  bps;
 
 	if (debug) alert('css[M]');
 	var MPenalty = calcMileagePenalty();
