@@ -130,6 +130,8 @@ ul#tabs li a.selected { color: #000; background-color: #f1f0ee; font-weight: bol
 
 #ScoreHeader.manualscoring span:before
 				{ content: '\A\A'; white-space: pre; }
+				
+#tab_bonuses	{ font-family: monospace; }
 
 span.keep		{ white-space: nowrap; display: inline-block; }
 
@@ -298,9 +300,26 @@ table.qdfinishers th {
 
 #ScoreHeader	{ font-size: 0.8em; }
 #TotalPoints	{ font-size: 1.4em; }
+#BlankFormRejectReasons { 
+	font-size: 0.7em;
+	list-style-type: none;
+}
+#BlankFormRejectReasons li { 
+	display: inline-block;
+	padding-right: 1em;
+}
 
 @media print {
 .noprint		{ display: none !important; }
 .scorex			{ font-size: 0.7em; page-break-after: always; }
-#ScoreSheet		{ font-size: 1.2em; }
+#ScoreSheet		{ font-size: 1.2em; font-family: monospace;}
+input[type='checkbox'] {
+    -webkit-appearance:none;
+    width:1.2em;
+    height:1.2em;
+    background:white;
+    border-radius:5px;
+    border:2px solid #555;
+	vertical-align: text-bottom;
+	}
 }

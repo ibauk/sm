@@ -266,6 +266,7 @@ function scoreEntrant($showBlankForm = FALSE)
 	$dtf = splitDatetime($rd['FinishTime']);
 	$OneDayRally = $dts[0] == $dtf[0];
 	$rallyTimeDNF = $rd['FinishTime'];
+	$rallyTimeStart = $rd['StartTime'];
 	$certhours = $rd['CertificateHours'];
 	
 	$axisnames = [];
@@ -312,6 +313,7 @@ function scoreEntrant($showBlankForm = FALSE)
 	echo('</div>');
 	echo("\r\n");
 	
+	echo('<div id="ScoreSheet">'."\r\n");
 	echo("\r\n");
 	echo('<form method="post" action="score.php" onsubmit="submitScore();">');
 	echo('<input type="hidden" name="ScorerName" value="'.htmlspecialchars((isset($_REQUEST['ScorerName']) ? $_REQUEST['ScorerName'] : '')).'">');
@@ -325,9 +327,11 @@ function scoreEntrant($showBlankForm = FALSE)
 	echo('<input type="hidden" id="ShowMults" value="'.$ShowMults.'">');
 	echo('<input type="hidden" name="ScoreX" id="scorexstore" value=""/>');
 	//echo(" 1 ");
-	$R = $DB->query('SELECT rowid AS id,PenaltyStart,PenaltyFinish,PenaltyMethod,PenaltyFactor FROM timepenalties ORDER BY PenaltyStart,PenaltyFinish');
+	$TimePenaltyTime =($DBVERSION < 3 ? '0 as TimeSpec' : 'TimeSpec');
+		
+	$R = $DB->query('SELECT rowid AS id,'.$TimePenaltyTime.',PenaltyStart,PenaltyFinish,PenaltyMethod,PenaltyFactor FROM timepenalties ORDER BY PenaltyStart,PenaltyFinish');
 	while ($rd = $R->fetchArray())
-		echo('<input type="hidden" name="TimePenalty[]" data-start="'.$rd['PenaltyStart'].'" data-end="'.$rd['PenaltyFinish'].'" data-factor="'.$rd['PenaltyFactor'].'" data-method="'.$rd['PenaltyMethod'].'">');
+		echo('<input type="hidden" name="TimePenalty[]" data-spec="'.$rd['TimeSpec'].'" data-start="'.$rd['PenaltyStart'].'" data-end="'.$rd['PenaltyFinish'].'" data-factor="'.$rd['PenaltyFactor'].'" data-method="'.$rd['PenaltyMethod'].'">');
 	//echo(" 2 ");
 	$sql = ($DBVERSION < 3 ? ',0 as Compulsory' : ',Compulsory');
 	$R = $DB->query('SELECT rowid AS id,Axis,Cat,NMethod,ModBonus,NMin,PointsMults,NPower'.$sql.' FROM catcompound ORDER BY Axis,NMin DESC');
@@ -367,16 +371,19 @@ function scoreEntrant($showBlankForm = FALSE)
 		$myTimeDNF = $rallyTimeDNF;
 		
 		
+	echo('<input type="hidden" id="CertificateHours" value="'.$certhours.'">');
+	echo('<input type="hidden" id="RallyTimeDNF" value="'.$rallyTimeDNF.'">');
+	echo('<input type="hidden" id="RallyTimeStart" value="'.$rallyTimeStart.'">');
 	echo('<input type="hidden" id="FinishTimeDNF" value="'.$myTimeDNF.'">');
 	
 	$chk = $rd['OdoKms'] == $KONSTANTS['OdoCountsKilometres'] ? ' checked="checked" ' : ' ';
 	echo('<input type="hidden" id="OdoKmsK" '.$chk.'>');
 	echo('<input type="hidden" id="OdoScaleFactor" name="OdoScaleFactor" value="'.$rd['OdoScaleFactor'].'">');
-	echo('<input type="hidden" id="OdoRallyStart" name="OdoRallyStart" value="0'.$rd['OdoRallyStart'].'">');
 	echo('<input type="hidden" id="EntrantID" name="EntrantID" value="'.$_REQUEST['EntrantID'].'">');
 	echo('<input type="hidden" name="RejectedClaims" id="RejectedClaims" value="'.$rd['RejectedClaims'].'">');
+	
+	
 	echo("\r\n");
-	echo('<div id="ScoreSheet">'."\r\n");
 	echo('<div id="ScoreHeader"');
 	if ($ScoringMethod == $KONSTANTS['ManualScoring'])
 		echo(' class="manualscoring" ');
@@ -386,16 +393,10 @@ function scoreEntrant($showBlankForm = FALSE)
 	if ($rd['PillionName'] <> '')
 		echo(' &amp; '.htmlspecialchars($rd['PillionName']));
 	echo('</span> ');
-	$dt = splitDatetime($rd['StartTime']);
-	if ($dt[0] == '')
-		$dt = $RallyStartTime;
+	$dt1 = splitDatetime($rd['StartTime']);
+	if ($dt1[0] == '')
+		$dt1 = $RallyStartTime;
 	$hideclass = ' class="hide" ';
-	echo('<span '.$hideclass.'title="'.$TAGS['StartDate'][1].'"><label for="StartDate">'.$TAGS['StartDate'][0].' </label> ');
-	echo('<input type="date" id="StartDate" name="StartDate" value="'.$dt[0].'"  />');
-	echo('</span> ');
-	echo('<span '.$hideclass.' title="'.$TAGS['StartTime'][1].'"><label for="StartTime">'.$TAGS['StartTime'][0].' </label> ');
-	echo('<input type="time" id="StartTime" name="StartTime" value="'.$dt[1].'"  />');
-	echo('</span>');
 	$dt = splitDatetime($rd['FinishTime']);
 	if ($dt[0] == '')
 		$dt = $RallyFinishTime;
@@ -411,44 +412,76 @@ function scoreEntrant($showBlankForm = FALSE)
 	{
 		$dt[0] = '__________';
 		$dt[1] = '______';
+		$dt1[0] = $dt[0];
+		$dt1[1] = $dt[1];
 		$datetype = 'text';
 		$timetype = 'text';
 		$numbertype = 'text';
 		$sbfro = ' readonly="readonly" ';
-		$codof = '_____';
+		$codof = '______';
+		$codof1 = $codof;
 		$cmiles = '_____';
 	}
 	else
 	{
 		$codof = $rd['OdoRallyFinish'];
+		$codof1 = $rd['OdoRallyStart'];
 		$cmiles = intval($rd['CorrectedMiles']);
 	}
-	echo('<span '.$hideclass.'title="'.$TAGS['FinishDate'][1].'"><label for="FinishDate">'.$TAGS['FinishDate'][0].' </label> ');
+	echo("\r\n");
+	echo('<span '.$hideclass.'title="'.$TAGS['StartDateE'][1].'"><label for="StartDate">'.$TAGS['StartDateE'][0].' </label> ');
+	echo('<input type="'.$datetype.'" id="StartDate" name="StartDate" value="'.$dt1[0].'" onchange="calcScore(true)"  />');
+	echo('</span> ');
+	echo('<span  title="'.$TAGS['StartTimeE'][1].'"><label for="StartTime">'.$TAGS['StartTimeE'][0].' </label> ');
+	echo('<input '.$sbfro.'type="'.$timetype.'" id="StartTime" name="StartTime" value="'.$dt1[1].'" onchange="calcScore(true)"  />');
+	echo('</span>');
+	echo("\r\n");
+	echo('<span '.$hideclass.'title="'.$TAGS['FinishDateE'][1].'"><label for="FinishDate">'.$TAGS['FinishDateE'][0].' </label> ');
 	echo('<input '.$sbfro.' type="'.$datetype.'" id="FinishDate" name="FinishDate" value="'.$dt[0].'" onchange="calcScore(true)" />');
 	echo('</span> ');
-	echo('<span id="Timings" title="'.$TAGS['FinishTime'][1].'"><label for="FinishTime">'.$TAGS['FinishTime'][0].' </label> ');
+	echo('<span id="Timings" title="'.$TAGS['FinishTimeE'][1].'"><label for="FinishTime">'.$TAGS['FinishTimeE'][0].' </label> ');
 	echo('<input '.$sbfro.'type="'.$timetype.'" id="FinishTime" name="FinishTime" value="'.$dt[1].'" onchange="calcScore(true)" />');
 	if ($ScoringMethod == $KONSTANTS['ManualScoring'])
 		echo(' <input type="button" value="'.$TAGS['nowlit'][0].'" onclick="setSplitNow(\'Finish\');" />');	
 	echo('</span> ');
 	
+	//echo('<input type="hidden" id="OdoRallyStart" name="OdoRallyStart" value="0'.$rd['OdoRallyStart'].'">');
+
+	echo("\r\n");
+	echo('<span title="'.$TAGS['OdoRallyStart'][1].'"><label for="OdoRallyStart">'.$TAGS['OdoRallyStart'][0].' </label> ');
+	echo('<input '.$sbfro.' type="'.$numbertype.'" name="OdoRallyStart" id="OdoRallyStart" value="'.$codof1.'" onchange="calcMiles()" /> ');
+	echo('</span>');
+	echo("\r\n");
 	echo('<span title="'.$TAGS['OdoRallyFinish'][1].'"><label for="OdoRallyFinish">'.$TAGS['OdoRallyFinish'][0].' </label> ');
-	echo('<input '.$sbfro.'type="'.$numbertype.'" name="OdoRallyFinish" id="OdoRallyFinish" value="'.$codof.'" onchange="calcMiles()" /> ');
+	echo('<input '.$sbfro.' type="'.$numbertype.'" name="OdoRallyFinish" id="OdoRallyFinish" value="'.$codof.'" onchange="calcMiles()" /> ');
+	echo('</span>');
 	echo('<span title="'.$TAGS['CorrectedMiles'][1].'"><label for="CorrectedMiles">'.$TAGS['CorrectedMiles'][0].' </label> ');
-	echo('<input '.$sbfro.'type="'.$numbertype.'"  name="CorrectedMiles" id="CorrectedMiles" value="'.$cmiles.'" onchange="calcScore(true)" /> ');
+	echo('<input '.$sbfro.' type="'.$numbertype.'"  name="CorrectedMiles" id="CorrectedMiles" value="'.$cmiles.'" onchange="calcScore(true)" /> ');
 	echo('</span> ');
 	
 	
-	if (!$showBlankForm)
-	{
 		
 	echo("\r\n".'<span><label  class="clickme" title="'.$TAGS['ToggleScoreX'][1].'" for="TotalPoints">'.$TAGS['TotalPoints'][0].' </label> ');
 	if ($ScoringMethod <> $KONSTANTS['ManualScoring'])
 		$ro = 'readonly="readonly" ';
 	else
 		$ro = '';
-	echo('<input  class="clickme"  ondblclick="sxprint();" onclick="sxtoggle();" title="'.$TAGS['TotalPoints'][1].'" type="'.($ro != ''? 'text' : 'number').'" '.$ro.' name="TotalPoints" id="TotalPoints" value="'.$rd['TotalPoints'].'" onchange="calcScore(true)" /> ');
+	if ($showBlankForm)
+	{
+		$ctotal = '_____';
+		$tp_id = 'tpoints';
+	}
+	else
+	{
+		$ctotal = $rd['TotalPoints'];
+		$tp_id = 'TotalPoints';
+	}
+	echo('<input  class="clickme"  ondblclick="sxprint();" onclick="sxtoggle();" title="'.$TAGS['TotalPoints'][1].'" type="'.($ro != ''? 'text' : 'number').'" '.$ro.' name="TotalPoints" id="'.$tp_id.'" value="'.$ctotal.'" onchange="calcScore(true)" /> ');
 	echo('</span> ');
+	
+	if (!$showBlankForm)
+	{
+	
 	// echo(' <span class="clickme noprint" onclick="sxtoggle();"> ? </span>');
 	if ($ScoringMethod == $KONSTANTS['CompoundScoring'])
 	{
@@ -487,7 +520,7 @@ function scoreEntrant($showBlankForm = FALSE)
 	
 	if ($ScoringMethod <> $KONSTANTS['ManualScoring'])
 	{
-		if ($showBlankForm)
+		if ($showBlankForm && false)
 		{
 			echo('<ul id="BlankFormRejectReasons">');
 			foreach($rejectreasons as $rrline)
@@ -499,7 +532,7 @@ function scoreEntrant($showBlankForm = FALSE)
 		
 		
 		echo('<fieldset id="tab_bonuses"><legend>'.$TAGS['BonusesLit'][0].'</legend>');
-		showBonuses($rd['BonusesVisited']);
+		showBonuses($rd['BonusesVisited'],$showBlankForm);
 		echo('</fieldset><!-- showBonuses -->'."\r\n");
 		if (getValueFromDB('SELECT count(*) as rex FROM specials','rex',0) > 0)
 		{
@@ -507,7 +540,7 @@ function scoreEntrant($showBlankForm = FALSE)
 			showSpecials($rd['SpecialsTicked']);
 			echo('</fieldset><!-- showSpecials -->'."\r\n");
 		}
-		if (getValueFromDB('SELECT count(*) as rex FROM combinations','rex',0) > 0)
+		if (!$showBlankForm && getValueFromDB('SELECT count(*) as rex FROM combinations','rex',0) > 0)
 		{
 			echo('<fieldset id="tab_combos"><legend>'.$TAGS['CombosLit'][0].'</legend>');
 			showCombinations($rd['CombosTicked']);
@@ -533,7 +566,7 @@ function scoreEntrant($showBlankForm = FALSE)
 	echo('</body></html>');
 }
 
-function showBonuses($bonuses)
+function showBonuses($bonuses,$showBlankForm)
 {
 	global $DB, $TAGS, $KONSTANTS;
 
@@ -557,6 +590,10 @@ function showBonuses($bonuses)
 			echo('<label for="B'.$bk.'">'.$bk.'-</label>');
 			echo('<input type="checkbox"'.$chk.' name="BonusID[]" id="B'.$bk.'" value="'.$bk.'" onchange="calcScore(true)"');
 			echo(' data-points="'.$b[1].'" data-cat1="'.intval($b[2]).'" data-cat2="'.intval($b[3]).'" data-cat3="'.intval($b[4]).'" data-reqd="'.intval($b[5]).'" /> ');
+			if ($showBlankForm)
+			{
+				echo(' ____ ____ &nbsp;&nbsp;&nbsp;&nbsp;');
+			}
 			echo('</span>');
 			echo("\r\n");
 		}

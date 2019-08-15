@@ -99,6 +99,7 @@ CREATE TABLE IF NOT EXISTS `certificates` (
 
 
 CREATE TABLE IF NOT EXISTS `timepenalties` (
+	`TimeSpec`	INTEGER DEFAULT 0,
 	`PenaltyStart`	TEXT,
 	`PenaltyFinish`	TEXT,
 	`PenaltyMethod`	INTEGER DEFAULT 0,

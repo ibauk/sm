@@ -194,9 +194,11 @@ $TAGS = array(
 	
 	'FetchCert'			=> array('Fetch certificate','Fetch the HTML, CSS &amp; options for this certificate'),
 	'FinishDate'		=> array('Finish date','The last riding day of the rally.'),
+	'FinishDateE'		=> array('Finish date','The last riding day of the rally.'),
 	'FinishersExported'	=> array('Finishers exported!','Finisher details exported to CSV'),
 	'FinishPosition'	=> array('Final place','Finisher ranking position',''),
 	'FinishTime'		=> array('Finish time','Official finish time. Entrants finishing later are DNF'),
+	'FinishTimeE'		=> array('Finish time','Official finish time. Check-in time.'),
 
 	'FullDetails'		=> array('Full details','Show the complete record'),
 
@@ -367,7 +369,9 @@ $TAGS = array(
 	'SpecialPointsLit'	=> array('Points',''),
 	'SpecialsLit'		=> array('Specials','Special bonuses'),
 	'StartDate'			=> array('Start date','The first day of the rally. Rally riding day as opposed to must arrive by day'),
+	'StartDateE'		=> array('Start date','The first day of rally riding'),
 	'StartTime'			=> array('Start time','Official start time. Rally clock starts at this time.'),
+	'StartTimeE'		=> array('Start time','Official start time. Rally clock starts at this time.'),
 	
 	// Titles for browser tabs
 	'ttWelcome'			=> array('ScoreMaster','Welcome page for anyone'),

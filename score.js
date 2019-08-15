@@ -361,8 +361,7 @@ function calcComplexScore(res)
 		} // Checked bonus
 	} // Bonus loop
 
-	if (totalBonusPoints != 0)
-		scoreReason += "\r\n" + RPT_Bonuses + ": " +totalBonusPoints;
+	scoreReason += "\r\n" + RPT_Bonuses + ": " +totalTickedBonuses;
 
 	if (debug) alert("ccs3");
 	
@@ -684,7 +683,7 @@ function calcScore(enableSave)
 	
 	if (sm != SM_Manual)
 	{
-		
+		setFinishTimeDNF();
 		if (debug) alert("calcScore[0][1]");
 		sxstart();
 		reportRejectedClaims();
@@ -723,17 +722,17 @@ function calcSimpleScore(res)
 	var reason = RPT_Tooltip + "\r\n";  // Contains tooltip explanation of total score
 	var TS = 0;
 	var bps = 0;
-	
+	var ticks = 0;
 
 	var bp = document.getElementsByName("BonusID[]");
 	for (var i = 0, bps = 0; i < bp.length; i++ )
 		if (bp[i].checked)
 		{
 			bps += parseInt(bp[i].getAttribute('data-points'));
+			ticks++;
 			sxappend(bp[i].getAttribute('id'),bp[i].parentNode.getAttribute("title").replace(/\[.+\]/,""),bp[i].getAttribute('data-points'),0,TS + bps);
 		}
-	if (bps != 0)
-		reason += "\r\n" + RPT_Bonuses + ': ' + bps;
+	reason += "\r\n" + RPT_Bonuses + ': ' + ticks;
 		
 	TS += bps;
 
@@ -1187,6 +1186,24 @@ function setFinisherStatus()
 	
 	SFS(EntrantFinisher,'');
 	
+}
+
+function setFinishTimeDNF()
+{
+	var CH = parseInt(document.getElementById('CertificateHours').value);
+	var ST = document.getElementById('RallyTimeStart').value;
+	var st = document.getElementById('StartDate').value + 'T' + document.getElementById('StartTime').value;
+	var mst = st < ST ? ST : st;
+	var dt = new Date(mst+'Z');
+	dt.setHours(dt.getHours()+CH);
+	//alert('ST='+st);
+	//alert('DNF='+dt.toISOString());
+	var FT = document.getElementById('RallyTimeDNF').value;
+	var xt = dt.toISOString();
+	xt = xt.substring(0,16);
+	document.getElementById('FinishTimeDNF').value = xt;
+	//alert("set="+xt);
+
 }
 
 function setRejectedClaim(bonusid,reason)

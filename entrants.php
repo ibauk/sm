@@ -930,20 +930,20 @@ function showEntrantChecks($rd)
 		$dt = splitDatetime($odoC['StartTime']); // Default to rally start time
 	}
 	echo('<span class="vlabel">');
-	echo('<label for="StartDate" class="vlabel">'.$TAGS['StartDate'][0].' </label>');
-	echo(' <input type="date" name="StartDate" id="StartDate" value="'.$dt[0].'" title="'.$TAGS['StartDate'][1].'"> ');
-	echo('<label for="StartTime">'.$TAGS['StartTime'][0].' </label>');
-	echo(' <input type="time" name="StartTime" id="StartTime" value="'.$dt[1].'" title="'.$TAGS['StartTime'][1].'"> ');
+	echo('<label for="StartDate" class="vlabel">'.$TAGS['StartDateE'][0].' </label>');
+	echo(' <input type="date" name="StartDate" id="StartDate" value="'.$dt[0].'" title="'.$TAGS['StartDateE'][1].'"> ');
+	echo('<label for="StartTime">'.$TAGS['StartTimeE'][0].' </label>');
+	echo(' <input type="time" name="StartTime" id="StartTime" value="'.$dt[1].'" title="'.$TAGS['StartTimeE'][1].'"> ');
 	echo(' <input type="button" value="'.$TAGS['nowlit'][0].'" onclick="setSplitNow(\'Start\');">');
 	echo('</span>');
 
 	$dt = splitDatetime($rd['FinishTime']); 
 
 	echo('<span class="vlabel">');
-	echo('<label for="FinishDate" class="vlabel">'.$TAGS['FinishDate'][0].' </label>');
-	echo(' <input type="date" name="FinishDate" id="FinishDate" value="'.$dt[0].'" title="'.$TAGS['FinishDate'][1].'"> ');
-	echo('<label for="FinishTime">'.$TAGS['FinishTime'][0].' </label>');
-	echo(' <input type="time" name="FinishTime" id="FinishTime" value="'.$dt[1].'" title="'.$TAGS['FinishTime'][1].'"> ');
+	echo('<label for="FinishDate" class="vlabel">'.$TAGS['FinishDateE'][0].' </label>');
+	echo(' <input type="date" name="FinishDate" id="FinishDate" value="'.$dt[0].'" title="'.$TAGS['FinishDateE'][1].'"> ');
+	echo('<label for="FinishTime">'.$TAGS['FinishTimeE'][0].' </label>');
+	echo(' <input type="time" name="FinishTime" id="FinishTime" value="'.$dt[1].'" title="'.$TAGS['FinishTimeE'][1].'"> ');
 	echo(' <input type="button" value="'.$TAGS['nowlit'][0].'" onclick="setSplitNow(\'Finish\');">');
 	echo('</span>');
 
@@ -1212,19 +1212,19 @@ function showEntrantRecord($rd)
 	$dt = splitDatetime($rd['StartTime']); 
 
 	echo('<span class="vlabel">');
-	echo('<label for="StartDate" class="vlabel">'.$TAGS['StartDate'][0].' </label>');
-	echo(' <input type="date" name="StartDate" id="StartDate" onchange="enableSaveButton();" value="'.$dt[0].'" title="'.$TAGS['StartDate'][1].'"> ');
-	echo('<label for="StartTime">'.$TAGS['StartTime'][0].' </label>');
-	echo(' <input type="time" name="StartTime" id="StartTime" onchange="enableSaveButton();" value="'.$dt[1].'" title="'.$TAGS['StartTime'][1].'"> ');
+	echo('<label for="StartDate" class="vlabel">'.$TAGS['StartDateE'][0].' </label>');
+	echo(' <input type="date" name="StartDate" id="StartDate" onchange="enableSaveButton();" value="'.$dt[0].'" title="'.$TAGS['StartDateE'][1].'"> ');
+	echo('<label for="StartTime">'.$TAGS['StartTimeE'][0].' </label>');
+	echo(' <input type="time" name="StartTime" id="StartTime" onchange="enableSaveButton();" value="'.$dt[1].'" title="'.$TAGS['StartTimeE'][1].'"> ');
 	echo('</span>');
 
 	$dt = splitDatetime($rd['FinishTime']); 
 
 	echo('<span class="vlabel">');
-	echo('<label for="FinishDate" class="vlabel">'.$TAGS['FinishDate'][0].' </label>');
-	echo(' <input type="date" name="FinishDate" id="FinishDate" value="'.$dt[0].'" onchange="enableSaveButton();" title="'.$TAGS['FinishDate'][1].'"> ');
-	echo('<label for="FinishTime">'.$TAGS['FinishTime'][0].' </label>');
-	echo(' <input type="time" name="FinishTime" id="FinishTime" value="'.$dt[1].'" onchange="enableSaveButton();" title="'.$TAGS['FinishTime'][1].'"> ');
+	echo('<label for="FinishDate" class="vlabel">'.$TAGS['FinishDateE'][0].' </label>');
+	echo(' <input type="date" name="FinishDate" id="FinishDate" value="'.$dt[0].'" onchange="enableSaveButton();" title="'.$TAGS['FinishDateE'][1].'"> ');
+	echo('<label for="FinishTime">'.$TAGS['FinishTimeE'][0].' </label>');
+	echo(' <input type="time" name="FinishTime" id="FinishTime" value="'.$dt[1].'" onchange="enableSaveButton();" title="'.$TAGS['FinishTimeE'][1].'"> ');
 	echo('</span>');
 
 	echo('<span class="vlabel">');
