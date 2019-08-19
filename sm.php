@@ -458,38 +458,71 @@ function saveSpecials()
 
 function saveTimePenalties()
 {
-	global $DB, $TAGS, $KONSTANTS;
+	global $DB, $TAGS, $KONSTANTS, $DBVERSION;
 
-	//var_dump($_REQUEST);
-	
+//	var_dump($_REQUEST);
+	//exit;
 	$arr = $_REQUEST['id'];
 	$DB->query('BEGIN TRANSACTION');
 	for ($i=0; $i < count($arr); $i++)
 	{
+		if ($DBVERSION < 3)
+		{
+			$ts = '';
+			$_REQUEST['TimeSpec'][$i] = $KONSTANTS['TimeSpecDatetime'];
+		}
+		else
+			$ts = 'TimeSpec,';
+		
 		if ($arr[$i]=='')
 		{
-			$sql = "INSERT INTO timepenalties (PenaltyStart,PenaltyFinish,PenaltyMethod,PenaltyFactor) VALUES (";
-			$sql .= "'".$_REQUEST['PenaltyStartDate'][$i].'T'.$_REQUEST['PenaltyStartTime'][$i]."'";
-			$sql .= ",'".$_REQUEST['PenaltyFinishDate'][$i].'T'.$_REQUEST['PenaltyFinishTime'][$i]."'";
+			$sql = "INSERT INTO timepenalties (".$ts."PenaltyStart,PenaltyFinish,PenaltyMethod,PenaltyFactor) VALUES (";
+			if ($ts != '')
+				$sql .= $_REQUEST['TimeSpec'][$i].',';
+			if ($_REQUEST['TimeSpec'][$i] == $KONSTANTS['TimeSpecDatetime'])
+			{
+				$sql .= "'".$_REQUEST['PenaltyStartDate'][$i].'T'.$_REQUEST['PenaltyStartTime'][$i]."'";
+				$sql .= ",'".$_REQUEST['PenaltyFinishDate'][$i].'T'.$_REQUEST['PenaltyFinishTime'][$i]."'";
+			}
+			else
+			{
+				$sql .= $_REQUEST['PenaltyStartTime'][$i];
+				$sql .= ','.$_REQUEST['PenaltyFinishTime'][$i];
+			}
 			$sql .= ",".$_REQUEST['PenaltyMethod'][$i];
 			$sql .= ",".$_REQUEST['PenaltyFactor'][$i];
 			$sql .= ")";
+			
 		}
 		else
 		{
 			$sql = "UPDATE timepenalties SET ";
-			$sql .= "PenaltyStart='".$_REQUEST['PenaltyStartDate'][$i].'T'.$_REQUEST['PenaltyStartTime'][$i]."'";
-			$sql .= ",PenaltyFinish='".$_REQUEST['PenaltyFinishDate'][$i].'T'.$_REQUEST['PenaltyFinishTime'][$i]."'";
+			if ($ts != '')
+				$sql .= "TimeSpec=".$_REQUEST['TimeSpec'][$i].',';
+			if ($_REQUEST['TimeSpec'][$i] == $KONSTANTS['TimeSpecDatetime'])
+			{
+				$sql .= "PenaltyStart='".$_REQUEST['PenaltyStartDate'][$i].'T'.$_REQUEST['PenaltyStartTime'][$i]."'";
+				$sql .= ",PenaltyFinish='".$_REQUEST['PenaltyFinishDate'][$i].'T'.$_REQUEST['PenaltyFinishTime'][$i]."'";
+			}
+			else
+			{
+				$sql .= 'PenaltyStart='.$_REQUEST['PenaltyStartTime'][$i];
+				$sql .= ',PenaltyFinish='.$_REQUEST['PenaltyFinishTime'][$i];
+			}
 			$sql .= ",PenaltyMethod=".$_REQUEST['PenaltyMethod'][$i];
 			$sql .= ",PenaltyFactor=".$_REQUEST['PenaltyFactor'][$i];
 			$sql .= " WHERE rowid=".$_REQUEST['id'][$i];
 		}
-		if ($_REQUEST['PenaltyStartDate'][$i] <> '' && $_REQUEST['PenaltyStartTime'][$i] <> '')
+			//echo("<hr>".$sql."<hr>");exit;
+		if ( ($_REQUEST['TimeSpec'][$i] != $KONSTANTS['TimeSpecDatetime'] || $_REQUEST['PenaltyStartDate'][$i] <> '') && 
+			$_REQUEST['PenaltyStartTime'][$i] <> '')
 		{
 			$DB->exec($sql);
 			if ($DB->lastErrorCode() <> 0)
 				echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
 		}
+		else
+			echo('Row '.$i." wasn't posted");
 	}
 	if (isset($_REQUEST['DeleteEntry']))
 	{
@@ -882,7 +915,7 @@ function triggerNewRow(obj)
 		}
 		echo('</tr>');
 	}
-	echo('<tr class="newrow"><td><input type="text" name="ComboID[]" onchange="triggerNewRow(this)"></td>');
+	echo('<tr class="newrow"><td><input class="ComboID" type="text" name="ComboID[]" onchange="triggerNewRow(this)"></td>');
 	echo('<td><input type="text" name="BriefDesc[]"></td>');
 	echo('<td><select name="ScoreMethod[]">');
 	echo('<option value="0" selected="selected" >'.$TAGS['AddPoints'][0].'</option>');
@@ -1601,11 +1634,15 @@ function triggerNewRow(obj)
 
 function showTimePenalties()
 {
-	global $DB, $TAGS, $KONSTANTS;
+	global $DB, $TAGS, $KONSTANTS, $DBVERSION;
 	
 
+	if ($DBVERSION < 3)
+		$ts = "0 as TimeSpec,";
+	else
+		$ts = "TimeSpec,";
 	
-	$R = $DB->query('SELECT rowid AS id,PenaltyStart,PenaltyFinish,PenaltyMethod,PenaltyFactor FROM timepenalties ORDER BY PenaltyStart');
+	$R = $DB->query('SELECT rowid AS id,'.$ts.'PenaltyStart,PenaltyFinish,PenaltyMethod,PenaltyFactor FROM timepenalties ORDER BY PenaltyStart');
 	if ($DB->lastErrorCode() <> 0)
 		echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
 
@@ -1618,6 +1655,32 @@ function triggerNewRow(obj)
 	var row = tab.insertRow(tab.rows.length);
 	row.innerHTML = oldnewrow.innerHTML;
 	obj.onchange = '';
+}
+function changeTimeSpec(obj)
+{
+	function setv(obj,v)
+	{
+		try {
+			obj.value = v;
+		} catch(err) {
+		}
+	}
+	
+	var row = obj.parentNode.parentNode; // TR
+	var opt = obj.value;
+	var idt = row.getElementsByClassName('date');
+	var iti = row.getElementsByClassName('time');
+	xdt = opt==0 ? 'date' : 'hidden';
+	xti = opt==0 ? 'time' : 'number';
+	for (var i=0; i < idt.length; i++)
+	{
+		var v = idt[i].value;
+		idt[i].type = xdt;
+		setv(idt[i],v);
+		v = iti[i].value;
+		iti[i].type = xti;
+		setv(iti[i],v);
+	}
 }
 </script>
 <?php	
@@ -1632,7 +1695,7 @@ function triggerNewRow(obj)
 	echo('<input type="hidden" name="menu" value="setup">');
 	echo('<table id="timepenalties">');
 	echo('<caption title="'.htmlentities($TAGS['TimepMaintHead'][1]).'">'.htmlentities($TAGS['TimepMaintHead'][0]).'</caption>');
-	echo('<thead><tr><th>'.$TAGS['tpStartLit'][0].'</th>');
+	echo('<thead><tr><th>'.$TAGS['tpTimeSpecLit'][0].'</th><th>'.$TAGS['tpStartLit'][0].'</th>');
 	echo('<th>'.$TAGS['tpFinishLit'][0].'</th>');
 	echo('<th>'.$TAGS['tpMethodLit'][0].'</th>');
 	echo('<th>'.$TAGS['tpFactorLit'][0].'</th>');
@@ -1645,12 +1708,31 @@ function triggerNewRow(obj)
 	{
 		echo('<tr class="hoverlite">');
 		echo('<td><input type="hidden" name="id[]" value="'.$rd['id'].'">');
-		$dtx = splitDatetime($rd['PenaltyStart']);
-		echo('<input type="date" name="PenaltyStartDate[]" value="'.$dtx[0].'"> ');
-		echo('<input type="time" name="PenaltyStartTime[]" value="'.$dtx[1].'"></td>');
-		$dtx = splitDatetime($rd['PenaltyFinish']);		
-		echo('<td><input type="date" name="PenaltyFinishDate[]" value="'.$dtx[0].'"> ');
-		echo('<input type="time" name="PenaltyFinishTime[]" value="'.$dtx[1].'"></td>');
+		echo('<select name="TimeSpec[]" onchange="changeTimeSpec(this)">');
+		for ($i=0; $i<3; $i++) // Max TimeSpec==3
+		{
+			echo('<option value="'.$i.'" ');
+			if ($i==$rd['TimeSpec'])
+				echo(' selected ');
+			echo('>'.$TAGS['tpTimeSpec'.$i][0].'</option>');
+		}
+		echo('</select></td><td>');
+		if ($rd['TimeSpec']==$KONSTANTS['TimeSpecDatetime'])
+		{
+			$dtx = splitDatetime($rd['PenaltyStart']);
+			echo('<input type="date" class="date" name="PenaltyStartDate[]" value="'.$dtx[0].'"> ');
+			echo('<input type="time" class="time" name="PenaltyStartTime[]" value="'.$dtx[1].'"></td>');
+			$dtx = splitDatetime($rd['PenaltyFinish']);		
+			echo('<td><input class="date" type="date" name="PenaltyFinishDate[]" value="'.$dtx[0].'"> ');
+			echo('<input class="time" type="time" name="PenaltyFinishTime[]" value="'.$dtx[1].'"></td>');
+		}
+		else
+		{
+			echo('<input class="date" type="hidden" name="PenaltyStartDate[]" value="0"> ');
+			echo('<input class="time" type="number" name="PenaltyStartTime[]" value="'.$rd['PenaltyStart'].'"></td>');
+			echo('<td><input class="date" type="hidden" name="PenaltyFinishDate[]" value="0"> ');
+			echo('<input class="time" type="number" name="PenaltyFinishTime[]" value="'.$rd['PenaltyFinish'].'"></td>');
+		}
 		echo('<td><select name="PenaltyMethod[]">');
 		for ($i=0;$i<=3;$i++)
 		{
@@ -1666,10 +1748,19 @@ function triggerNewRow(obj)
 		echo('</tr>');
 	}
 	echo('<tr class="newrow"><td><input type="hidden" name="id[]" value="">');
-	echo('<input type="date" name="PenaltyStartDate[]" value=""> ');
-	echo('<input type="time" name="PenaltyStartTime[]" value=""></td>');
-	echo('<td><input type="date" name="PenaltyFinishDate[]" value=""> ');
-	echo('<input type="time" name="PenaltyFinishTime[]" value=""></td>');
+	echo('<select name="TimeSpec[]" onchange="changeTimeSpec(this)">');
+	for ($i=0; $i<3; $i++) // Max TimeSpec==3
+	{
+		echo('<option value="'.$i.'" ');
+		if ($i==$KONSTANTS['TimeSpecDatetime'])
+			echo(' selected ');
+		echo('>'.$TAGS['tpTimeSpec'.$i][0].'</option>');
+	}
+	echo('</select></td><td>');
+	echo('<input class="date" type="date" name="PenaltyStartDate[]" value=""> ');
+	echo('<input class="time" type="time" name="PenaltyStartTime[]" value=""></td>');
+	echo('<td><input class="date" type="date" name="PenaltyFinishDate[]" value=""> ');
+	echo('<input class="time" type="time" name="PenaltyFinishTime[]" value=""></td>');
 	echo('<td><select name="PenaltyMethod[]">');
 	for ($i=0;$i<=3;$i++)
 	{

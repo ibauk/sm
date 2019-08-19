@@ -85,7 +85,7 @@ const CAT_ResultPoints = 0;
 const CAT_ResultMults = 1;
 const CAT_NumNZCatsPerAxisMethod = 1;
 const CAT_ModifyBonusScore = 1;
-const CAT_ModifyAxisScore = 0
+const CAT_ModifyAxisScore = 0;
 
 /* Scoring method enum */
 const SM_Manual = 0;
@@ -103,6 +103,11 @@ const SX_StoreID = "scorexstore";
 /* Tabbed display variables */
 var tabLinks = new Array();
 var contentDivs = new Array();
+
+/* Time penalty specs */
+const TPS_absolute		= 0;
+const TPS_rallyDNF		= 1;
+const TPS_entrantDNF	= 2;
 
 /* Bonus display classes */
 const class_showbonus	= ' showbonus ';
@@ -219,36 +224,50 @@ function calcComplexScore(res)
 	var totalMultipliers = 0;
 	var totalTickedBonuses = 0;
 	
-	var bonuses		= document.getElementsByName("BonusID[]");		// Individual Bonus records
 	var axisScores	= document.getElementsByName("AxisScores[]");	// Score totals by Axis (reported separately)
 	var compoundCalcRules = document.getElementsByName("catcompound[]");	// Rules for calculating compound scores
 	var showMults = document.getElementById("ShowMults").value == SM_ShowMults;
 	
 	var scoreReason = RPT_Tooltip + "\r\n";
-	
-	
-	if (debug) alert("ccs1");
-	// Establish an array of counts: hits within Cat within Axis and zeroise scores
 	var catCounts	= [];
-	for (var i = 0; i < axisScores.length; i++)
+
+
+	function ccs_initialize()
 	{
-		catCounts[parseInt(axisScores[i].getAttribute('data-axis'))] = [];
-		axisScores[i].setAttribute('data-points',0);
-		axisScores[i].setAttribute('data-mults',0);
-	}
-	// Fake catCounts[0]
-	for (var i = 0; i < axisScores.length; i++)
-		catCounts[0][i] = 0;
-	
-	for (var i = 0; i < compoundCalcRules.length; i++)
-		compoundCalcRules[i].setAttribute('data-triggered',RULE_NOT_TRIGGERED);
-	
-	if (debug) alert("ccs2");
-	// Now process individual bonuses
-	for (var i = 0; i < bonuses.length; i++)
-	{
-		if (bonuses[i].checked)
+		if (debug) alert("ccs_initialize");
+		
+		// Establish an array of counts: hits within Cat within Axis and zeroise scores
+		for (var i = 0; i < axisScores.length; i++)
 		{
+			catCounts[parseInt(axisScores[i].getAttribute('data-axis'))] = [];
+			axisScores[i].setAttribute('data-points',0);
+			axisScores[i].setAttribute('data-mults',0);
+		}
+		// Fake catCounts[0]
+		for (var i = 0; i < axisScores.length; i++)
+			catCounts[0][i] = 0;
+	
+		for (var i = 0; i < compoundCalcRules.length; i++)
+			compoundCalcRules[i].setAttribute('data-triggered',RULE_NOT_TRIGGERED);
+	} // ccs_initialize
+	
+	
+
+
+	function ccs_processBonuses()
+	
+	// Ordinary bonuses
+	
+	{
+		if (debug) alert("ccs_processBonuses");
+		
+		var bonuses	= document.getElementsByName("BonusID[]");		// Individual Bonus records
+		// Now process individual bonuses
+		for (var i = 0; i < bonuses.length; i++)
+		{
+			if (!bonuses[i].checked)
+				continue;
+			
 			totalTickedBonuses++;
 			var bonusPoints = parseInt(bonuses[i].getAttribute('data-points')); // Basic points value of the bonus
 			
@@ -338,8 +357,8 @@ function calcComplexScore(res)
 							{
 								case CAT_ResultPoints:
 						
-								// 2017 - bps = bps * (Math.pow(np,(ccounts[dc][cat] - 1)))
-								//alert('Updating data-points for axis=' + axis + '; cat=' + cat + '; bps =' + bonusPoints+"; sf="+scoreFactor+"; cc="+catCounts[axis][cat]);
+									// 2017 - bps = bps * (Math.pow(np,(ccounts[dc][cat] - 1)))
+									//alert('Updating data-points for axis=' + axis + '; cat=' + cat + '; bps =' + bonusPoints+"; sf="+scoreFactor+"; cc="+catCounts[axis][cat]);
 									if (scoreFactor == 0)
 										bonusPoints = bonusPoints * (np - 1);
 									else
@@ -358,209 +377,216 @@ function calcComplexScore(res)
 			totalBonusPoints += bonusPoints;
 			sxappend(bonuses[i].getAttribute('id'),bonuses[i].parentNode.getAttribute("title").replace(/\[.+\]/,""),bonusPoints,0,totalBonusPoints);
 			
-		} // Checked bonus
-	} // Bonus loop
+		} // Bonus loop
 
-	scoreReason += "\r\n" + RPT_Bonuses + ": " +totalTickedBonuses;
+		scoreReason += "\r\n" + RPT_Bonuses + ": " +totalTickedBonuses;
 
-	if (debug) alert("ccs3");
+	} // ccs_processBonuses
 	
-	// Now process catcompound entries that depend on number of non-zero entries per axis
-	var nzEntriesPerAxis = [];
+	
+	
+
+	function ccs_catsPerAxisNZ()
+	
+	// This calculates the axis score using number of non-zero categories within axis
+	// This also applies any compulsory axis participation rules
+	
+	{
+		if (debug) alert("ccs_catsPerAxisNZ");
+	
+		// Now process catcompound entries that depend on number of non-zero entries per axis
+		var nzEntriesPerAxis = [];
 		
-	if (debug) alert("ccs3.1");
-	for (var i = 1; i <= CALC_AXIS_COUNT; i++)
-	{
-		nzEntriesPerAxis[i] = countNZ(catCounts[i]);
-		//alert("ccs3.2." + i + ' == ' + nzEntriesPerAxis[i]);
-	}
-	
-	
-	if (debug) alert("ccs4");
-	var lastAxis = -1; 
-	for (var i = 0; i < compoundCalcRules.length; i++)
-	{
-		if (compoundCalcRules[i].getAttribute('data-method') == CAT_NumNZCatsPerAxisMethod && compoundCalcRules[i].getAttribute('data-mb') == CAT_ModifyAxisScore) 
+		for (var i = 1; i <= CALC_AXIS_COUNT; i++)
 		{
-			var axis = parseInt(compoundCalcRules[i].getAttribute('data-axis'));  // 1, 2 or 3
-			var axisScore = axisScores[axis];
-			if (axis > lastAxis) // We want to process each axis only once at this stage
-			{
-				var nzCount = 0;
-				if (axis > 0)
-					nzCount = nzEntriesPerAxis[axis];
-				else
-					for (var axix = 1; axix <= CALC_AXIS_COUNT; axix++)
-						nzCount += nzEntriesPerAxis[axix];
-				
-				if (nzCount >= parseInt(compoundCalcRules[i].getAttribute('data-min')))
-				{	
-					compoundCalcRules[i].setAttribute('data-triggered',RULE_TRIGGERED);
-					var scoreFactor = parseInt(compoundCalcRules[i].getAttribute('data-power'));
-
-					var points = chooseNZ(scoreFactor,nzCount);
-					if (compoundCalcRules[i].getAttribute('data-reqd') != '0')
-						points = 0;
-					if (compoundCalcRules[i].getAttribute('data-pm') == CAT_ResultPoints)
-					{
-						axisScore.setAttribute('data-points',parseInt(axisScore.getAttribute('data-points')) + points);
-						totalBonusPoints += points;
-						sxappend('R'+i,axisScore.value+':nz&gt;='+compoundCalcRules[i].getAttribute('data-min'),points,0,totalBonusPoints);
-					}
-					else // Multipliers
-					{
-						axisScore.setAttribute('data-mults',points);
-						totalMultipliers += points;
-						sxappend('R'+i,axisScore.value+':nz&gt;='+compoundCalcRules[i].getAttribute('data-min'),0,points,totalBonusPoints);
-					}
-					lastAxis = axis;
-				}
-			}
-		} // End NonZeroEntries
-	}
-
-	if (debug) alert("ccs5");
-	
-	// Now process catcompound entries that depend on number of non-zero entries per category within axis
+			nzEntriesPerAxis[i] = countNZ(catCounts[i]);
+			if (debug) alert("ccs3.2." + i + ' == ' + nzEntriesPerAxis[i]);
+		}
 	
 	
-	for (var i = 0; i <= CALC_AXIS_COUNT; i++)
-	{
-		//alert('cc '+i+' == '+catCounts[i].length);
-		for (var j = 0; j < catCounts[i].length; j++)
+		var lastAxis = -1; 
+		for (var i = 0; i < compoundCalcRules.length; i++)
 		{
-			lastAxis = -1;
-			for (var k = 0; k < compoundCalcRules.length; k++)
+			if (compoundCalcRules[i].getAttribute('data-method') == CAT_NumNZCatsPerAxisMethod && 
+				compoundCalcRules[i].getAttribute('data-mb') == CAT_ModifyAxisScore) 
 			{
-				var axis = parseInt(compoundCalcRules[k].getAttribute('data-axis'));  // 1, 2 or 3
-				if (axis == i && (axis == 0 || typeof(catCounts[i][j]) != 'undefined'))
+				var axis = parseInt(compoundCalcRules[i].getAttribute('data-axis'));  
+				var axisScore = axisScores[axis];
+				if (axis > lastAxis) // We want to process each axis only once at this stage
 				{
-					var catCount = 0;
-					if (axis == 0)
-					{
-						for (var axix = 1; axix <= CALC_AXIS_COUNT; axix++)
-							if (typeof(catCounts[axix][j]) != 'undefined')
-								catCount += catCounts[axix][j];
-						//alert('Hello sailor '+i+': '+j+' == '+catCount);
-					}
+					var nzCount = 0;
+					if (axis > 0)
+						nzCount = nzEntriesPerAxis[axis];
 					else
-						catCount = catCounts[i][j];
-					
-					var matchcat = parseInt(compoundCalcRules[k].getAttribute('data-cat'));
-					
-					if (catCount >= parseInt(compoundCalcRules[k].getAttribute('data-min')) && 
-							compoundCalcRules[k].getAttribute('data-method') == CAT_NumBonusesPerCatMethod && 
-							compoundCalcRules[k].getAttribute('data-mb') == CAT_ModifyAxisScore &&
-							(matchcat == 0 || matchcat == j))
-					{
-						compoundCalcRules[k].setAttribute('data-triggered',RULE_TRIGGERED);
-						//if (axis == 1) alert("ccs5.1; i=" + i + "; j=" + j + "; k =" + k + "; axis=" + axis + "; catCount=" + catCount);
-						var scoreFactor = parseInt(compoundCalcRules[k].getAttribute('data-power'));
+						for (var axix = 1; axix <= CALC_AXIS_COUNT; axix++)
+							nzCount += nzEntriesPerAxis[axix];
+				
+					if (nzCount >= parseInt(compoundCalcRules[i].getAttribute('data-min')))
+					{	
+						compoundCalcRules[i].setAttribute('data-triggered',RULE_TRIGGERED);
+						var scoreFactor = parseInt(compoundCalcRules[i].getAttribute('data-power'));
 
-						var points = chooseNZ(scoreFactor,catCount);
+						var points = chooseNZ(scoreFactor,nzCount);
 						
-						var iplus = i;
-						if (iplus < 1)
-							iplus = 1;
+						if (compoundCalcRules[i].getAttribute('data-reqd') != '0')  // Compulsory rule, don't want to score, just maybe DNF
+							points = 0;
 						
-						var catdesc = document.getElementById('cat'+iplus+'_'+j).parentNode.firstChild.innerHTML;
-						if (compoundCalcRules[k].getAttribute('data-pm') == CAT_ResultPoints)
+						if (compoundCalcRules[i].getAttribute('data-pm') == CAT_ResultPoints)
 						{
-							//if (i==0) alert('hsn1 '+catdesc+'; '+catCount);
-							axisScores[i].setAttribute('data-points',parseInt(axisScores[i].getAttribute('data-points')) + points);
-							//if (i==0) alert('hsn2 '+catdesc+'; '+catCount);
+							axisScore.setAttribute('data-points',parseInt(axisScore.getAttribute('data-points')) + points);
 							totalBonusPoints += points;
-							sxappend('R'+k,axisScores[i].value+':nc['+catdesc+']&gt;='+compoundCalcRules[k].getAttribute('data-min'),points,0,totalBonusPoints);
-							//if (i==0) alert('hsn3 '+catdesc+'; '+catCount);
+							sxappend('R'+i,axisScore.value+':nz&gt;='+compoundCalcRules[i].getAttribute('data-min'),points,0,totalBonusPoints);
 						}
 						else // Multipliers
 						{
-							axisScores[i].setAttribute('data-mults',points);
+							axisScore.setAttribute('data-mults',points);
 							totalMultipliers += points;
-							sxappend('R'+k,axisScores[i].value+':nc['+catdesc+']&gt;='+compoundCalcRules[k].getAttribute('data-min'),0,points,totalBonusPoints);
+							sxappend('R'+i,axisScore.value+':nz&gt;='+compoundCalcRules[i].getAttribute('data-min'),0,points,totalBonusPoints);
 						}
 						lastAxis = axis;
-						break;		// Only process one calc
 					}
 				}
+			} // End NonZeroEntries
+		}
+	} //ccs_catsPerAxisNZ
+	
+	
+
+	function ccs_entriesPerCat()
+	
+	// This calculates the axis scores using entries per category
+	
+	{
+		
+		if (debug) alert("ccs5");
+	
+		// Now process catcompound entries that depend on number of non-zero entries per category within axis
+	
+	
+		for (var i = 0; i <= CALC_AXIS_COUNT; i++)
+		{
+			//alert('cc '+i+' == '+catCounts[i].length);
+			for (var j = 0; j < catCounts[i].length; j++)
+			{
+				var lastAxis = -1;
+				for (var k = 0; k < compoundCalcRules.length; k++)
+				{
+					var axis = parseInt(compoundCalcRules[k].getAttribute('data-axis'));  
+					if (axis == i && (axis == 0 || typeof(catCounts[i][j]) != 'undefined'))
+					{
+						var catCount = 0;
+						if (axis == 0)
+						{
+							for (var axix = 1; axix <= CALC_AXIS_COUNT; axix++)
+								if (typeof(catCounts[axix][j]) != 'undefined')
+									catCount += catCounts[axix][j];
+						}
+						else
+							catCount = catCounts[i][j];
+					
+						var matchcat = parseInt(compoundCalcRules[k].getAttribute('data-cat'));
+					
+						if (catCount >= parseInt(compoundCalcRules[k].getAttribute('data-min')) && 
+							compoundCalcRules[k].getAttribute('data-method') == CAT_NumBonusesPerCatMethod && 
+							compoundCalcRules[k].getAttribute('data-mb') == CAT_ModifyAxisScore &&
+							(matchcat == 0 || matchcat == j))
+						{
+							compoundCalcRules[k].setAttribute('data-triggered',RULE_TRIGGERED);
+							//if (axis == 1) alert("ccs5.1; i=" + i + "; j=" + j + "; k =" + k + "; axis=" + axis + "; catCount=" + catCount);
+							var scoreFactor = parseInt(compoundCalcRules[k].getAttribute('data-power'));
+
+							var points = chooseNZ(scoreFactor,catCount);
+						
+							var iplus = i;
+							if (iplus < 1)
+								iplus = 1;
+						
+							var catdesc = document.getElementById('cat'+iplus+'_'+j).parentNode.firstChild.innerHTML;
+							if (compoundCalcRules[k].getAttribute('data-pm') == CAT_ResultPoints)
+							{
+								//if (i==0) alert('hsn1 '+catdesc+'; '+catCount);
+								axisScores[i].setAttribute('data-points',parseInt(axisScores[i].getAttribute('data-points')) + points);
+								//if (i==0) alert('hsn2 '+catdesc+'; '+catCount);
+								totalBonusPoints += points;
+								sxappend('R'+k,axisScores[i].value+':nc['+catdesc+']&gt;='+compoundCalcRules[k].getAttribute('data-min'),points,0,totalBonusPoints);
+								//if (i==0) alert('hsn3 '+catdesc+'; '+catCount);
+							}
+							else // Multipliers
+							{
+								axisScores[i].setAttribute('data-mults',points);
+								totalMultipliers += points;
+								sxappend('R'+k,axisScores[i].value+':nc['+catdesc+']&gt;='+compoundCalcRules[k].getAttribute('data-min'),0,points,totalBonusPoints);
+							}
+							lastAxis = axis;
+							break;		// Only process one calc
+						}
+					}
 				
+				}
 			}
 		}
-	}
-	
-	if (debug) alert("ccs6");
-	
-	// Now report axis scores
-	for (var i = 0; i < axisScores.length; i++)
-	{
-		var pp = 0, mm = 0;
-		var axisName = 'Axis';
-		var axis = parseInt(axisScores[i].getAttribute('data-axis'));
-		axisName  = axisScores[i].getAttribute('value');			// The label associated with this axis
-		pp = parseInt(axisScores[i].getAttribute('data-points'));
-		mm = parseInt(axisScores[i].getAttribute('data-mults'));
-	}
+	} //ccs_entriesPerCat
 	
 	
-	if (debug) alert("ccs7");
-	
-	// Ordinary bonuses all done now, moving on ...
 
-	// Specials
-	
-	var sgObj = document.getElementById("SGroupsUsed");
-	if (sgObj != null)
+	function ccs_processSpecials()
 	{
-		var sg = sgObj.value.split(",");
-		for (var j = 0; j < sg.length; j++)
+		// Specials
+	
+		var sgObj = document.getElementById("SGroupsUsed");
+		var sbonuses = [];
+		if (sgObj != null)
 		{
-			bonuses = document.getElementsByName("SpecialID_"+sg[j]+"[]");
-			for (var i = 0, bps = 0, mults = 0; i < bonuses.length; i++ )
-				if (bonuses[i].checked)
+			var sg = sgObj.value.split(",");
+			for (var j = 0; j < sg.length; j++)
+			{
+				sbonuses = document.getElementsByName("SpecialID_"+sg[j]+"[]");
+				for (var i = 0, bps = 0, mults = 0; i < sbonuses.length; i++ )
 				{
-					bps = parseInt(bonuses[i].getAttribute('data-points'));
-					totalBonusPoints += bps;
-					mults = parseInt(bonuses[i].getAttribute('data-mult'));
-					totalMultipliers += mults;
-					sxappend(bonuses[i].getAttribute('id'),bonuses[i].parentNode.firstChild.innerHTML,bonuses[i].getAttribute('data-points'),bonuses[i].getAttribute('data-mult'),totalBonusPoints);
-				}
+					if (!sbonuses[i].checked)
+						continue;
 				
+					bps = parseInt(sbonuses[i].getAttribute('data-points'));
+					totalBonusPoints += bps;
+					mults = parseInt(sbonuses[i].getAttribute('data-mult'));
+					totalMultipliers += mults;
+					sxappend(sbonuses[i].getAttribute('id'),sbonuses[i].parentNode.firstChild.innerHTML,sbonuses[i].getAttribute('data-points'),sbonuses[i].getAttribute('data-mult'),totalBonusPoints);
+				}
+			}
 		}
-	}
 	
 
 	
-	bonuses = document.getElementsByName("SpecialID[]");
-	for (var i = 0, bps = 0, mults = 0; i < bonuses.length; i++ )
-	{
-		if (bonuses[i].checked)
+		sbonuses = document.getElementsByName("SpecialID[]");
+		for (var i = 0, bps = 0, mults = 0; i < sbonuses.length; i++ )
 		{
-			bps = parseInt(bonuses[i].getAttribute('data-points'));
+			if (!sbonuses[i].checked)
+				continue;
+			bps = parseInt(sbonuses[i].getAttribute('data-points'));
 			totalBonusPoints += bps;
-			mults = parseInt(bonuses[i].getAttribute('data-mult'));
+			mults = parseInt(sbonuses[i].getAttribute('data-mult'));
 			totalMultipliers += mults;
-			sxappend(bonuses[i].getAttribute('id'),bonuses[i].parentNode.firstChild.innerHTML,bonuses[i].getAttribute('data-points'),bonuses[i].getAttribute('data-mult'),totalBonusPoints);			
+			sxappend(sbonuses[i].getAttribute('id'),sbonuses[i].parentNode.firstChild.innerHTML,sbonuses[i].getAttribute('data-points'),sbonuses[i].getAttribute('data-mult'),totalBonusPoints);			
 		}
-	}
 
-	if (debug) alert("ccs8");
+	
 
-	// Combos
-	bonuses = document.getElementsByName("ComboID[]");
-	for (i = 0, bps = 0, mults = 0; i < bonuses.length; i++ )
+	} // ccs_processSpecials
+	
+
+	
+	function ccs_processCombos()
 	{
-		// Combination bonuses are scored by scoring their component ordinary bonuses
-		// So we'll now test whether those referenced bonuses are set or not.
-//		var cb = bonuses[i].getAttribute('data-bonuses').split(',');
-//		bonuses[i].checked = true;
-//		for (var j = 0; j < cb.length; j++)
-//		{
-//			var bid = 'B' + cb[j];
-//			if (!document.getElementById(bid) || !document.getElementById(bid).checked)
-//				bonuses[i].checked = false;
-//		}
-		if (bonuses[i].checked)
+		
+		if (debug) alert("ccs8");
+
+		// Combos
+		var bonuses = document.getElementsByName("ComboID[]");
+		for (var i = 0, bps = 0, mults = 0; i < bonuses.length; i++ )
 		{
+			if (!bonuses[i].checked)
+				continue;
+		
 			//alert(bonuses[i].getAttribute('id')+' checked = '+bonuses[i].getAttribute('data-points'));
 			if (parseInt(bonuses[i].getAttribute('data-method')) == CMB_ScoreMults)
 			{
@@ -574,50 +600,91 @@ function calcComplexScore(res)
 				totalBonusPoints += bps;
 				sxappend(bonuses[i].getAttribute('id'),bonuses[i].parentNode.firstChild.innerHTML,bps,0,totalBonusPoints);			
 			}
+			// Keep track of number of bonuses per category within axis
+			for (var j = 0; j < axisScores.length; j++)
+			{
+				var axis = parseInt(axisScores[j].getAttribute('data-axis'));
+				var cat = parseInt(bonuses[i].getAttribute('data-cat' + axis));
+
+				if (cat > 0)
+				{
+					if (typeof(catCounts[axis][cat]) == 'undefined')
+						catCounts[axis][cat] = 1;
+					else
+						catCounts[axis][cat]++;
+					if (typeof(catCounts[0][cat]) == 'undefined')
+						catCounts[0][cat] = 1;
+					else
+						catCounts[0][cat]++;
+				}
+			}
+			
+		
 		}
-	}
-	
+	} // ccs_processCombos
 	
 
-
-	if (debug) alert("ccs9");
-
-	var MPenalty = calcMileagePenalty();
-	
-	totalBonusPoints -= MPenalty[0];
-	totalMultipliers -= MPenalty[1];
-	
-	if (showMults)
+	function ccs_mileagePenalty()
 	{
-		scoreReason += "\r\n" + RPT_MPenalty + ': P-' + MPenalty[0] + ' (M-' + MPenalty[1] + ')';
+		if (debug) alert("ccs9");
+
+		var MPenalty = calcMileagePenalty();
+	
+		totalBonusPoints -= MPenalty[0];
+		totalMultipliers -= MPenalty[1];
+	
+		if (showMults)
+		{
+			scoreReason += "\r\n" + RPT_MPenalty + ': P-' + MPenalty[0] + ' (M-' + MPenalty[1] + ')';
 		if (MPenalty[0] != 0 || MPenalty[1] != 0)
-			sxappend('',RPT_MPenalty,MPenalty[0],MPenalty[1],totalBonusPoints);
-	}
-	else
-		if (MPenalty[0] != 0)
-		{
-			scoreReason += "\r\n" + RPT_MPenalty + ': ' + MPenalty[0];
-			sxappend('',RPT_MPenalty,MPenalty[0],0,totalBonusPoints);
+				sxappend('',RPT_MPenalty,MPenalty[0],MPenalty[1],totalBonusPoints);
 		}
-
-	var TPenalty = calcTimePenalty();
+		else
+			if (MPenalty[0] != 0)
+			{
+				scoreReason += "\r\n" + RPT_MPenalty + ': ' + MPenalty[0];
+				sxappend('',RPT_MPenalty,MPenalty[0],0,totalBonusPoints);
+			}
+	} // ccs_mileagePenalty
 	
-	totalBonusPoints -= TPenalty[0];
-	totalMultipliers -= TPenalty[1];
 
-	if (showMults)
+	function ccs_timePenalty()
 	{
-		scoreReason += "\r\n" + RPT_TPenalty + ': P-' + TPenalty[0] + ' (M-' + TPenalty[1] + ')';
-		if (TPenalty[0] !=0 || TPenalty[1] !=0)
-			sxappend('',RPT_TPenalty,TPenalty[0],TPenalty[1],totalBonusPoints);
-	}
-	else
-		if (TPenalty[0] != 0)
-		{
-			scoreReason += "\r\n" + RPT_TPenalty + ': ' + TPenalty[0];
-			sxappend('',RPT_TPenalty,TPenalty[0],0,totalBonusPoints);
-		}
+		var TPenalty = calcTimePenalty();
 	
+		totalBonusPoints -= TPenalty[0];
+		totalMultipliers -= TPenalty[1];
+
+		if (showMults)
+		{
+			scoreReason += "\r\n" + RPT_TPenalty + ': P-' + TPenalty[0] + ' (M-' + TPenalty[1] + ')';
+			if (TPenalty[0] !=0 || TPenalty[1] !=0)
+				sxappend('',RPT_TPenalty,TPenalty[0],TPenalty[1],totalBonusPoints);
+		}
+		else
+			if (TPenalty[0] != 0)
+			{
+				scoreReason += "\r\n" + RPT_TPenalty + ': ' + TPenalty[0];
+				sxappend('',RPT_TPenalty,TPenalty[0],0,totalBonusPoints);
+			}
+	} // ccs_timePenalty
+	
+
+
+
+
+	
+
+	// 						c a l c C o m p l e x S c o r e   		M A I N L I N E
+	
+	ccs_initialize();
+	ccs_processBonuses();
+	ccs_processCombos();
+	ccs_processSpecials();
+	ccs_catsPerAxisNZ();
+	ccs_entriesPerCat();
+	ccs_mileagePenalty();
+	ccs_timePenalty();
 	
 	
 	res.reason = scoreReason;
@@ -632,13 +699,10 @@ function calcComplexScore(res)
 	for (var i = 1; i <= CALC_AXIS_COUNT; i++)
 		for (var j = 0; j < catCounts[i].length; j++)
 			showCat(i,catCounts[i][j],j);
-		
+
 	return totalBonusPoints;
 
-
-	
 }
-
 
 function calcMileagePenalty()
 {
@@ -808,15 +872,35 @@ function calcTimePenalty()
 {
 	const OneMinute = 1000 * 60;
 	var TP = document.getElementsByName('TimePenalty[]');
-	var FT = document.getElementById('FinishDate').value + 'T' + document.getElementById('FinishTime').value;
+	var FT = new Date(document.getElementById('FinishDate').value + 'T' + document.getElementById('FinishTime').value+'Z');
 	var  FTDate = new Date(FT);
 	//alert("TP: "+FTDate);
 	for ( var i = 0 ; i < TP.length ; i++ )
-		if (FT >= TP[i].getAttribute('data-start') && FT <= TP[i].getAttribute('data-end'))
+	{
+		var ds, de, dnf;
+		switch(parseInt(TP[i].getAttribute('data-spec')))
+		{
+			case TPS_rallyDNF:
+				dnf = new Date(document.getElementById('RallyTimeDNF').value+'Z');
+				ds = dnf - parseInt(TP[i].getAttribute('data-start')) * 60000;
+				de = dnf - parseInt(TP[i].getAttribute('data-end')) * 60000;
+				break;
+			case TPS_entrantDNF:
+				dnf = new Date(document.getElementById('FinishTimeDNF').value+'Z');
+				ds = dnf - parseInt(TP[i].getAttribute('data-start')) * 60000;
+				de = dnf - parseInt(TP[i].getAttribute('data-end')) * 60000;
+				break;
+			default:
+				ds = new Date(TP[i].getAttribute('data-start')+'Z');
+				de = new Date(TP[i].getAttribute('data-end')+'Z');
+		}
+		
+		//if (FT >= TP[i].getAttribute('data-start') && FT <= TP[i].getAttribute('data-end'))
+		if (FT >= ds && FT <= de)
 		{
 			var PF = parseInt(TP[i].getAttribute('data-factor'));
 			var PM = parseInt(TP[i].getAttribute('data-method'));
-			var PStartDate = new Date(TP[i].getAttribute('data-start'));
+			var PStartDate = ds; //new Date(TP[i].getAttribute('data-start'));
 			var Mins = 1 + (Math.abs(FTDate - PStartDate) / OneMinute);
 			//alert(PStartDate + ' == ' + FTDate + ' == ' + PM + '=' + TPM_PointsPerMin + ' == ' + Mins);
 			switch(PM)
@@ -831,6 +915,7 @@ function calcTimePenalty()
 					return [PF,0];
 			}
 		}
+	}
 	return [0,0];
 
 }
@@ -1119,6 +1204,7 @@ function setFinisherStatus()
  *
  */
 {
+	
 	function SFS(status,x)
 	{
 		var es = document.getElementById('EntrantStatus');
@@ -1201,6 +1287,8 @@ function setFinishTimeDNF()
 	var FT = document.getElementById('RallyTimeDNF').value;
 	var xt = dt.toISOString();
 	xt = xt.substring(0,16);
+	if (FT < xt)
+		xt = FT;
 	document.getElementById('FinishTimeDNF').value = xt;
 	//alert("set="+xt);
 

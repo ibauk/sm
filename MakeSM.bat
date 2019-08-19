@@ -148,7 +148,8 @@ echo :MULTIUSER>> %DESTFOLDER%\%EXECNAME%
 echo echo.>> %DESTFOLDER%\%EXECNAME%
 echo echo Starting PHP service>> %DESTFOLDER%\%EXECNAME%
 echo set t=none>> %DESTFOLDER%\%EXECNAME%
-echo for /f "Delims=:- " %%%%a in ('tasklist /fi "IMAGENAME eq php-cgi.exe" /nh') do if not "%%%%a" == "INFO" set t=%%%%a>> %DESTFOLDER%\%EXECNAME%
+echo for /f "Delims=:-. " %%%%a in ('tasklist /fi "IMAGENAME eq php-cgi.exe" /nh') do if not "%%%%a" == "INFO" set t=%%%%a>> %DESTFOLDER%\%EXECNAME%
+echo for /f "Delims=:-. " %%%%a in ('tasklist /fi "IMAGENAME eq php.exe" /nh') do if not "%%%%a" == "INFO" set t=%%%%a>> %DESTFOLDER%\%EXECNAME%
 echo if "%%t%%" == "php" goto :SKIPPHP>> %DESTFOLDER%\%EXECNAME%
 echo if "%%MU%%"=="SU" start "PHP service for ScoreMaster"  /min php\php -S 127.0.0.1%%PORT%% -t sm -c php\php.ini>> %DESTFOLDER%\%EXECNAME%
 

@@ -58,17 +58,14 @@ $KONSTANTS['TiesSplitByMiles'] = 1;
 $KONSTANTS['TeamRankIndividuals'] = 0;
 $KONSTANTS['TeamRankHighest'] = 1;
 $KONSTANTS['TeamRankLowest'] = 2;
+$KONSTANTS['TimeSpecDatetime'] = 0;
+$KONSTANTS['TimeSpecRallyDNF'] = 1;
+$KONSTANTS['TimeSpecEntrantDNF'] = 2;
 
 // Beware, these next two used for combinations & catcompounds
 $KONSTANTS['ComboScoreMethodPoints'] = 0;
 $KONSTANTS['ComboScoreMethodMults'] = 1;
 
-/* Each simple bonus may be classified using
- * this number of categories. This reflects 
- * the database structure, it may not be
- * arbitrarily increased.
- */
-$KONSTANTS['NUMBER_OF_COMPOUND_AXES'] = 3;
 
 $KONSTANTS['DefaultOdoScaleFactor'] = 1;
 $KONSTANTS['DefaultEntrantStatus'] = $KONSTANTS['EntrantOK'];
@@ -87,6 +84,21 @@ try
 	echo("OMG ".$ex->getMessage().' file=[ '.$DBFILENAME.' ]');
 }
 $DBVERSION = getValueFromDB("SELECT DBVersion FROM rallyparams","DBVersion",0);
+
+
+/* Each simple bonus may be classified using
+ * this number of categories. This reflects 
+ * the database structure, it may not be
+ * arbitrarily increased.
+ */
+ 
+if ($DBVERSION < 3)
+	$KONSTANTS['NUMBER_OF_COMPOUND_AXES'] = 3;
+else
+	$KONSTANTS['NUMBER_OF_COMPOUND_AXES'] = 3;
+
+
+
 
 $RALLY_INITIALISED = (1==1);
 $HTML_STARTED = false;

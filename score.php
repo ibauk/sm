@@ -566,38 +566,41 @@ function scoreEntrant($showBlankForm = FALSE)
 	echo('</body></html>');
 }
 
-function showBonuses($bonuses,$showBlankForm)
+function showBonuses($bonusesTicked,$showBlankForm)
 {
 	global $DB, $TAGS, $KONSTANTS;
 
-	$BA = explode(',',','.$bonuses); // The leading comma means that the first element is index 1 not 0
+	$BA = explode(',',','.$bonusesTicked); // The leading comma means that the first element is index 1 not 0
 	$BP = [];
 	$R = $DB->query('SELECT * FROM bonuses ORDER BY BonusID');
 	while ($rd = $R->fetchArray())
 	{
-		$BP[$rd['BonusID']] = array($rd['BriefDesc'],$rd['Points'],$rd['Cat1'],$rd['Cat2'],$rd['Cat3'],$rd['Compulsory']);
+		$bk = $rd['BonusID'];
+		$bd = $rd['BriefDesc'];
+		
+		$chk = array_search($rd['BonusID'], $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
+		$spncls = ($chk <> '') ? ' checked' : ' unchecked';
+		echo('<span class="showbonus'.$spncls.'" oncontextmenu="showPopup(this);"');
+		if ($rd['Compulsory']<>0)
+			echo(' compulsory');
+		echo(' title="'.htmlspecialchars($bd).' [ '.$rd['Points'].' ]">');
+		echo('<label for="B'.$bk.'">'.$bk.'-</label>');
+		echo('<input type="checkbox"'.$chk.' name="BonusID[]" id="B'.$bk.'" value="'.$bk.'" onchange="calcScore(true)"');
+		echo(' data-points="'.$rd['Points'].'" ');
+		for ($c = 1; $c <= $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $c++)
+			echo('data-cat'.$c.'="'.intval($rd['Cat'.$c]).'" ');
+		echo('data-reqd="'.intval($rd['Compulsory']).'" /> ');
+		if ($showBlankForm)
+		{
+			echo(' ____ ____ &nbsp;&nbsp;&nbsp;&nbsp;');
+		}
+		echo('</span>');
+		echo("\r\n");
+		
+		
+		
 	}
 	echo('<input type="hidden" name="update_bonuses" value="1" />'); // Flag in case of no bonuses ticked = empty array
-	foreach($BP as $bk => $b)
-	{
-		if ($bk <> '') {
-			$chk = array_search($bk, $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
-			$spncls = ($chk <> '') ? ' checked' : ' unchecked';
-			echo('<span class="showbonus'.$spncls.'" oncontextmenu="showPopup(this);"');
-			if ($b[5]<>0)
-				echo(' compulsory');
-			echo(' title="'.htmlspecialchars($b[0]).' [ '.$b[1].' ]">');
-			echo('<label for="B'.$bk.'">'.$bk.'-</label>');
-			echo('<input type="checkbox"'.$chk.' name="BonusID[]" id="B'.$bk.'" value="'.$bk.'" onchange="calcScore(true)"');
-			echo(' data-points="'.$b[1].'" data-cat1="'.intval($b[2]).'" data-cat2="'.intval($b[3]).'" data-cat3="'.intval($b[4]).'" data-reqd="'.intval($b[5]).'" /> ');
-			if ($showBlankForm)
-			{
-				echo(' ____ ____ &nbsp;&nbsp;&nbsp;&nbsp;');
-			}
-			echo('</span>');
-			echo("\r\n");
-		}
-	}
 	echo("\r\n");
 }
 
@@ -633,30 +636,30 @@ function showCombinations($Combos)
 		if ($DBVERSION < 3)
 			$rd['MinimumTicks'] = 0;
 		
-		$BP[$rd['ComboID']] = array($rd['BriefDesc'],$rd['ScoreMethod'],$rd['ScorePoints'],$rd['Bonuses'],$rd['Compulsory'],$rd['MinimumTicks']);
+		$bk = $rd['ComboID'];
+		$bd = $rd['BriefDesc'];
+		$chk = array_search($rd['ComboID'], $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
+		$spncls = ($chk <> '') ? ' checked' : ' unchecked';
+		echo('<span class="combo '.$spncls.'" title="'.htmlspecialchars($bk).' [ ');
+		if ($rd['ScoreMethod']==$KONSTANTS['ComboScoreMethodMults'])
+			echo('x');
+		echo($rd['ScorePoints']);
+		echo(' ]" oncontextmenu="showPopup(this);">');
+		echo('<label for="C'.$bk.'">'.htmlspecialchars($bd).' </label>');
+		echo('<input type="checkbox"'.$chk.' name="ComboID[]" disabled="disabled" id="C'.$bk.'" value="'.$bk.'"');
+		echo(' data-method="'.$rd['ScoreMethod'].'" data-points="'.$rd['ScorePoints'].'" data-bonuses="'.$rd['Bonuses'].'" ');
+		if ($DBVERSION >= 3)
+			for ($c = 1; $c <= $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $c++)
+				echo(' data-cat'.$c.'="'.intval($rd['Cat'.$c]).'" ');
+			
+		echo(' data-reqd="'.$rd['Compulsory'].'"');
+		echo(' data-minticks="'.$rd['MinimumTicks'].'"');
+		echo(' data-pointsarray="'.$rd['ScorePoints'].'"'); // Combos might have different values depending on MinimumTicks
+		echo('/> ');
+		echo(' &nbsp;&nbsp;</span> ');
+		echo("\r\n");
 	}
 	echo('<input type="hidden" name="update_combos" value="1" />'."\r\n");
-	foreach($BP as $bk => $b)
-	{
-		if ($bk <> '') {
-			$chk = array_search($bk, $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
-			$spncls = ($chk <> '') ? ' checked' : ' unchecked';
-			echo('<span class="combo '.$spncls.'" title="'.htmlspecialchars($bk).' [ ');
-			if ($b[1]==$KONSTANTS['ComboScoreMethodMults'])
-				echo('x');
-			echo($b[2]);
-			echo(' ]" oncontextmenu="showPopup(this);">');
-			echo('<label for="C'.$bk.'">'.htmlspecialchars($b[0]).' </label>');
-			echo('<input type="checkbox"'.$chk.' name="ComboID[]" disabled="disabled" id="C'.$bk.'" value="'.$bk.'"');
-			echo(' data-method="'.$b[1].'" data-points="'.$b[2].'" data-bonuses="'.$b[3].'" data-reqd="'.$b[4].'"');
-			echo(' data-minticks="'.$b[5].'"');
-			echo(' data-pointsarray="'.$b[2].'"'); // Combos might have different values depending on MinimumTicks
-			echo('/> ');
-			echo(' &nbsp;&nbsp;</span> ');
-			echo("\r\n");
-		}
-	}
-	//echo('<br />');
 }
 
 

@@ -597,6 +597,17 @@ function showFinisherList()
 
 	global $DB, $TAGS, $KONSTANTS;
 
+	if ($KONSTANTS['DecimalPointIsComma'])
+	{
+		$dp = ',';
+		$cm = '.';
+	}
+	else
+	{
+		$dp = '.';
+		$cm = ',';
+	}
+
 	$sortspec = 'FinishPosition ';
 	if (isset($_REQUEST['seq']))
 		$sortspec = $_REQUEST['seq'];
@@ -639,8 +650,8 @@ echo('<title>'.$TAGS['ttFinishers'][0].'</title>');
 		if ($rd['PillionName'] > '')
 			echo(' & '.$rd['PillionName']);
 		echo('</td>');
-		echo('<td>'.$rd['CorrectedMiles'].'</td>');
-		echo('<td>'.$rd['TotalPoints'].'</td>');
+		echo('<td>'.number_format($rd['CorrectedMiles'],0,$dp,$cm).'</td>');
+		echo('<td>'.number_format($rd['TotalPoints'],0,$dp,$cm).'</td>');
 		echo('</tr>');
 		$n++;
 	}
