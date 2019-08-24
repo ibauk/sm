@@ -34,9 +34,9 @@
 const DNF_TOOFEWPOINTS = "Not enough points";
 const DNF_TOOFEWMILES = "Not enough kms";
 const DNF_TOOMANYMILES = "Too many kms";
-const DNF_FINISHEDTOOLATE = "Finished too late";
+const DNF_FINISHEDTOOLATE = "Zu spät/Finished too late";
 const DNF_MISSEDCOMPULSORY = "Missed a compulsory bonus";
-const DNF_COMPOUNDRULE = "Breached a compound rule";
+const DNF_COMPOUNDRULE = "Es wurden nicht genügend Regionen erreicht<br>Not enough regions were reached";
 
 // Elements of Score explanation, include trailing space, etc
 const RPT_Tooltip	= "Click for explanation\rdoubleclick to print";
@@ -44,14 +44,15 @@ const RPT_Bonuses	= "Bonuses ticked";
 const RPT_Specials	= "Specials";
 const RPT_Combos	= "Combos";
 const RPT_MPenalty	= "Entfernungsstrafe/Distance penalty";
-const RPT_TPenalty	= "Verspätungsstrafe/Late penalty";
-const RPT_Total 	= "TOTAL";
+const RPT_TPenalty	= "<strong>Punkteabzug wg. Verspätung/Late penalty</strong>";
+const RPT_Total 	= "SUMME/TOTAL";
 
 const CFGERR_MethodNIY = "Error: compoundCalcRuleMethod {0} not implemented yet";
 const CFGERR_NotBonuses = "Error: compoundCalcRuleType {0} not applicable to bonuses";
 
 const ASK_POINTS = "Please enter the points for";
 const LOOKUP_ENTRANT = "Find entrant record matching what?";
-const CLAIM_REJECTED = "Claim rejected";
+const CLAIM_REJECTED = "Anspruch abgelehnt/Claim rejected";
 const FINISHERS_EXPORTED = "Finishers Exported!";
 
+const MY_LOCALE = "de-DE";

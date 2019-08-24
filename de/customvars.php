@@ -119,7 +119,7 @@ $TAGS = array(
 	'BikeReg'			=> array('Registration','Registration number of the bike if known'),
 	'BonusesLit'		=> array('Bonuses','Ordinary bonuses'),
 	'BonusIDLit'		=> array('BonusID',''),
-	'BonusListLit'		=> array('Combination bonuses','List of ordinary &amp; special bonus IDs'),
+	'BonusListLit'		=> array('Underlying bonuses','Comma separated list of ordinary, special &amp combo bonus IDs'),
 	'BonusMaintHead'	=> array('Ordinary Bonuses','List of Ordinary (geographic) bonuses'),
 	'BonusPoints'		=> array('Points','The basic points value of this bonus'),
 	'BriefDescLit'		=> array('Brief description',''),
@@ -141,7 +141,11 @@ $TAGS = array(
 	'CatExplainer'		=> array('CatExplainer','You can amend the description of categories or delete them entirely. New entries must have an category number which is unique within the axis.'),
 	'CatNotUsed'		=> array('(not used)',''),
 	'ccApplyToAll'		=> array('all cats','applies to all cats'),
-	'ccCompulsory'		=> array('Compulsory','1=DNF if not triggered;2=DNF if triggered; else 0'),
+	'ccCompulsory'		=> array('Compulsory?','1=DNF if not triggered;2=DNF if triggered; else 0'),
+	'ccCompulsory0'		=> array('Regular rule','Ordinary scoring rule'),
+	'ccCompulsory1'		=> array('Untrig=DNF','DNF unless this rule triggered'),
+	'ccCompulsory2'		=> array('Trigger=DNF','DNF if this rule triggered'),
+	'ccCompulsory3'		=> array('Placeholder','Placeholder rule'),
 	
 	'CertExplainer'		=> array('Certificates are "web" documents comprising well-formed HTML and CSS parts.',
 									'Please carefully specify the certificate layout and content in the texts below.'),
@@ -152,6 +156,7 @@ $TAGS = array(
 	'ChooseEntrant'		=> array('Choose entrant','Pick an entrant from this list'),
 	'ComboIDLit'		=> array('ComboID',''),
 	'ComboMaintHead'	=> array('Combination Bonuses','List of Combination bonuses'),
+	'ComboScoreMethod'	=> array('Scoretype','Does this combo score points? or multipliers?'),
 	'CombosLit'			=> array('Combinations','Combination bonuses'),
 	'CommaSeparated'	=> array('Comma separated list',''),
 	'CompulsoryBonus'	=> array('Compulsory?','This bonus is required for Finisher status'),
@@ -164,12 +169,12 @@ $TAGS = array(
 	'Country'			=> array('Country',"Entrant's home country"),
 	'dblclickprint'		=> array('Double-click to print',''),
 	'DeleteEntrant'		=> array('Go ahead, delete the bugger!','Execute the deletion'),
-	'DeleteEntryLit'	=> array('Delete?',''),
+	'DeleteEntryLit'	=> array('Delete?','Delete this record from the database?'),
 	'EntrantDNF'		=> array('DNF','Did not qualify as a finisher'),
 	'EntrantDNS'		=> array('DNS','Entrant failed to start the rally'),
 	'EntrantEmail'		=> array('Entrant email','Email for this entrant'),
 	'EntrantFinisher'	=> array('Finisher','Rally finisher'),
-	'EntrantID'			=> array('Fahrer/Rider #','The unique reference for this Entrant'),
+	'EntrantID'			=> array('Motorrad/Rider #','The unique reference for this Entrant'),
 	'EntrantListBonus'	=> array('Entrants claiming bonus','List of entrants claiming a particular bonus'),
 	'EntrantListCheck'	=> array('Entrant check-ins/outs','Choose an entrant for checkin-in or checking-out'),
 	'EntrantListCombo'	=> array('Entrants claiming combo','List of entrants claiming a particular combination'),
@@ -205,6 +210,7 @@ $TAGS = array(
 	//                            re    phrase
 	'ImportBikeTBC'		=> array('/tbc|tba|unknown/i','motorbike','Replace re with literal'),
 	'InsertNewCC'		=> array('Enter new compound calc',''),
+	'InsertNewCombo'	=> array('New combo','Setup a new combination bonus'),
 	'LegendPenalties'	=> array('Penalties',''),
 	'LegendScoring'		=> array('Scoring &amp; Ranking',''),
 	'LegendTeams'		=> array('Teams'),
@@ -217,21 +223,21 @@ $TAGS = array(
 	'MaxMilesPoints'	=> array('Points or Multipliers deducted','Number of points or multipliers for excess distance'),	// Miles/Kms
 	'MaxMilesUsed'		=> array('Tick if maximum kms used','Will entrants be DNF if they exceed a maximum distance?'),	// Miles/Kms
 	'MilesPenaltyText'	=> array('Distance penalty deduction',''),															// Miles/Kms
-	'MinimumTicks'		=> array('MinTicks','Minimum bonus ticks for this combo; 0=all'),
+	'MinimumTicks'		=> array('MinTicks','The minimum number of underlying bonus ticks needed to score this combo; 0=all'),
 	'MinMiles'			=> array('Minimum kms','Minimum distance to qualify as a finisher'),						// Miles/Kms
 	'MinMilesUsed'		=> array('Tick if minimum kms used','Will entrants need to ride a minimum distance in order to qualify as finishers?'), // Miles/Kms
 	
 	'MinPoints'			=> array('Minimum points','Minimum points scored to be a finisher'),
 	'MinPointsUsed'		=> array('Tick if minimum points used','Will entrants need to score a minimum number of points in order to qualify as finishers?'),
-	'ModBonus0'			=> array('ModBonus0','Affects compound axis score'),
-	'ModBonus1'			=> array('ModBonus1','Modifies bonus score'),
+	'ModBonus0'			=> array('Axis','Affects compound axis score'),
+	'ModBonus1'			=> array('Bonus','Modifies bonus score'),
 	'ModBonusLit'		=> array('Usage','1=This calc directly affects bonus value, 0=This calc builds the axis score'),
 	'NameFilter'		=> array('Rider name','Use this to filter the list of riders shown below'),
 	'NewEntrantNum'		=> array('New number','What\'s the number number for this entrant'),
 	'NewPlaceholder'	=> array('start new entry','Placeholder for new table entries'),
-	'NMethod-1'			=> array('NMethod-1','Not used'),
-	'NMethod0'			=> array('NMethod0','No of bonuses per cat'),
-	'NMethod1'			=> array('NMethod1','No of NZ cats per axis'),
+	'NMethod-1'			=> array('Unused','Not used'),
+	'NMethod0'			=> array('Bonuses/cat','No of bonuses per cat'),
+	'NMethod1'			=> array('Cats/axis','No of NZ cats per axis'),
 	'NMethodLit'		=> array('NMethod','0=# entries per cat, 1=# of NZ cats, -1=record not used'),
 	'NMinLit'			=> array('NMin','The minimum value of N before this rule is triggered'),
 	'NoCerts2Print'		=> array('Sorry, no certificates to print.',''),
@@ -244,7 +250,7 @@ $TAGS = array(
 	'NPowerLit'			=> array('NPower',"If bonus rule &amp; this is 0, R=bonuspoints(N-1)\n".
 											"If bonus rule &amp; this > 0, R=bonuspoints(this^(N-1))\n".
 											"If axis rule &amp; this is 0, R=N\n".
-											"If axis rule &amp; this > 0, R=this value"),
+											"If axis rule &amp; this <> 0, R=this value"),
 											
 	'OdoCheckFinish'	=> array('Odo check finish','The odometer reading at the end of the odo check'),					// Miles/Kms
 	'OdoCheckMiles'		=> array('Odo check distance','The length of the route used to check the accuracy of odometers'),	// Miles/Kms
@@ -260,7 +266,8 @@ $TAGS = array(
 	'OdoScaleFactor'	=> array('Correction factor','The number to multiply odo readings to get true distance'),			// Miles/Kms
 	
 	'OfferScore'		=> array('OfferScore','Would you like to help score this rally? If so, please tell me your name'),
-	
+	'optCompulsory'		=> array('Compulsory',''),
+	'optOptional'		=> array('Optional',''),
 	'PenaltyMaxMiles'	=> array('Max kms (penalties)','Distance beyond this incurs penalties; 0=doesn\'t apply'),			// Miles/Kms
 	'PenaltyMilesDNF'	=> array('DNF distance','Distance beyond here result in DNF; 0=doesn\'t apply'),						// Miles/Kms
 	
@@ -268,19 +275,19 @@ $TAGS = array(
 	'PillionFirst'		=> array('Informal name',"Used for repeat mentions on finisher's certificate"),
 	'PillionIBA'		=> array('IBA #',"Pillion's IBA number if known"),
 	'PillionName'		=> array('Pillion','Full name of the pillion rider'),
-	'PointsMults'		=> array('Points/Mults','The number of points or multipliers; use commas for variable values starting with MinTicks'),
+	'PointsMults'		=> array('Result','Results in points or multipliers'),
 	'PointsMults0'		=> array('PointsMults0','Points'),
 	'PointsMults1'		=> array('PointsMults1','Multipliers'),
 	
 	'PreviewCert'		=> array('Preview','What will this certificate look like'),
 	
 	// Quick dirty list headings
-	'qPlace'			=> array('Rank',''),
+	'qPlace'			=> array('Platz',''),
 	'qName'				=> array('Name',''),
 	
-	'qMiles'			=> array('Kms',''),						// Miles/Kms
+	'qMiles'			=> array('Km',''),						// Miles/Kms
 	
-	'qPoints'			=> array('Points',''),
+	'qPoints'			=> array('Punkte',''),
 	
 	// Renumber All Entrants texts
 	'raeConfirm'		=> array('Are you sure','Must be checked before submission'),
@@ -323,7 +330,7 @@ $TAGS = array(
 	'ROUseScore'		=> array('ReadOnly','These fields may not be changed here, use Scoring instead'),
 	'SaveCertificate'	=> array('Save certificate','Save the updated copy of this certificate'),
 	'SaveEntrantRecord' => array('Save entrant details',''),
-	'SaveNewCC'			=> array('Save new CC',''),
+	'SaveNewCC'			=> array('Update database',''),
 	'SaveRallyConfig'	=> array('Update rally configuration parameters',''),
 	'SaveScore'			=> array('Save scorecard','Save the updated score/status of this entrant'),
 	'ScoredBy'			=> array('Scored by','Who is (or did) scoring this entrant?'),
@@ -332,6 +339,7 @@ $TAGS = array(
 	'Scorer'			=> array('Scorer','Person doing the scoring'),
 	'ScoreSaved'		=> array('Scorecard saved','This screen matches the database, no changes yet'),
 	'ScoreThis'			=> array('Score this rider',''),
+	'ScoreValue'		=> array('Value(s)','The number of points or multipliers; use commas for variable values starting with MinTicks'),
 	'ScorexLit'			=> array('ScoreX','Score explanation'),
 	'ScoringMethod'		=> array('Scoring method',''),
 	'ScoringMethodA'	=> array('Automatic','The system will figure it out'),
@@ -402,7 +410,11 @@ $TAGS = array(
 	'tpMethod3'			=> array('tpMethod3','Mults per minute'),
 	'tpMethodLit'		=> array('Penalty method','Which penalty method applies'),
 	'tpStartLit'		=> array('Start time','Time this penalty starts from'),
-
+	'tpTimeSpec0'		=> array('Date &amp; time','Absolute date/time'),
+	'tpTimeSpec1'		=> array('Mins &lt; RallyDNF','Minutes before overall rally DNF'),
+	'tpTimeSpec2'		=> array('Mins &lt; EntrantDNF','Minutes before individual entrant DNF'),
+	'tpTimeSpecLit'		=> array('TimeSpec','Time specification flag'),
+	
 	'TotalMults'		=> array('Total multipliers','The number of multipliers applied compiling the total score'),
 	'TotalPoints'		=> array('Total points','Final rally score'),
 	'unset'				=> array('unset, empty, null',''),
@@ -411,6 +423,7 @@ $TAGS = array(
 	'UpdateBonuses'		=> array('Update bonuses',''),
 	'UpdateCategory'	=> array('Update category',''),
 	'UpdateCCs'			=> array('Update compound calcs',''),
+	'UpdateCombo'		=> array('Update combination','Save this record to the database'),
 	'UpdateSGroups'		=> array('Update special groups',''),
 	'UpdateTimeP'		=> array('Update time penalties',''),
 	

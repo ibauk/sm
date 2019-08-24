@@ -79,6 +79,7 @@ span.vlabel				{ display: block; padding-top: 1em;}
 span.vlabel label		{ text-align: right; width: 8em; display: inline-block; }
 span.vlabel label.wide	{ text-align: right; width: 12em; display: inline-block; }
 span.xlabel:before		{ content: '\A\A'; white-space: pre; }
+.rowcol					{ padding-left: 1em; text-align: center; }
 input[name="BikeReg"]	{ width: 6em; }
 select[name="EntrantStatus"]	{ margin-bottom: 1em; }
 fieldset				{ margin-bottom: 1em; }
@@ -117,7 +118,8 @@ ul#tabs li a.selected { color: #000; background-color: #f1f0ee; font-weight: bol
 .compulsory		{ font-weight: bold; }
 .techie			{ font-size: .6em; } /* For largely uninteresting items */
 .slogan			{ font-size: .8em; font-style: italic; text-align: center; }
-.ClaimsCount	{ padding-left: 1em; text-align: right; }
+.ClaimsCount	{ padding-left: 1em; text-align: center; }
+.ClaimsCount a  { text-decoration: none; }
 #ScoreNowButton	{ background-color: white; color: black; margin-left: 3em;}
 #FullDetailsButton	{ background-color: white; color: black; margin-left: 3em;}
 
@@ -191,8 +193,10 @@ table#entrants	.FinishPosition,.TotalPoints,.CorrectedMiles	{ text-align: center
 #cat_results td.catdesc { width: 6em; text-align: right; padding-right: .5em; }
 #cat_results caption { border-bottom: solid; margin-bottom: .1em; font-style: italic; background-color: inherit; color: #282828; }
 #cat1			{ background-color: inherit; float:left; display: block; padding-left: .5em; padding-right: .5em; font-size:.8em; }
-#cat2			{ margin-left: .2em; background-color: inherit; float:left; display: block; padding-left: .1em; padding-right: .5em;  font-size:.8em; }
-#cat3			{ margin-left: .2em; background-color: inherit; float:left; display: block; padding-left: .1em; padding-right: .5em;  font-size:.8em; }
+#cat2, #cat3, #cat4, #cat5, #cat6, #cat7, #cat8, #cat9
+			{ margin-left: .2em; background-color: inherit; float:left; display: block; padding-left: .1em; padding-right: .5em;  font-size:.8em; }
+
+.ComboID		{ width: 5em; }
 
 /* Score explanation */
 .scorex			{  }
