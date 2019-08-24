@@ -97,7 +97,7 @@ function chooseScoringMethod()
  */
 function defaultFinishTime()
 {
-	global $DB;
+	global $DB, $KONSTANTS, $DBVERSION;
 
 	$notime = ['',''];
 	$R = $DB->query("SELECT FinishTime FROM rallyparams");
@@ -106,7 +106,10 @@ function defaultFinishTime()
 	$RD = $R->fetchArray();
 	$dtx = splitdatetime($RD['FinishTime']);
 	$finishTime = $RD['FinishTime'];
-	$R = $DB->query("SELECT PenaltyStart FROM timepenalties ORDER BY PenaltyStart");
+	$where = $DBVERSION < 3 ? '' : " WHERE TimeSpec='".$KONSTANTS['TimeSpecDatetime']."' ";
+	$sql = "SELECT PenaltyStart FROM timepenalties".$where." ORDER BY PenaltyStart";
+	//echo($sql);
+	$R = $DB->query($sql);
 	if ($R)
 	{
 		if ($RD = $R->fetchArray())
@@ -116,10 +119,11 @@ function defaultFinishTime()
 	}
 	// Make it one minute earlier
 	if ($finishTime != '')
-	{
-		//echo("<br>\r\nFinishTime={".$finishTime."} ");
-		$finishTime = date_sub(DateTime::createFromFormat('Y-m-d\TH:i',$finishTime),new DateInterval('PT1M'))->format('Y-m-d H:i');
-	}
+		try {
+			$finishTime = date_sub(DateTime::createFromFormat('Y-m-d\TH:i',$finishTime),new DateInterval('PT1M'))->format('Y-m-d H:i');
+		} catch (Exception $e) {
+			echo("<br>\r\nERROR TRAPPED FinishTime={".$finishTime."} ");
+		}
 	
 	$res = splitDatetime($finishTime);
 
@@ -274,7 +278,7 @@ function scoreEntrant($showBlankForm = FALSE)
 	// Flag this page as a scoresheet so the javascript knows what to do.
 	echo('<input type="hidden" name="scoresheetpage" id="scoresheetpage" value="scoresheetpage">');
 
-	for ($i = 0; $i <= $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $i++)
+	for ($i = 1; $i <= $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $i++)
 	{
 		echo('<input type="hidden" name="AxisScores[]" id="Axis'.$i.'Score" value="'.htmlspecialchars($rd['Cat'.$i.'Label']).'" data-bonuses="0" data-points="0" data-mults="0" data-axis="'.$i.'">');
 		$axisnames[$i] = $rd['Cat'.$i.'Label'];
@@ -476,7 +480,8 @@ function scoreEntrant($showBlankForm = FALSE)
 		$ctotal = $rd['TotalPoints'];
 		$tp_id = 'TotalPoints';
 	}
-	echo('<input  class="clickme"  ondblclick="sxprint();" onclick="sxtoggle();" title="'.$TAGS['TotalPoints'][1].'" type="'.($ro != ''? 'text' : 'number').'" '.$ro.' name="TotalPoints" id="'.$tp_id.'" value="'.$ctotal.'" onchange="calcScore(true)" /> ');
+	// call to sxtoggle removed
+	echo('<input  class="clickme"  ondblclick="sxprint();"  title="'.$TAGS['TotalPoints'][1].'" type="'.($ro != ''? 'text' : 'number').'" '.$ro.' name="TotalPoints" id="'.$tp_id.'" value="'.$ctotal.'" onchange="calcScore(true)" /> ');
 	echo('</span> ');
 	
 	if (!$showBlankForm)
@@ -562,7 +567,7 @@ function scoreEntrant($showBlankForm = FALSE)
 				showCategory($i,$axisnames[$i]);
 		echo('</div>');
 	}
-	echo('<div id="scorex" title="'.$TAGS['dblclickprint'][0].'" class="hidescorex scorex" data-show="0" ondblclick="sxprint();" >'.$rd['ScoreX'].'</div>');
+	echo('<div id="scorex" title="'.$TAGS['dblclickprint'][0].'" class="showscorex scorex" data-show="0" ondblclick="sxprint();" >'.$rd['ScoreX'].'</div>');
 	echo('</body></html>');
 }
 

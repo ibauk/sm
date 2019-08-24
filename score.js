@@ -190,7 +190,7 @@ function bodyLoaded()
 	
 	var dbv = document.getElementById('DBVERSION');
 	if (dbv)
-		switch(parseInt(dbv))
+		switch(parseInt(dbv.value))
 		{
 			case 3:
 				CALC_AXIS_COUNT = 9;
@@ -243,12 +243,15 @@ function calcComplexScore(res)
 			axisScores[i].setAttribute('data-points',0);
 			axisScores[i].setAttribute('data-mults',0);
 		}
+
 		// Fake catCounts[0]
+		catCounts[0] = [];
 		for (var i = 0; i < axisScores.length; i++)
 			catCounts[0][i] = 0;
 	
 		for (var i = 0; i < compoundCalcRules.length; i++)
 			compoundCalcRules[i].setAttribute('data-triggered',RULE_NOT_TRIGGERED);
+
 	} // ccs_initialize
 	
 	
@@ -411,7 +414,7 @@ function calcComplexScore(res)
 				compoundCalcRules[i].getAttribute('data-mb') == CAT_ModifyAxisScore) 
 			{
 				var axis = parseInt(compoundCalcRules[i].getAttribute('data-axis'));  
-				var axisScore = axisScores[axis];
+				var axisScore = document.getElementById('Axis'+axis+'Score');
 				if (axis > lastAxis) // We want to process each axis only once at this stage
 				{
 					var nzCount = 0;
@@ -423,27 +426,42 @@ function calcComplexScore(res)
 				
 					if (nzCount >= parseInt(compoundCalcRules[i].getAttribute('data-min')))
 					{	
+						lastAxis = axis;
+
 						compoundCalcRules[i].setAttribute('data-triggered',RULE_TRIGGERED);
 						var scoreFactor = parseInt(compoundCalcRules[i].getAttribute('data-power'));
 
 						var points = chooseNZ(scoreFactor,nzCount);
 						
 						if (compoundCalcRules[i].getAttribute('data-reqd') != '0')  // Compulsory rule, don't want to score, just maybe DNF
-							points = 0;
-						
-						if (compoundCalcRules[i].getAttribute('data-pm') == CAT_ResultPoints)
 						{
+							points = scoreFactor;
+							if (points == 0) // There's no score as such
+								continue;
+							// May want to have drop through code below but not at present
+						}
+						else if (compoundCalcRules[i].getAttribute('data-pm') == CAT_ResultPoints)
+						{
+							var dmin = compoundCalcRules[i].getAttribute('data-min');
+							if (points < 0) // Penalty
+								var drel = ': n&lt;'+(++dmin); // cos not enough hits
+							else
+								var drel = ': n&gt;='+dmin;
 							axisScore.setAttribute('data-points',parseInt(axisScore.getAttribute('data-points')) + points);
 							totalBonusPoints += points;
-							sxappend('R'+i,axisScore.value+':nz&gt;='+compoundCalcRules[i].getAttribute('data-min'),points,0,totalBonusPoints);
+							sxappend('R'+i,axisScore.value+drel,points,0,totalBonusPoints);
 						}
 						else // Multipliers
 						{
+							var dmin = compoundCalcRules[i].getAttribute('data-min');
+							if (mults < 0) // Penalty
+								var drel = ': n&lt;'+(++dmin); // cos not enough hits
+							else
+								var drel = ': n&gt;='+dmin;
 							axisScore.setAttribute('data-mults',points);
 							totalMultipliers += points;
-							sxappend('R'+i,axisScore.value+':nz&gt;='+compoundCalcRules[i].getAttribute('data-min'),0,points,totalBonusPoints);
+							sxappend('R'+i,axisScore.value+drel,0,points,totalBonusPoints);
 						}
-						lastAxis = axis;
 					}
 				}
 			} // End NonZeroEntries
@@ -491,6 +509,7 @@ function calcComplexScore(res)
 							compoundCalcRules[k].getAttribute('data-mb') == CAT_ModifyAxisScore &&
 							(matchcat == 0 || matchcat == j))
 						{
+							lastAxis = axis;
 							compoundCalcRules[k].setAttribute('data-triggered',RULE_TRIGGERED);
 							//if (axis == 1) alert("ccs5.1; i=" + i + "; j=" + j + "; k =" + k + "; axis=" + axis + "; catCount=" + catCount);
 							var scoreFactor = parseInt(compoundCalcRules[k].getAttribute('data-power'));
@@ -502,22 +521,40 @@ function calcComplexScore(res)
 								iplus = 1;
 						
 							var catdesc = document.getElementById('cat'+iplus+'_'+j).parentNode.firstChild.innerHTML;
-							if (compoundCalcRules[k].getAttribute('data-pm') == CAT_ResultPoints)
+							var ndesc = ': n['+catdesc+']';
+							if (compoundCalcRules[i].getAttribute('data-reqd') != '0')  // Compulsory rule, don't want to score, just maybe DNF
 							{
+								points = scoreFactor;
+								if (points == 0) // There's no score as such
+									continue;
+								// May want to have drop through code below but not at present
+							}
+							
+							else if (compoundCalcRules[k].getAttribute('data-pm') == CAT_ResultPoints)
+							{
+								var dmin = compoundCalcRules[i].getAttribute('data-min');
+								if (points < 0) // Penalty
+									var drel = ndesc+'lt;'+(++dmin); // cos not enough hits
+								else
+									var drel = ndesc+'&gt;='+dmin;
 								//if (i==0) alert('hsn1 '+catdesc+'; '+catCount);
 								axisScores[i].setAttribute('data-points',parseInt(axisScores[i].getAttribute('data-points')) + points);
 								//if (i==0) alert('hsn2 '+catdesc+'; '+catCount);
 								totalBonusPoints += points;
-								sxappend('R'+k,axisScores[i].value+':nc['+catdesc+']&gt;='+compoundCalcRules[k].getAttribute('data-min'),points,0,totalBonusPoints);
+								sxappend('R'+k,axisScores[i].value+drel,points,0,totalBonusPoints);
 								//if (i==0) alert('hsn3 '+catdesc+'; '+catCount);
 							}
 							else // Multipliers
 							{
+								var dmin = compoundCalcRules[i].getAttribute('data-min');
+								if (points < 0) // Penalty
+									var drel = ndesc+'lt;'+(++dmin); // cos not enough hits
+								else
+									var drel = ndesc+'&gt;='+dmin;
 								axisScores[i].setAttribute('data-mults',points);
 								totalMultipliers += points;
-								sxappend('R'+k,axisScores[i].value+':nc['+catdesc+']&gt;='+compoundCalcRules[k].getAttribute('data-min'),0,points,totalBonusPoints);
+								sxappend('R'+k,axisScores[i].value+drel,0,points,totalBonusPoints);
 							}
-							lastAxis = axis;
 							break;		// Only process one calc
 						}
 					}
@@ -600,6 +637,10 @@ function calcComplexScore(res)
 				totalBonusPoints += bps;
 				sxappend(bonuses[i].getAttribute('id'),bonuses[i].parentNode.firstChild.innerHTML,bps,0,totalBonusPoints);			
 			}
+			
+			if (!COMBOS_USE_CATS)
+				continue;
+			
 			// Keep track of number of bonuses per category within axis
 			for (var j = 0; j < axisScores.length; j++)
 			{
@@ -630,8 +671,8 @@ function calcComplexScore(res)
 
 		var MPenalty = calcMileagePenalty();
 	
-		totalBonusPoints -= MPenalty[0];
-		totalMultipliers -= MPenalty[1];
+		totalBonusPoints += MPenalty[0];
+		totalMultipliers += MPenalty[1];
 	
 		if (showMults)
 		{
@@ -652,8 +693,8 @@ function calcComplexScore(res)
 	{
 		var TPenalty = calcTimePenalty();
 	
-		totalBonusPoints -= TPenalty[0];
-		totalMultipliers -= TPenalty[1];
+		totalBonusPoints += TPenalty[0];
+		totalMultipliers += TPenalty[1];
 
 		if (showMults)
 		{
@@ -719,11 +760,11 @@ function calcMileagePenalty()
 	switch (PMMethod)
 	{
 		case MMM_PointsPerMile:
-			return [PMPoints * PenaltyMiles,0];
+			return [0 - PMPoints * PenaltyMiles,0];
 		case MMM_Multipliers:
 			return [0,PMPoints];
 		default:
-			return [PMPoints,0];
+			return [0 - PMPoints,0];
 	}
 		
 }
@@ -906,13 +947,13 @@ function calcTimePenalty()
 			switch(PM)
 			{
 				case TPM_MultPerMin:
-					return [0,PF * Mins];
+					return [0,0 - PF * Mins];
 				case TPM_PointsPerMin:
-					return [PF * Mins,0];
+					return [0 - PF * Mins,0];
 				case TPM_FixedMult:
-					return [0,PF];
+					return [0,0 - PF];
 				default:
-					return [PF,0];
+					return [0 - PF,0];
 			}
 		}
 	}
@@ -1016,7 +1057,7 @@ function formatNumberScore(n,prettyPrint)
 	{
 		return n;
 	}
-	var NF = new Intl.NumberFormat();
+	var NF = new Intl.NumberFormat(MY_LOCALE);
 	
 	if (parseInt(n) > 0)
 		return NF.format(n);
@@ -1266,9 +1307,9 @@ function setFinisherStatus()
 	BL = document.getElementsByName('catcompound[]');
 	for (var i = 0 ; i < BL.length; i++ )
 		if (BL[i].getAttribute('data-reqd')==COMPULSORYBONUS && BL[i].getAttribute('data-triggered')!=RULE_TRIGGERED)
-			return SFS(EntrantDNF,DNF_MISSEDCOMPULSORY);
+			return SFS(EntrantDNF,DNF_COMPOUNDRULE);
 		else if (BL[i].getAttribute('data-reqd')==MUSTNOTMATCH && BL[i].getAttribute('data-triggered')==RULE_TRIGGERED)
-			return SFS(EntrantDNF,DNF_MISSEDCOMPULSORY);
+			return SFS(EntrantDNF,DNF_COMPOUNDRULE);
 	
 	SFS(EntrantFinisher,'');
 	

@@ -36,7 +36,7 @@ const DNF_COMPOUNDRULE = "Breached a compound rule";
 
 // Elements of Score explanation, include trailing space, etc
 const RPT_Tooltip	= "Click for explanation\rdoubleclick to print";
-const RPT_Bonuses	= "Bonuses";
+const RPT_Bonuses	= "Bonuses ticked";
 const RPT_Specials	= "Specials";
 const RPT_Combos	= "Combos";
 const RPT_MPenalty	= "Mileage penalty";
@@ -51,3 +51,4 @@ const LOOKUP_ENTRANT = "Find entrant record matching what?";
 const CLAIM_REJECTED = "Claim rejected";
 const FINISHERS_EXPORTED = "Finishers Exported!";
 
+const MY_LOCALE	= "en-GB";
