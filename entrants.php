@@ -157,7 +157,7 @@ function listEntrants($ord = "EntrantID")
 	{
 		case 'full':
 		case 'check':
-			echo(' <input type="button" value="'.$TAGS['AdmNewEntrant'][0].'" onclick="window.location='."'entrants.php?c=newentrant'".'">');
+			echo(' <input type="button" value="'.$TAGS['AdmNewEntrant'][0].'" onclick="window.location='."'entrants.php?c=newentrant".$bcurldtl."'".'">');
 	}
 	echo('</caption>');
 	/**

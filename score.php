@@ -138,7 +138,7 @@ function inviteScorer()
 	
 	$rally = getValueFromDB('SELECT RallyTitle FROM rallyparams','RallyTitle','');
 	
-	startHtml($TAGS['ttWelcome'][0]);
+	startHtml($TAGS['ttWelcome'][0],'',false);
 	echo('<div id="frontpage"><p>'.$TAGS['OfferScore'][1].'</p>');
 	echo('<form method="post" action="score.php">');
 	echo('<input type="text" autofocus name="ScorerName" value="'.$KONSTANTS['DefaultScorer'].'" onfocus="this.select();">');
@@ -253,10 +253,12 @@ function scoreEntrant($showBlankForm = FALSE)
 			exit;
 		}
 		$ScorerName = (isset($_REQUEST['ScorerName']) ? $_REQUEST['ScorerName'] : '');
+		$scorex_class = 'showscorex';
 	}
 	else
 	{
 		$ScorerName = '__________';
+		$scorex_class = 'hidescorex';
 	}
 	
 	startHtml($TAGS['ttScoring'][0],$TAGS['Scorer'][0].': '.$ScorerName,false);
@@ -525,9 +527,10 @@ function scoreEntrant($showBlankForm = FALSE)
 	
 	if ($ScoringMethod <> $KONSTANTS['ManualScoring'])
 	{
-		if ($showBlankForm && false)
+		if ($showBlankForm && true)
 		{
 			echo('<ul id="BlankFormRejectReasons">');
+			//print_r($rejectreasons);
 			foreach($rejectreasons as $rrline)
 			{
 				echo('<li>'.$rrline.'</li>');
@@ -567,7 +570,7 @@ function scoreEntrant($showBlankForm = FALSE)
 				showCategory($i,$axisnames[$i]);
 		echo('</div>');
 	}
-	echo('<div id="scorex" title="'.$TAGS['dblclickprint'][0].'" class="showscorex scorex" data-show="0" ondblclick="sxprint();" >'.$rd['ScoreX'].'</div>');
+	echo('<div id="scorex" title="'.$TAGS['dblclickprint'][0].'" class="'.$scorex_class.' scorex" data-show="0" ondblclick="sxprint();" >'.$rd['ScoreX'].'</div>');
 	echo('</body></html>');
 }
 
@@ -595,7 +598,7 @@ function showBonuses($bonusesTicked,$showBlankForm)
 		for ($c = 1; $c <= $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $c++)
 			echo('data-cat'.$c.'="'.intval($rd['Cat'.$c]).'" ');
 		echo('data-reqd="'.intval($rd['Compulsory']).'" /> ');
-		if ($showBlankForm)
+		if ($showBlankForm && false)
 		{
 			echo(' ____ ____ &nbsp;&nbsp;&nbsp;&nbsp;');
 		}
@@ -682,7 +685,7 @@ function showPicklist($ord)
 	
 	$lnk = '<a href="'.$HOME_URL.'" onclick="return areYouSure(\'\r\n'.$TAGS['LogoutScorer'][0].' '.$_REQUEST['ScorerName'].' ?\');">';
 
-	startHtml($TAGS['ttScoring'][0],$lnk.$TAGS['Scorer'][0].': '.$_REQUEST['ScorerName'].'</a>');
+	startHtml($TAGS['ttScoring'][0],$lnk.$TAGS['Scorer'][0].': '.$_REQUEST['ScorerName'].'</a>',false);
 
 	eval("\$evs = ".$TAGS['EntrantStatusV'][0]);
 ?>
