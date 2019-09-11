@@ -7,7 +7,7 @@
 
 setlocal
 
-set SMFLAVOUR=v2.2
+set SMFLAVOUR=v2.4.1
 set PORT=:80
 
 for /f %%x in ('wmic path win32_localtime get /format:list ^| findstr "="') do set %%x
@@ -147,6 +147,7 @@ echo set MU=SU>> %DESTFOLDER%\%EXECNAME%
 echo :MULTIUSER>> %DESTFOLDER%\%EXECNAME%
 echo echo.>> %DESTFOLDER%\%EXECNAME%
 echo echo Starting PHP service>> %DESTFOLDER%\%EXECNAME%
+echo set PHP_FCGI_MAX_REQUESTS=0>> %DESTFOLDER%\%EXECNAME%
 echo set t=none>> %DESTFOLDER%\%EXECNAME%
 echo for /f "Delims=:-. " %%%%a in ('tasklist /fi "IMAGENAME eq php-cgi.exe" /nh') do if not "%%%%a" == "INFO" set t=%%%%a>> %DESTFOLDER%\%EXECNAME%
 echo for /f "Delims=:-. " %%%%a in ('tasklist /fi "IMAGENAME eq php.exe" /nh') do if not "%%%%a" == "INFO" set t=%%%%a>> %DESTFOLDER%\%EXECNAME%
@@ -159,8 +160,9 @@ echo if "%%MU%%"=="SU" goto :WEBDONE>> %DESTFOLDER%\%EXECNAME%
 echo echo Starting Webserver>> %DESTFOLDER%\%EXECNAME%
 echo echo ^*%%PORT%%^>caddy\caddyfile>> %DESTFOLDER%\%EXECNAME%
 echo echo root sm^>^>caddy\caddyfile>> %DESTFOLDER%\%EXECNAME%
+echo echo errors caddy/error.log^>^>caddy\caddyfile>> %DESTFOLDER%\%EXECNAME%
 echo echo fastcgi / 127.0.0.1:9000 php^>^>caddy\caddyfile>> %DESTFOLDER%\%EXECNAME%
-echo start "Webserver for ScoreMaster" /min caddy\caddy.exe -conf caddy\caddyfile>> %DESTFOLDER%\%EXECNAME%
+echo start "Webserver for ScoreMaster" /min caddy\caddy.exe -agree -conf caddy\caddyfile>> %DESTFOLDER%\%EXECNAME%
 echo echo.>> %DESTFOLDER%\%EXECNAME%
 echo :WEBDONE>>%DESTFOLDER%\%EXECNAME%
 echo echo.>> %DESTFOLDER%\%EXECNAME%

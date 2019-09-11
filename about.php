@@ -24,7 +24,7 @@
  */
 
 
-$PROGRAM = array("version" => "2.3.1",	"title"	=> "ScoreMaster");
+$PROGRAM = array("version" => "2.4.1",	"title"	=> "ScoreMaster");
 /*
  *	2.0	25May18	Used live at BBR18
  *
@@ -51,6 +51,12 @@ $PROGRAM = array("version" => "2.3.1",	"title"	=> "ScoreMaster");
  *
  *	2.3.1		Post BBL19
  *				OdoScaleFactor SanityCheck, QuickList spacing, Ticksheet print font size
+ *
+ *	2.4			Pre Magic-12
+ *				Major update
+ *
+ *	2.4.1		Post Magic-12
+ *				parseInt(EntrantID) in scoring picklist
  */
 $HOME_URL = "admin.php";
 require_once("common.php");

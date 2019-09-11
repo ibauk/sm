@@ -790,6 +790,7 @@ function calcScore(enableSave)
 	{
 		setFinishTimeDNF();
 		if (debug) alert("calcScore[0][1]");
+		clearUnrejectedClaims();
 		sxstart();
 		reportRejectedClaims();
 		tickCombos();
@@ -1155,6 +1156,28 @@ function calcMiles()
 	
 }
 
+function clearUnrejectedClaims()
+/*
+ * I clear the rejected status on bonuses that are
+ * now checked as ok.
+ *
+ */
+ {
+	var RC = document.getElementById('RejectedClaims');
+	var rca = RC.value.split(',');
+	for (var i = 0; i < rca.length; i++ )
+	{
+		var cr = rca[i].split('=');
+		var B = document.getElementById(cr[0]);
+		if (B == null)
+			continue;
+		if (B.checked)
+			setRejectedClaim(cr[0],0);
+	}
+ }
+ 
+
+
 function reflectBonusCheckedState(B)
 {
 	//if (B.id == 'CLinked1')
@@ -1215,7 +1238,6 @@ function reportRejectedClaim(bonusid,reason)
 		B.parentElement.className = class_showbonus + class_rejected;
 	//alert("Reporting reason " + reason + " for bonus " + bonusid);
 }
-
 
 function reportRejectedClaims()
 /*
@@ -1433,7 +1455,7 @@ function showCat(cat,N,ent)
 /* Called from Entrant picklist when an Entrant number is entered */
 function showPickedName()
 {
-	var eid = document.getElementById('EntrantID').value;
+	var eid = parseInt(document.getElementById('EntrantID').value);
 	var eids = document.getElementsByClassName("EntrantID");
 	var enames = document.getElementsByClassName("RiderName");
 	document.getElementById("NameFilter").value = '';
@@ -1456,7 +1478,6 @@ function showPickedName()
  */
 function showPopup(obj)
 {
-	
 	var menu = document.getElementById('rcmenu');
 	if (menu == null)
 		return true;
@@ -1475,10 +1496,9 @@ function showPopup(obj)
 		//alert('bid is ' + bid);
 		if (code > 0)
 			document.getElementById(bid).checked = false; 
-		document.getElementById(bid).disabled = code > 0;
+//		document.getElementById(bid).disabled = code > 0;
 		setRejectedClaim(bid,code);
 		calcScore(true);
-	
 	}
     menu.style.left = ee.left + window.scrollX + 'px';
     menu.style.top = ee.top + + window.scrollY + 'px';
