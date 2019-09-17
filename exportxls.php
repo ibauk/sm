@@ -32,6 +32,57 @@
 $HOME_URL = "admin.php";
 require_once('common.php');
 
+function exportAllEntrants()
+//
+// I export all entrant records
+{
+	global $DB, $KONSTANTS;
+	
+	$cols = array('EntrantID','RiderName','PillionName','Bike','Phone','Email','NoKName','NoKPhone','NoKRelation');
+	header('Content-Type: text/csv; charset=utf-8');
+	header("Content-Disposition: attachment; filename=entrants.csv;");
+	$sql = "SELECT ".implode(',',$cols)." FROM (SELECT *,Instr(RiderName,' ') As pos FROM entrants)";
+	$R = $DB->query($sql);
+	
+	ob_end_clean();  // Clear out any whitespace we've accidentally accumulated so far
+	
+	// create a file pointer connected to the output stream
+	$output = fopen('php://output', 'w');
+
+	$hdrDone = FALSE;
+	
+
+
+	// loop over the rows, outputting them
+	while ($rd = $R->fetchArray(SQLITE3_ASSOC))
+	{
+		$xa = explode("\n",$rd['ExtraData']);
+		unset($rd['ExtraData']);
+		if (!$hdrDone)
+		{
+			//var_dump($xa);
+			$hdrDone = TRUE;
+			foreach ($xa as $itm)
+			{
+				$cv = explode('=',$itm);
+				array_push($cols,$cv[0]);
+			}
+			fputcsv($output,$cols);
+		}
+		foreach ($xa as $itm)
+		{
+			$cv = explode('=',$itm);
+			//var_dump($cv);
+			$rd[$cv[0]] = $cv[1];
+		}
+		//var_dump($rd);
+		fputcsv($output, $rd);
+	}
+	exit();
+
+
+}
+
 function exportFinishers()
 {
 	global $DB, $KONSTANTS;
@@ -83,5 +134,8 @@ function exportFinishers()
 
 if ($_REQUEST['c']=='expfinishers')
 	exportFinishers();
+
+if ($_REQUEST['c']=='expentrants')
+	exportAllEntrants();
 
 ?>

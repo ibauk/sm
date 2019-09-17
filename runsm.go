@@ -53,8 +53,8 @@ var nolocal = flag.Bool("nolocal",false,"Don't start a web browser on the host m
 var root = flag.String("root","/","HTTP document root")
 
 var cgiport = "127.0.0.1:9000"
-var phpx = "php-cgi.exe"
-var cdyx = "caddy.exe"
+var phpx = "php-cgi"
+var cdyx = "caddy"
 var smf = "sm" 			// Contains ScoreMaster application files
 var starturl = "http://localhost"
 
@@ -63,6 +63,7 @@ func main() {
 	fmt.Printf("\n%s\t\t%s\n","Iron Butt Association UK","webmaster@ironbutt.co.uk")
 	fmt.Printf("\n%s\n\n",PROGTITLE)
 	setupRun()
+	fmt.Printf("%s IPv4 = %s\n",timestamp(),getOutboundIP())
 	go runCaddy()
 	go runPHP()
 	
@@ -78,7 +79,7 @@ func main() {
 
 func showInvite() {
 
-	time.Sleep(1*time.Second)
+	time.Sleep(5*time.Second)
 	fmt.Println(timestamp()+" presenting "+starturl+":"+*port)
 	browser.OpenURL(starturl+":"+*port)
 
@@ -95,6 +96,21 @@ func execPHP() {
 	}
 }
 
+
+func getOutboundIP() net.IP {
+	udp := "udp4"
+	ip := "8.8.8.8:80"
+    conn, err := net.Dial(udp, ip)
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer conn.Close()
+
+    localAddr := conn.LocalAddr().(*net.UDPAddr)
+
+    return localAddr.IP
+}
+
 func timestamp() string {
 
 		var t = time.Now()
@@ -102,18 +118,18 @@ func timestamp() string {
 
 }
 
+
+
 func runPHP() {
 
 	cgi := strings.Split(cgiport,":")
 	if !raw_portAvail(cgi[1]) {
-		fmt.Printf(timestamp())
-		fmt.Println(" PHP ["+cgi[1]+"] already listening")
+		fmt.Println(timestamp()+" PHP ["+cgi[1]+"] already listening")
 		return
 	}
 	os.Setenv("PHP_FCGI_MAX_REQUESTS","0") // PHP defaults to die after 500 requests so disable that
 	for {
-		fmt.Printf(timestamp())
-		fmt.Println(" running PHP")
+		fmt.Println(timestamp()+" running PHP")
 		execPHP()
 	}
 
@@ -123,12 +139,10 @@ func runCaddy() {
 
 	// If IP is not wildcard then assume that grownup has checked
 	if *ipspec=="*" && !raw_portAvail(*port) {
-		fmt.Printf(timestamp())
-		fmt.Println(" service port "+*port+" already served")
+		fmt.Println(timestamp()+" service port "+*port+" already served")
 		return
 	}
-	fmt.Printf(timestamp())
-	fmt.Printf(" serving on "+*ipspec+":"+*port+"\n")
+	fmt.Printf(timestamp()+" serving on "+*ipspec+":"+*port+"\n")
 	// Create the conf file
 	cp := filepath.Join(*cdyf,"caddyfile")
 	ep := filepath.Join(*cdyf,"error.log")

@@ -36,25 +36,25 @@ $IMPORTSPEC['FirstDataRow']	= 2;				// Points to the first row of data starting 
 
 // cols represent fields in the ScoreMaster.entrants table
 $IMPORTSPEC['cols']['EntrantID']	= 0;
-$IMPORTSPEC['cols']['RiderName']	= '1:2';
-$IMPORTSPEC['cols']['RiderFirst']	= 1;
-$IMPORTSPEC['cols']['PillionName']	= '3:4';
-$IMPORTSPEC['cols']['PillionFirst']	= 3;
-$IMPORTSPEC['cols']['Bike'] 		= 13;
-$IMPORTSPEC['cols']['BikeReg'] 		= 14;
-$IMPORTSPEC['cols']['Email']		= 12;
-$IMPORTSPEC['cols']['Phone']		= 11;
-$IMPORTSPEC['cols']['NoKName']		= 15;
-$IMPORTSPEC['cols']['NoKPhone']		= 16;
-$IMPORTSPEC['cols']['NoKRelation']	= 17;
+$IMPORTSPEC['cols']['RiderName']	= '8:9';
+$IMPORTSPEC['cols']['RiderFirst']	= 8;
+$IMPORTSPEC['cols']['PillionName']	= '10:11';
+$IMPORTSPEC['cols']['PillionFirst']	= 10;
+$IMPORTSPEC['cols']['Bike'] 		= 20;
+$IMPORTSPEC['cols']['BikeReg'] 		= 21;
+$IMPORTSPEC['cols']['Email']		= 19;
+$IMPORTSPEC['cols']['Phone']		= 18;
+$IMPORTSPEC['cols']['NoKName']		= 22;
+$IMPORTSPEC['cols']['NoKPhone']		= 23;
+$IMPORTSPEC['cols']['NoKRelation']	= 24;
 
 // data collects lines to be stored as ExtraData
-$IMPORTSPEC['data']['Postcode']		= 9;
-$IMPORTSPEC['data']['Country']		= 10;
-$IMPORTSPEC['data']['Postal_Address']		= '5:6:7:8:9:10';
+$IMPORTSPEC['data']['Postcode']		= 16;
+$IMPORTSPEC['data']['Country']		= 17;
+$IMPORTSPEC['data']['Postal_Address']		= '12:13:14:15:16:17';
 
 // If the content of the indexed column matches the RE, reject (don't load) the entry
-$IMPORTSPEC['reject'][18]	= '/Unpaid/';
+//$IMPORTSPEC['reject'][18]	= '/Unpaid/';
 
 
 

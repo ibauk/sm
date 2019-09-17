@@ -452,7 +452,7 @@ while ($row++ >= 0) {
 		if (isset($IMPORTSPEC['cols']['Email']))
 			$stmt->bindValue(':Email',trim($email),SQLITE3_TEXT);
 		if (isset($IMPORTSPEC['cols']['NoKName']))
-			$stmt->bindValue(':NoKName',trim($NoKName),SQLITE3_TEXT);
+			$stmt->bindValue(':NoKName',properName(trim($NoKName)),SQLITE3_TEXT);
 		if (isset($IMPORTSPEC['cols']['NoKPhone']))
 			$stmt->bindValue(':NoKPhone',trim($NoKPhone),SQLITE3_TEXT);
 		if (isset($IMPORTSPEC['cols']['NoKRelation']))
