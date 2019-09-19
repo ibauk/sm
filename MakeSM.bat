@@ -5,6 +5,8 @@
 :: I make standalone, distributable, installations of ScoreMaster
 :: ready to be burned to CD/DVD/USB
 
+:: DOS/Windows
+
 setlocal
 
 set SMFLAVOUR=v2.4.1
@@ -15,7 +17,7 @@ set SMDATE=%Year%-%Month%-%Day%
 set CADDYFOLDER=C:\Users\bobst\go\src\github.com\mholt\caddy\caddy\
 set PHPFOLDER=C:\PHP
 set SMFOLDER=%CADDYFOLDER%sm
-set EXECNAME=runsm.bat
+set EXECNAME=runsm0.bat
 set RBLRCERTS=rblrcerts.sql
 set DB2USE=
 set OK=
@@ -120,8 +122,10 @@ echo *:80 > %DESTFOLDER%\caddy\caddyfile
 echo root sm >> %DESTFOLDER%\caddy\caddyfile
 echo fastcgi / 127.0.0.1:9000 php >> %DESTFOLDER%\caddy\caddyfile
 
+:: Copy the latest portable binary
+copy %SMFOLDER%\runsm.exe %DESTFOLDER%
 
-:: Now build the executable
+:: Now build the debug executable
 echo @echo off >%DESTFOLDER%\%EXECNAME%
 echo cls>> %DESTFOLDER%\%EXECNAME%
 echo set CDIR=%%cd%%>> %DESTFOLDER%\%EXECNAME%
