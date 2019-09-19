@@ -45,12 +45,14 @@ import ("fmt"
 
 var PROGTITLE = "ScoreMaster Server v2.4 [2019-09-19]"
 
-var def_phpf	= "php"	// assume portable installation under me
+var phpf_linux	= "/usr/bin"	
+var phpf_windows = "php"
+
+var def_phpf, phpf string
 
 var port = flag.String("port","80","Webserver port specification")
 var ipspec = flag.String("ip","*","Webserver IP specification")
 var spawnInterval = flag.Int("respawn",60,"Number of minutes before restarting PHP server")
-var phpf = flag.String("php",def_phpf,"Folder containing PHP executables")
 var cdyf = flag.String("caddy","caddy","Folder containing Caddy files")
 var nolocal = flag.Bool("nolocal",false,"Don't start a web browser on the host machine")
 var root = flag.String("root","/","HTTP document root")
@@ -62,15 +64,18 @@ var smf = "sm" 			// Contains ScoreMaster application files
 var starturl = "http://localhost"
 
 func init() {
-	switch os := runtime.GOOS; os {
+	os := runtime.GOOS;
+	switch os {
 	case "darwin":
 		// Apple
 	case "linux":
-		def_phpf = "/usr/bin/php"
+		def_phpf = phpf_linux
 	default:
 		// freebsd, openbsd,
 		// plan9, windows...
+		def_phpf = phpf_windows
 	}
+	flag.StringVar(&phpf,"php",def_phpf,"Folder containing PHP executables")
 }
 
 func main() {
@@ -105,7 +110,8 @@ func execPHP() {
 // This runs PHP as a background service to an external webserver
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*spawnInterval)*time.Minute)
 	defer cancel()
-	fp := filepath.Join(*phpf,phpx)
+	fp := filepath.Join(phpf,phpx)
+	//fmt.Println(fp+" <=== ")
 	if err := exec.CommandContext(ctx, fp,"-b",cgiport).Run(); err != nil {
 		log.Fatal(err)
 	}
