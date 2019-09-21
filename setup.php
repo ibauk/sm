@@ -82,7 +82,7 @@ function showPage($page_number)
 //	echo('Showing page '.$page_number.'</hr>');
 	function isChecked($n)
 	{
-		return ($n ? ' checked ' : '');
+		return ($n>0 ? ' checked ' : '');
 	}
 	$page2show = $page_number;
 	if ($page_number < 1)

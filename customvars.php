@@ -121,6 +121,10 @@ $TAGS = array(
 	'AxisLit'			=> array('Axis','The set of categories this rule applies to'),
 	'BasicDetails'		=> array('Basic',''),
 	'BasicRallyConfig'	=> array('Basic','Basic rally configuration fields'),
+	'BCMethod'			=> array('Bonus claiming','Method of bonus claim: 0=unknown,1=EBC,2=paper'),
+	'BCMethod0'			=> array('unknown',''),
+	'BCMethod1'			=> array('EBC','Electronic Bonus Claiming'),
+	'BCMethod2'			=> array('Paper','Paper claiming'),
 	'Bike'				=> array('Bike','Make &amp; model of bike'),
 	'BikeReg'			=> array('Registration','Registration number of the bike if known'),
 	'BonusesLit'		=> array('Bonuses','Ordinary bonuses'),
@@ -131,9 +135,9 @@ $TAGS = array(
 	'BriefDescLit'		=> array('Brief description',''),
 	'CalcMaintHead'		=> array('Compound Calculation Rules','List of rules for compound score calculations'),
 	'Cat0Label'			=> array('Total','If summing across axes, use this label'),
-	'Cat1Label'			=> array('X-axis is','What do values on the X-axis represent?'),
-	'Cat2Label'			=> array('Y-axis is','What do values on the Y-axis represent?'),	
-	'Cat3Label'			=> array('Z-axis is','What do values on the Z-axis represent?'),
+	'Cat1Label'			=> array('Axis 1 is','What do values on this axis represent?'),
+	'Cat2Label'			=> array('Axis 2 is','What do values on this axis represent?'),	
+	'Cat3Label'			=> array('Axis 3 is','What do values on this axis represent?'),
 	'Cat4Label'			=> array('Axis 4 is','What do values on this axis represent?'),
 	'Cat5Label'			=> array('Axis 5 is','What do values on this axis represent?'),
 	'Cat6Label'			=> array('Axis 6 is','What do values on this axis represent?'),
@@ -147,7 +151,7 @@ $TAGS = array(
 	'CatExplainer'		=> array('CatExplainer','You can amend the description of categories or delete them entirely. New entries must have an category number which is unique within the axis.'),
 	'CatNotUsed'		=> array('(not used)',''),
 	'ccApplyToAll'		=> array('all cats','applies to all cats'),
-	'ccCompulsory'		=> array('Compulsory?','1=DNF if not triggered;2=DNF if triggered; else 0'),
+	'ccCompulsory'		=> array('Ruletype','1=DNF if not triggered;2=DNF if triggered; else 0'),
 	'ccCompulsory0'		=> array('Regular rule','Ordinary scoring rule'),
 	'ccCompulsory1'		=> array('Untrig=DNF','DNF unless this rule triggered'),
 	'ccCompulsory2'		=> array('Trigger=DNF','DNF if this rule triggered'),
@@ -156,7 +160,7 @@ $TAGS = array(
 	'CertExplainer'		=> array('Certificates are "web" documents comprising well-formed HTML and CSS parts.',
 									'Please carefully specify the certificate layout and content in the texts below.'),
 	
-	'CertificateHours'	=> array('Certificate hours','The duration of the rally in hours for the certificate'),
+	'CertificateHours'	=> array('Maximum hours','The duration of the rally in hours. Used to calculate DNF time, may show on certificates'),
 	'CertTitle'			=> array('Title','Description of this certificate class'),
 	'Class'				=> array('Class #','The certificate class applicable'),
 	'ChooseEntrant'		=> array('Choose entrant','Pick an entrant from this list'),
@@ -402,7 +406,7 @@ $TAGS = array(
 	'TeamRankingText'	=> array('Teams are ranked according to',''),
 	
 	'TiedPointsRanking'	=> array('Split ties by mileage','In the event of a tie entrants will be ranked by mileage'),	// Miles/Kms
-	
+	'TimePExplain'		=> array("Rally time runs from the start time to the finish time. Individual entrants may have less time available. Penalties other than DNF apply to specific periods within the overall or individual entrant's rally time. Periods are specified as date/time ranges or as minutes before DNF ranges.<br>Time penalties are triggered by entrant check-in time.",'Explanation of rally time penalties'),
 	'TimepMaintHead'	=> array('Time Penalties','List of time penalty entries'),
 
 	

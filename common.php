@@ -61,6 +61,9 @@ $KONSTANTS['TeamRankLowest'] = 2;
 $KONSTANTS['TimeSpecDatetime'] = 0;
 $KONSTANTS['TimeSpecRallyDNF'] = 1;
 $KONSTANTS['TimeSpecEntrantDNF'] = 2;
+$KONSTANTS['BCM_UNKNOWN'] = 0;
+$KONSTANTS['BCM_EBC'] = 1;
+$KONSTANTS['BCM_PAPER'] = 2;
 
 // Beware, these next two used for combinations & catcompounds
 $KONSTANTS['ComboScoreMethodPoints'] = 0;

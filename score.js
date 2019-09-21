@@ -207,7 +207,8 @@ function bodyLoaded()
 	
 	if (!isScoresheetpage)
 		return;
-	
+
+	trapDirtyPage();
 	calcScore(false);	
 		
 }
@@ -1758,6 +1759,28 @@ function tickCombos()
 		document.getElementById(cmbs[i].getAttribute('id')).checked = tick && 
 					(document.getElementById(cmbs[i].getAttribute('id')).getAttribute('data-rejected') < 1);
 	}
+}
+
+
+function trapDirtyPage()
+{
+	
+	window.addEventListener('beforeunload', function(e) {
+	
+	var cmd = document.getElementById('savescorebutton');
+	if (cmd == null)
+		cmd = document.getElementById('savedata'); /* Forms other than scoresheet */
+	if (cmd == null)
+		return;
+	var myPageIsDirty = !cmd.disabled && cmd.getAttribute('data-triggered')=='0';  //you implement this logic...
+	if (myPageIsDirty) {
+		//following two lines will cause the browser to ask the user if they
+		//want to leave. The text of this dialog is controlled by the browser.
+		e.preventDefault(); //per the standard
+		e.returnValue = ''; //required for Chrome
+	}
+		//else: user is allowed to leave without a warning dialog
+	});
 }
 
 function walkBonusArrays(f)

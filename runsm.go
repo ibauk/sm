@@ -43,7 +43,7 @@ import ("fmt"
 		"strings"
 		"flag")
 
-var PROGTITLE = "ScoreMaster Server v2.4 [2019-09-19]"
+var PROGTITLE = "ScoreMaster Server v2.4 [2019-09-21]"
 
 var phpf_linux	= "/usr/bin"	
 var phpf_windows = "php"
@@ -113,7 +113,7 @@ func execPHP() {
 	fp := filepath.Join(phpf,phpx)
 	//fmt.Println(fp+" <=== ")
 	if err := exec.CommandContext(ctx, fp,"-b",cgiport).Run(); err != nil {
-		log.Fatal(err)
+		//log.Println(err)
 	}
 }
 
@@ -149,8 +149,10 @@ func runPHP() {
 		return
 	}
 	os.Setenv("PHP_FCGI_MAX_REQUESTS","0") // PHP defaults to die after 500 requests so disable that
+	x := "spawning"
 	for {
-		fmt.Println(timestamp()+" running PHP")
+		fmt.Printf("%s %s PHP\n",timestamp(),x)
+		x = "respawning"
 		execPHP()
 	}
 

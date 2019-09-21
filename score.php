@@ -357,6 +357,7 @@ function scoreEntrant($showBlankForm = FALSE)
 		$_REQUEST['EntrantID']	= '';
 		$rd['EntrantID']		= '';
 		$rd['RiderName']		= '_________________';
+		$rd['PillionName']		= '';
 		$rd['FinishTime']		= '';
 		$rd['OdoCheckFinish']	= '';
 		$rd['CorrectedMiles']	= '';
@@ -405,7 +406,7 @@ function scoreEntrant($showBlankForm = FALSE)
 	$hideclass = ' class="hide" ';
 	$dt = splitDatetime($rd['FinishTime']);
 	if ($dt[0] == '')
-		$dt = $RallyFinishTime;
+		$dt = $RallyStartTime; //$RallyFinishTime;
 	if ($OneDayRally)
 		$hideclass = ' class="hide" ';
 	else
@@ -455,16 +456,33 @@ function scoreEntrant($showBlankForm = FALSE)
 
 	echo("\r\n");
 	echo('<span title="'.$TAGS['OdoRallyStart'][1].'"><label for="OdoRallyStart">'.$TAGS['OdoRallyStart'][0].' </label> ');
-	echo('<input '.$sbfro.' type="'.$numbertype.'" name="OdoRallyStart" id="OdoRallyStart" value="'.$codof1.'" onchange="calcMiles()" /> ');
+	echo('<input '.$sbfro.' type="'.$numbertype.'" name="OdoRallyStart" id="OdoRallyStart" value="'.$codof1.'" onchange="calcMiles();calcScore(true)" /> ');
 	echo('</span>');
 	echo("\r\n");
 	echo('<span title="'.$TAGS['OdoRallyFinish'][1].'"><label for="OdoRallyFinish">'.$TAGS['OdoRallyFinish'][0].' </label> ');
-	echo('<input '.$sbfro.' type="'.$numbertype.'" name="OdoRallyFinish" id="OdoRallyFinish" value="'.$codof.'" onchange="calcMiles()" /> ');
+	echo('<input '.$sbfro.' type="'.$numbertype.'" name="OdoRallyFinish" id="OdoRallyFinish" value="'.$codof.'" onchange="calcMiles();calcScore(true)" /> ');
 	echo('</span>');
-	echo('<span title="'.$TAGS['CorrectedMiles'][1].'"><label for="CorrectedMiles">'.$TAGS['CorrectedMiles'][0].' </label> ');
-	echo('<input '.$sbfro.' type="'.$numbertype.'"  name="CorrectedMiles" id="CorrectedMiles" value="'.$cmiles.'" onchange="calcScore(true)" /> ');
-	echo('</span> ');
 	
+	if (!$showBlankForm)
+	{
+		echo('<span title="'.$TAGS['OdoKms'][1].'"><label for="OdoKms">'.$TAGS['OdoKms'][0].' </label> ');
+		echo('<select name="OdoKms" id="OdoKms" onchange="calcMiles();calcScore(true)">');
+		if ($rd['OdoKms']==$KONSTANTS['OdoCountsKilometres'])
+		{
+			echo('<option value="'.$KONSTANTS['OdoCountsMiles'].'">'.$TAGS['OdoKmsM'][0].'</option>');
+			echo('<option value="'.$KONSTANTS['OdoCountsKilometres'].'" selected >'.$TAGS['OdoKmsK'][0].'</option>');
+		}
+		else
+		{
+			echo('<option value="'.$KONSTANTS['OdoCountsMiles'].'" selected >'.$TAGS['OdoKmsM'][0].'</option>');
+			echo('<option value="'.$KONSTANTS['OdoCountsKilometres'].'" >'.$TAGS['OdoKmsK'][0].'</option>');
+		}
+		echo('</select>');
+		echo('</span>');
+		echo('<span title="'.$TAGS['CorrectedMiles'][1].'"><label for="CorrectedMiles">'.$TAGS['CorrectedMiles'][0].' </label> ');
+		echo('<input '.$sbfro.' type="'.$numbertype.'"  name="CorrectedMiles" id="CorrectedMiles" value="'.$cmiles.'" onchange="calcScore(true)" /> ');
+		echo('</span> ');
+	}
 	
 		
 	echo("\r\n".'<span><label  class="clickme" title="'.$TAGS['ToggleScoreX'][1].'" for="TotalPoints">'.$TAGS['TotalPoints'][0].' </label> ');
@@ -510,7 +528,7 @@ function scoreEntrant($showBlankForm = FALSE)
 	echo('<option value="'.$KONSTANTS['EntrantDNF'].'" '.($rd['EntrantStatus']==$KONSTANTS['EntrantDNF'] ? ' selected="selected" ' : '').'>'.$TAGS['EntrantDNF'][0].'</option>');
 	echo('</select>');
 	echo('</span> ');
-	echo('<input type="submit" class="noprint" id="savescorebutton" disabled accesskey="S" name="savescore" data-altvalue="'.$TAGS['SaveScore'][0].'" value="'.$TAGS['ScoreSaved'][0].'" /> ');
+	echo('<input type="submit" class="noprint" title="'.$TAGS['SaveScore'][1].'" id="savescorebutton" data-triggered="0" onclick="'."this.setAttribute('data-triggered','1')".'" disabled accesskey="S" name="savescore" data-altvalue="'.$TAGS['SaveScore'][0].'" value="'.$TAGS['ScoreSaved'][0].'" /> ');
 	//echo('<input type="submit" id="backtolistbutton" name="showpicklist" data-altvalue="'.$TAGS['ShowEntrants'][0].'" value="'.$TAGS['ShowEntrants'][0].'"> ');
 	
 	

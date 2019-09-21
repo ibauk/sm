@@ -31,7 +31,7 @@ BEGIN TRANSACTION;
 CREATE TABLE IF NOT EXISTS `rallyparams` (
 	`RallyTitle`	TEXT,
 	`RallySlogan`	TEXT,
-	`CertificateHours`	INTEGER DEFAULT 36,
+	`CertificateHours`	INTEGER DEFAULT 12,
 	`StartTime`	TEXT,
 	`FinishTime`	TEXT,
 	`MinMiles`	INTEGER DEFAULT 0,
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS `rallyparams` (
 	`ShowMultipliers`	INTEGER DEFAULT 2,
 	`TiedPointsRanking`	INTEGER DEFAULT 0,
 	`TeamRanking`	INTEGER DEFAULT 0,
-	`OdoCheckMiles`	NUMERIC DEFAULT 20,
+	`OdoCheckMiles`	NUMERIC DEFAULT 0,
 	`Cat1Label`	TEXT,
 	`Cat2Label`	TEXT,
 	`Cat3Label`	TEXT,
@@ -159,6 +159,7 @@ CREATE TABLE IF NOT EXISTS `entrants` (
 	`NoKName` TEXT,
 	`NoKRelation` TEXT,
 	`NoKPhone` TEXT,
+	`BCMethod` INTEGER DEFAULT 0,
 	PRIMARY KEY(`EntrantID`)
 );
 CREATE TABLE IF NOT EXISTS `combinations` (
@@ -203,7 +204,7 @@ CREATE TABLE IF NOT EXISTS `catcompound` (
 	`NMin`	INTEGER DEFAULT 1,
 	`PointsMults`	INTEGER DEFAULT 0,
 	`NPower`	INTEGER DEFAULT 2,
-	`Compulsory`INTEGER DEFAULT 0
+	`Compulsory` INTEGER DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS `bonuses` (
 	`BonusID`	TEXT,

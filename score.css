@@ -76,8 +76,8 @@ input[type='submit']:disabled	{
 label 					{ white-space: nowrap; }
 caption					{ margin-bottom: 1em;  }
 span.vlabel				{ display: block; padding-top: 1em;}
-span.vlabel label		{ text-align: right; width: 8em; display: inline-block; }
-span.vlabel label.wide	{ text-align: right; width: 12em; display: inline-block; }
+span.vlabel label		{ text-align: right; min-width: 8em; display: inline-block; }
+span.vlabel label.wide	{ text-align: right; min-width: 12em; display: inline-block; }
 span.xlabel:before		{ content: '\A\A'; white-space: pre; }
 input[name="BikeReg"]	{ width: 6em; }
 select[name="EntrantStatus"]	{ margin-bottom: 1em; }
@@ -249,13 +249,17 @@ table.qdfinishers th {
 	padding: 0 1em 0 1em;
 }
 
+.explain {
+	font-size: smaller;
+}
+
 /* Right-click claim reject menu */
 #rcmenu { 
 	border:solid 1px #CCC; 
 	position: absolute; 
 	z-index: 10; 
 	background-color: lightgray; 
-	width: 8em; 
+	width: 12em; 
 }
 #rcmenu ul { list-style-type: none; margin: 0; padding: 0; font-size: .75em; }
 #rcmenu li { border-bottom:solid 1px #CCC; }

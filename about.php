@@ -57,6 +57,8 @@ $PROGRAM = array("version" => "2.4.1",	"title"	=> "ScoreMaster");
  *
  *	2.4.1		Post Magic-12
  *				parseInt(EntrantID) in scoring picklist
+ *				BCMethod support
+ *				Trap unsaved scorecard
  */
 $HOME_URL = "admin.php";
 require_once("common.php");

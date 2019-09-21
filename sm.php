@@ -786,7 +786,7 @@ function triggerNewRow(obj)
 		return;
 	}
 	$CatLabel = $rd['CatLabel'];
-	echo('<p>'.$TAGS['CatExplainer'][1].'</p>');
+	echo('<p class="explain">'.$TAGS['CatExplainer'][1].'</p>');
 	echo('<form method="post" action="sm.php">');
 	$bcurldtl ='&amp;breadcrumbs='.urlencode($_REQUEST['breadcrumbs']);
 
@@ -2002,6 +2002,10 @@ function changeTimeSpec(obj)
 	
 	echo('<input type="hidden" name="c" value="timep">');
 	echo('<input type="hidden" name="menu" value="setup">');
+	if ($DBVERSION >= 3)
+	{
+		echo('<p class="explain">'.$TAGS['TimePExplain'][0].'</p>');
+	}
 	echo('<table id="timepenalties">');
 	echo('<caption title="'.htmlentities($TAGS['TimepMaintHead'][1]).'">'.htmlentities($TAGS['TimepMaintHead'][0]).'</caption>');
 	echo('<thead><tr><th>'.$TAGS['tpTimeSpecLit'][0].'</th><th>'.$TAGS['tpStartLit'][0].'</th>');
@@ -2015,7 +2019,7 @@ function changeTimeSpec(obj)
 	
 	while ($rd = $R->fetchArray())
 	{
-		echo('<tr class="hoverlite">');
+		echo("\n".'<tr class="hoverlite">');
 		echo('<td><input type="hidden" name="id[]" value="'.$rd['id'].'">');
 		echo('<select name="TimeSpec[]" onchange="changeTimeSpec(this)">');
 		for ($i=0; $i<3; $i++) // Max TimeSpec==3
@@ -2025,21 +2029,21 @@ function changeTimeSpec(obj)
 				echo(' selected ');
 			echo('>'.$TAGS['tpTimeSpec'.$i][0].'</option>');
 		}
-		echo('</select></td><td>');
+		echo('</select></td><td title="'.$TAGS['tpStartLit'][1].'">');
 		if ($rd['TimeSpec']==$KONSTANTS['TimeSpecDatetime'])
 		{
 			$dtx = splitDatetime($rd['PenaltyStart']);
 			echo('<input type="date" class="date" name="PenaltyStartDate[]" value="'.$dtx[0].'"> ');
 			echo('<input type="time" class="time" name="PenaltyStartTime[]" value="'.$dtx[1].'"></td>');
 			$dtx = splitDatetime($rd['PenaltyFinish']);		
-			echo('<td><input class="date" type="date" name="PenaltyFinishDate[]" value="'.$dtx[0].'"> ');
+			echo('<td title="'.$TAGS['tpFinishLit'][1].'"><input class="date" type="date" name="PenaltyFinishDate[]" value="'.$dtx[0].'"> ');
 			echo('<input class="time" type="time" name="PenaltyFinishTime[]" value="'.$dtx[1].'"></td>');
 		}
 		else
 		{
 			echo('<input class="date" type="hidden" name="PenaltyStartDate[]" value="0"> ');
 			echo('<input class="time" type="number" name="PenaltyStartTime[]" value="'.$rd['PenaltyStart'].'"></td>');
-			echo('<td><input class="date" type="hidden" name="PenaltyFinishDate[]" value="0"> ');
+			echo('<td title="'.$TAGS['tpFinishLit'][1].'"><input class="date" type="hidden" name="PenaltyFinishDate[]" value="0"> ');
 			echo('<input class="time" type="number" name="PenaltyFinishTime[]" value="'.$rd['PenaltyFinish'].'"></td>');
 		}
 		echo('<td><select name="PenaltyMethod[]">');
@@ -2065,10 +2069,10 @@ function changeTimeSpec(obj)
 			echo(' selected ');
 		echo('>'.$TAGS['tpTimeSpec'.$i][0].'</option>');
 	}
-	echo('</select></td><td>');
+	echo('</select></td><td title="'.$TAGS['tpStartLit'][1].'">');
 	echo('<input class="date" type="date" name="PenaltyStartDate[]" value=""> ');
 	echo('<input class="time" type="time" name="PenaltyStartTime[]" value=""></td>');
-	echo('<td><input class="date" type="date" name="PenaltyFinishDate[]" value=""> ');
+	echo('<td title="'.$TAGS['tpFinishLit'][1].'"><input class="date" type="date" name="PenaltyFinishDate[]" value=""> ');
 	echo('<input class="time" type="time" name="PenaltyFinishTime[]" value=""></td>');
 	echo('<td><select name="PenaltyMethod[]">');
 	for ($i=0;$i<=3;$i++)

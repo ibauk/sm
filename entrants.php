@@ -265,7 +265,13 @@ function saveEntrantRecord()
 
 	if ($DBVERSION >= 2) {
 		$fa2 = array('Phone','Email','NoKName','NoKRelation','NoKPhone');
-		$fa = array_merge($fa1,$fa2);
+		$fa21 = array_merge($fa1,$fa2);
+		if ($DBVERSION >= 3) {
+			$fa3 = array('BCMethod');
+			$fa = array_merge($fa21,$fa3);
+		} else {
+			$fa = $fa21;
+		}
 	} else {
 		$fa = $fa1;
 	}
@@ -1146,6 +1152,21 @@ function showEntrantRecord($rd)
 	
 	echo('<span class="vlabel" title="'.$TAGS['Class'][1].'"><label for="Class">'.$TAGS['Class'][0].' </label> ');
 	echo('<input type="number"  onchange="enableSaveButton();" name="Class" id="Class" value="'.$rd['Class'].'"> </span>');
+
+	if ($DBVERSION >= 3)
+	{
+		echo('<span class="vlabel" title="'.$TAGS['BCMethod'][1].'"><label for="BCMethod">'.$TAGS['BCMethod'][0].' </label> ');
+		echo('<select name="BCMethod" id="BCMethod" onchange="enableSaveButton();">');
+		for ($bcm = $KONSTANTS['BCM_UNKNOWN']; $bcm <= $KONSTANTS['BCM_PAPER']; $bcm++)
+		{
+			echo('<option value="'.$bcm.'"');
+			if ($bcm==$rd['BCMethod'])
+				echo(' selected');
+			echo('>'.$TAGS['BCMethod'.$bcm][0].'</option>');
+		}
+		echo('</select>');
+		echo('</span>');
+	}
 	
 	echo('</fieldset>');
 	
@@ -1167,7 +1188,7 @@ function showEntrantRecord($rd)
 	
 		echo('<span class="vlabel" title="'.$TAGS['NoKPhone'][1].'"><label for="NoKPhone">'.$TAGS['NoKPhone'][0].' </label> ');
 		echo('<input type="tel"  onchange="enableSaveButton();" name="NoKPhone" id="NoKPhone" value="'.$rd['NoKPhone'].'"> </span>');
-	
+		
 		echo('</fieldset>');
 	}
 	
