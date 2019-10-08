@@ -636,33 +636,51 @@ echo('<title>'.$TAGS['ttFinishers'][0].'</title>');
 ?>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="stylesheet" type="text/css" href="score.css?ver=<?= filemtime('score.css')?>">
+<meta http-equiv="refresh" content="30">
 </head>
 <body>
 <?php
-	echo('<table class="qdfinishers">');
-	echo('<thead><tr>');
-	echo('<th>'.$TAGS['qPlace'][0].'</th>');
-	echo('<th>'.$TAGS['qName'][0].'</th>');
-	echo('<th>'.$TAGS['qMiles'][0].'</th>');
-	echo('<th>'.$TAGS['qPoints'][0].'</th>');
+	$PAGEROWS = 0;
+	if (isset($_REQUEST['page']))
+		$PAGEROWS = intval($_REQUEST['page']);
+	$nrows = 0;
+	$R->reset();
+	while ($R->fetchArray())
+		$nrows++;
+	$R->reset();
 	
-	echo('</tr></thead><tbody>');
-	$n = 0;
-	while ($rd = $R->fetchArray())
+	$rowsdone = 0;
+	while ($rowsdone < $nrows)
 	{
-		echo('<tr>');
-		echo('<td>'.$rd['FinishPosition'].'</td>');
-		echo('<td>'.$rd['RiderName']);
-		if ($rd['PillionName'] > '')
-			echo(' & '.$rd['PillionName']);
-		echo('</td>');
-		echo('<td>'.number_format($rd['CorrectedMiles'],0,$dp,$cm).'</td>');
-		echo('<td>'.number_format($rd['TotalPoints'],0,$dp,$cm).'</td>');
-		echo('</tr>');
-		$n++;
+		echo('<table class="qdfinishers">');
+		echo('<thead><tr>');
+		echo('<th>'.$TAGS['qPlace'][0].'</th>');
+		echo('<th>'.$TAGS['qName'][0].'</th>');
+		echo('<th>'.$TAGS['qMiles'][0].'</th>');
+		echo('<th>'.$TAGS['qPoints'][0].'</th>');
+	
+		echo('</tr></thead><tbody>');
+		$n = 0;
+		
+		while ($rd = $R->fetchArray())
+		{
+			$rowsdone++;
+			echo('<tr>');
+			echo('<td>'.$rd['FinishPosition'].'</td>');
+			echo('<td>'.$rd['RiderName']);
+			if ($rd['PillionName'] > '')
+				echo(' & '.$rd['PillionName']);
+			echo('</td>');
+			echo('<td>'.number_format($rd['CorrectedMiles'],0,$dp,$cm).'</td>');
+			echo('<td>'.number_format($rd['TotalPoints'],0,$dp,$cm).'</td>');
+			echo('</tr>');
+			$n++;
+			if ($PAGEROWS > 0 && $n >= $PAGEROWS)
+				break;
+		}
+		echo('</tbody></table>');
 	}
-	echo('</tbody></table>');
-	if ($n < 1)
+	if ($nrows < 1)
 		echo('<p>'.$TAGS['NoCerts2Print'][0].'</p>');
 	echo('<p>&nbsp;</p>'); //Spacer to facilitate screen capture
 ?>

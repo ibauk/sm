@@ -26,24 +26,26 @@
  *
  */
 
+-- DBVERSION: 4
+
 BEGIN TRANSACTION;
 
 CREATE TABLE IF NOT EXISTS `rallyparams` (
 	`RallyTitle`	TEXT,
 	`RallySlogan`	TEXT,
-	`CertificateHours`	INTEGER DEFAULT 12,
+	`MaxHours`	INTEGER NOT NULL DEFAULT 12,
 	`StartTime`	TEXT,
 	`FinishTime`	TEXT,
-	`MinMiles`	INTEGER DEFAULT 0,
-	`PenaltyMaxMiles`	INTEGER DEFAULT 0,
-	`MaxMilesMethod`	INTEGER DEFAULT 0,
-	`MaxMilesPoints`	INTEGER DEFAULT 0,
-	`PenaltyMilesDNF`	INTEGER DEFAULT 0,
-	`MinPoints`	INTEGER DEFAULT 0,
-	`ScoringMethod`	INTEGER DEFAULT 3,
-	`ShowMultipliers`	INTEGER DEFAULT 2,
-	`TiedPointsRanking`	INTEGER DEFAULT 0,
-	`TeamRanking`	INTEGER DEFAULT 0,
+	`MinMiles`	INTEGER NOT NULL DEFAULT 0,
+	`PenaltyMaxMiles`	INTEGER NOT NULL DEFAULT 0,
+	`MaxMilesMethod`	INTEGER NOT NULL DEFAULT 0,
+	`MaxMilesPoints`	INTEGER NOT NULL DEFAULT 0,
+	`PenaltyMilesDNF`	INTEGER NOT NULL DEFAULT 0,
+	`MinPoints`	INTEGER NOT NULL DEFAULT 0,
+	`ScoringMethod`	INTEGER NOT NULL DEFAULT 3,
+	`ShowMultipliers`	INTEGER NOT NULL DEFAULT 2,
+	`TiedPointsRanking`	INTEGER NOT NULL DEFAULT 0,
+	`TeamRanking`	INTEGER NOT NULL DEFAULT 0,
 	`OdoCheckMiles`	NUMERIC DEFAULT 0,
 	`Cat1Label`	TEXT,
 	`Cat2Label`	TEXT,
@@ -64,7 +66,8 @@ CREATE TABLE IF NOT EXISTS `rallyparams` (
 8=Missing receipt
 9=Rallymaster!",
 	`DBState` INTEGER NOT NULL DEFAULT 0,
-	`DBVersion` INTEGER NOT NULL DEFAULT 3
+	`DBVersion` INTEGER NOT NULL DEFAULT 4, 		/* DBVERSION */
+	`AutoRank` INTEGER NOT NULL DEFAULT 1
 );
 
 
@@ -87,32 +90,32 @@ CREATE TABLE IF NOT EXISTS `menus` (
 
 
 CREATE TABLE IF NOT EXISTS `certificates` (
-	`EntrantID`	INTEGER DEFAULT 0,
+	`EntrantID`	INTEGER NOT NULL DEFAULT 0,
 	`css`	TEXT,
 	`html`	TEXT,
 	`options`	TEXT,
 	`image`	TEXT,
-	`Class`	INTEGER DEFAULT 0,
+	`Class`	INTEGER NOT NULL DEFAULT 0,
 	`Title`	TEXT,
 	PRIMARY KEY(`EntrantID`,`Class`)
 );
 
 
 CREATE TABLE IF NOT EXISTS `timepenalties` (
-	`TimeSpec`	INTEGER DEFAULT 0,
+	`TimeSpec`	INTEGER NOT NULL DEFAULT 0,
 	`PenaltyStart`	TEXT,
 	`PenaltyFinish`	TEXT,
-	`PenaltyMethod`	INTEGER DEFAULT 0,
-	`PenaltyFactor`	INTEGER DEFAULT 0
+	`PenaltyMethod`	INTEGER NOT NULL DEFAULT 0,
+	`PenaltyFactor`	INTEGER NOT NULL DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS `specials` (
 	`BonusID`	TEXT,
 	`BriefDesc`	TEXT,
 	`GroupName`	TEXT,
-	`Points`	INTEGER DEFAULT 0,
-	`MultFactor`	INTEGER DEFAULT 0,
-	`Compulsory`	INTEGER DEFAULT 0,
-	`AskPoints`		INTEGER DEFAULT 0,
+	`Points`	INTEGER NOT NULL DEFAULT 0,
+	`MultFactor`	INTEGER NOT NULL DEFAULT 0,
+	`Compulsory`	INTEGER NOT NULL DEFAULT 0,
+	`AskPoints`		INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY(`BonusID`)
 );
 CREATE TABLE IF NOT EXISTS `sgroups` (
@@ -130,9 +133,9 @@ CREATE TABLE IF NOT EXISTS `entrants` (
 	`PillionName`	TEXT,
 	`PillionFirst`	TEXT,
 	`PillionIBA`	INTEGER,
-	`TeamID`	INTEGER DEFAULT 0,
+	`TeamID`	INTEGER NOT NULL DEFAULT 0,
 	`Country`	TEXT DEFAULT 'UK',
-	`OdoKms`	INTEGER DEFAULT 0,
+	`OdoKms`	INTEGER NOT NULL DEFAULT 0,
 	`OdoCheckStart`	NUMERIC,
 	`OdoCheckFinish`	NUMERIC,
 	`OdoCheckTrip`	NUMERIC,
@@ -144,14 +147,14 @@ CREATE TABLE IF NOT EXISTS `entrants` (
 	`BonusesVisited`	TEXT,
 	`SpecialsTicked`	TEXT,
 	`CombosTicked`	TEXT,
-	`TotalPoints`	INTEGER DEFAULT 0,
+	`TotalPoints`	INTEGER NOT NULL DEFAULT 0,
 	`StartTime`	TEXT,
-	`FinishPosition`	INTEGER DEFAULT 0,
-	`EntrantStatus`	INTEGER DEFAULT 1,
-	`ScoringNow`	INTEGER DEFAULT 0,
+	`FinishPosition`	INTEGER NOT NULL DEFAULT 0,
+	`EntrantStatus`	INTEGER NOT NULL DEFAULT 1,
+	`ScoringNow`	INTEGER NOT NULL DEFAULT 0,
 	`ScoredBy`	TEXT,
 	`ExtraData`	TEXT,
-	`Class`	INTEGER DEFAULT 0,
+	`Class`	INTEGER NOT NULL DEFAULT 0,
 	`ScoreX`	TEXT,
 	`RejectedClaims`	TEXT,
 	`Phone` TEXT,
@@ -159,67 +162,69 @@ CREATE TABLE IF NOT EXISTS `entrants` (
 	`NoKName` TEXT,
 	`NoKRelation` TEXT,
 	`NoKPhone` TEXT,
-	`BCMethod` INTEGER DEFAULT 0,
+	`BCMethod` INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY(`EntrantID`)
 );
 CREATE TABLE IF NOT EXISTS `combinations` (
 	`ComboID`	TEXT,
 	`BriefDesc`	TEXT,
-	`ScoreMethod`	INTEGER DEFAULT 0,
-	`MinimumTicks`	INTEGER DEFAULT 0,
+	`ScoreMethod`	INTEGER NOT NULL DEFAULT 0,
+	`MinimumTicks`	INTEGER NOT NULL DEFAULT 0,
 	`ScorePoints`	TEXT DEFAULT '0',
 	`Bonuses`	TEXT,
-	`Cat1`	INTEGER DEFAULT 0,
-	`Cat2`	INTEGER DEFAULT 0,
-	`Cat3`	INTEGER DEFAULT 0,
-	`Cat4`	INTEGER DEFAULT 0,
-	`Cat5`	INTEGER DEFAULT 0,
-	`Cat6`	INTEGER DEFAULT 0,
-	`Cat7`	INTEGER DEFAULT 0,
-	`Cat8`	INTEGER DEFAULT 0,
-	`Cat9`	INTEGER DEFAULT 0,
-	`Compulsory`	INTEGER DEFAULT 0,
+	`Cat1`	INTEGER NOT NULL DEFAULT 0,
+	`Cat2`	INTEGER NOT NULL DEFAULT 0,
+	`Cat3`	INTEGER NOT NULL DEFAULT 0,
+	`Cat4`	INTEGER NOT NULL DEFAULT 0,
+	`Cat5`	INTEGER NOT NULL DEFAULT 0,
+	`Cat6`	INTEGER NOT NULL DEFAULT 0,
+	`Cat7`	INTEGER NOT NULL DEFAULT 0,
+	`Cat8`	INTEGER NOT NULL DEFAULT 0,
+	`Cat9`	INTEGER NOT NULL DEFAULT 0,
+	`Compulsory`	INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY(`ComboID`)
 );
 CREATE TABLE IF NOT EXISTS `claims` (
+	`LoggedAt`	TEXT,
+	`ClaimTime`	TEXT,
+	`BCMethod`	INTEGER NOT NULL DEFAULT 0,
 	`EntrantID`	INTEGER,
 	`BonusID`	TEXT,
-	`ClaimTime`	TEXT,
-	`ClaimStatus`	INTEGER DEFAULT 0,
-	`Reason`	INTEGER DEFAULT 0,
-	`StatusChanged`	TEXT
+	`OdoReading`	INTEGER,
+	`Judged`	INTEGER NOT NULL DEFAULT 0,
+	`Decision`	INTEGER NOT NULL DEFAULT 0,
+	`Applied`	INTEGER NOT NULL DEFAULT 0
 );
-
 CREATE TABLE IF NOT EXISTS `categories` (
-	`Axis`	INTEGER DEFAULT 1,
+	`Axis`	INTEGER NOT NULL DEFAULT 1,
 	`Cat`	INTEGER,
 	`BriefDesc`	TEXT,
 	PRIMARY KEY(`Axis`,`Cat`)
 );
 CREATE TABLE IF NOT EXISTS `catcompound` (
-	`Axis`	INTEGER DEFAULT 1,
+	`Axis`	INTEGER NOT NULL DEFAULT 1,
 	`Cat`	INTEGER,
-	`NMethod`	INTEGER DEFAULT -1,
-	`ModBonus`	INTEGER DEFAULT 0,
-	`NMin`	INTEGER DEFAULT 1,
-	`PointsMults`	INTEGER DEFAULT 0,
-	`NPower`	INTEGER DEFAULT 2,
-	`Compulsory` INTEGER DEFAULT 0
+	`NMethod`	INTEGER NOT NULL DEFAULT -1,
+	`ModBonus`	INTEGER NOT NULL DEFAULT 0,
+	`NMin`	INTEGER NOT NULL DEFAULT 1,
+	`PointsMults`	INTEGER NOT NULL DEFAULT 0,
+	`NPower`	INTEGER NOT NULL DEFAULT 2,
+	`Compulsory` INTEGER NOT NULL DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS `bonuses` (
 	`BonusID`	TEXT,
 	`BriefDesc`	TEXT,
-	`Points`	INTEGER DEFAULT 1,
-	`Cat1`	INTEGER DEFAULT 0,
-	`Cat2`	INTEGER DEFAULT 0,
-	`Cat3`	INTEGER DEFAULT 0,
-	`Cat4`	INTEGER DEFAULT 0,
-	`Cat5`	INTEGER DEFAULT 0,
-	`Cat6`	INTEGER DEFAULT 0,
-	`Cat7`	INTEGER DEFAULT 0,
-	`Cat8`	INTEGER DEFAULT 0,
-	`Cat9`	INTEGER DEFAULT 0,
-	`Compulsory`	INTEGER DEFAULT 0,
+	`Points`	INTEGER NOT NULL DEFAULT 1,
+	`Cat1`	INTEGER NOT NULL DEFAULT 0,
+	`Cat2`	INTEGER NOT NULL DEFAULT 0,
+	`Cat3`	INTEGER NOT NULL DEFAULT 0,
+	`Cat4`	INTEGER NOT NULL DEFAULT 0,
+	`Cat5`	INTEGER NOT NULL DEFAULT 0,
+	`Cat6`	INTEGER NOT NULL DEFAULT 0,
+	`Cat7`	INTEGER NOT NULL DEFAULT 0,
+	`Cat8`	INTEGER NOT NULL DEFAULT 0,
+	`Cat9`	INTEGER NOT NULL DEFAULT 0,
+	`Compulsory`	INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY(`BonusID`)
 );
 
@@ -313,19 +318,30 @@ body {
 	 * These settings produce usable results on Chrome, FireFox and Edge (with fiddling)
 	 * Improve them if you must but beware.
 	 */
-	width: 160mm;
+	width: 150mm;
 	height: 25.5cm;
-    padding: 1mm 14mm 1mm 14mm; 
+        padding: 1mm 14mm 1mm 14mm; 
 	border:  none; /*2mm double;*/
 	margin-left:auto;
 	margin-right:auto;
-	margin-top: 10mm;
+	margin-top: 0mm;
 	margin-bottom: auto;
 	page-break-after:always;
 	position: relative;
-	top: 40mm;
+	top: 30mm;
 }
-h1, h2, p
+#topimagefiller
+{
+        margin-top:16em;
+}
+#hdrlogo
+{
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 400px;
+}
+h1, h2, h3, p
 { 
 	text-align: center; padding-top: 1em;
 }
@@ -333,11 +349,11 @@ h1.RallyTitle
 {
 	margin-top: 3em; 
 }
-h2 
+h2, h3 
 { 
-	margin-top: 0; padding-top: 0; 
-	font-size: 80%;
-	font-style: italic;
+	margin-top: 1em; padding-top: 0; 
+	
+	
 }
 sup
 {
@@ -345,7 +361,11 @@ sup
 }
 p.main
 {
-    text-align: justify;
+    clear:both;
+    margin-left: auto; margin-right: auto;
+    text-align: center;
+    padding-top: 2em;
+    width: 100%;
 }
 p.rules
 {
@@ -359,33 +379,47 @@ p.footer
 	clear: both;
 	padding-top: 6em;
 }
+#signature
+{
+	margin-top: 6em;
+	margin-left: auto;
+	margin-right: auto;
+	border-top: solid;
+	padding-top: 0;
+        width: 12em;
+        text-align: center;
+}
 #signature1 
 {
-	margin-top: 8em;
+	margin-top: 6em;
 	float: left;
 	border-top: solid;
 	padding-top: 0;
+        width: 12em;
+        text-align: center;
 }
 #signature2
 {
-	margin-top: 8em;
+	margin-top: 6em;
 	float: right;
 	border-top: solid;
 	padding-top: 0;
+        width: 12em;
+        text-align: center;
+        margin-right: 1em;
 }
 .CrewName
 {
 	font-weight: bold;
 }
-','<h1 class="RallyTitle">#RallyTitleSplit#</h1>
-<h2 class="RallySlogan">#RallySlogan#</h2>
-<h1 class="FinishPosition">#FinishPosition# place</h1>
-<p class="main">This is to certify that on the <span class="DateRallyRange">#DateRallyRange#</span>, <span class="CrewName">#CrewName#</span> rode a <span class="Bike">#Bike#</span> throughout Yorkshire, within <span class="CertificateHours">#CertificateHours#</span> hours. <span class="CrewFirst">#CrewFirst#</span>  accrued a total of <span class="TotalPoints">#TotalPoints#</span> bonus points on the way to finishing in <span class="FinishPosition">#FinishPosition#</span> place in the <span class="RallyTitle">#RallyTitle#</span>. An outstanding achievement!</p>
+','<div id="topimagefiller"></div>
+<h1 class="CrewName">#CrewName#</h1>
+<h2 class="FinishPosition">#FinishPosition# place</h2>
+<h3><span class="TotalPoints">#TotalPoints#</span> Points | #CorrectedMiles# Miles</h3>
+<p class="main">Congratulations on your outstanding performance in the <br><br>2019 Jorvic Rally</p>
+<p id="signature">Graeme Dawson<br>Rallymaster</p>
 
-<p class="rules">The <span class="RallyTitle">#RallyTitle#</span> was conducted under very strict guidelines set forth by the Iron Butt Association.  Only a handful of riders from around the country and beyond have managed to solve the challenges such a gruelling ride involves.</p>
-<p id="signature1"><strong>Graeme Dawson</strong><br>Rally Master, #RallyTitleShort#</p>
-<p id="signature2"><strong>John Cunniffe</strong><br>Rally Master, #RallyTitleShort#</p>
-<p class="footer">The Iron Butt Association is dedicated to safe long-distance motorcycle riding</p>',NULL,NULL,0,'Rally finisher');
+',NULL,NULL,0,'Rally finisher');
 
 
 COMMIT;

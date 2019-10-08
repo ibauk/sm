@@ -17,7 +17,7 @@ set SMDATE=%Year%-%Month%-%Day%
 set CADDYFOLDER=C:\Users\bobst\go\src\github.com\mholt\caddy\caddy\
 set PHPFOLDER=C:\PHP
 set SMFOLDER=%CADDYFOLDER%sm
-set EXECNAME=runsm0.bat
+set EXECNAME=runsm-debug.bat
 set RBLRCERTS=rblrcerts.sql
 set DB2USE=
 set OK=
@@ -151,7 +151,7 @@ echo set MU=SU>> %DESTFOLDER%\%EXECNAME%
 echo :MULTIUSER>> %DESTFOLDER%\%EXECNAME%
 echo echo.>> %DESTFOLDER%\%EXECNAME%
 echo echo Starting PHP service>> %DESTFOLDER%\%EXECNAME%
-echo set PHP_FCGI_MAX_REQUESTS=0>> %DESTFOLDER%\%EXECNAME%
+echo set PHP_FCGI_MAX_REQUESTS=0 >> %DESTFOLDER%\%EXECNAME%
 echo set t=none>> %DESTFOLDER%\%EXECNAME%
 echo for /f "Delims=:-. " %%%%a in ('tasklist /fi "IMAGENAME eq php-cgi.exe" /nh') do if not "%%%%a" == "INFO" set t=%%%%a>> %DESTFOLDER%\%EXECNAME%
 echo for /f "Delims=:-. " %%%%a in ('tasklist /fi "IMAGENAME eq php.exe" /nh') do if not "%%%%a" == "INFO" set t=%%%%a>> %DESTFOLDER%\%EXECNAME%

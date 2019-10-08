@@ -129,8 +129,12 @@ ul#tabs li a.selected { color: #000; background-color: #f1f0ee; font-weight: bol
 #ScoreHeader span { margin-left: 1em; margin-right: 1em; white-space: nowrap; }
 
 #ScoreHeader.manualscoring span:before
-				{ content: '\A\A'; white-space: pre; }
-				
+				{ content: '\A'; white-space: pre; }
+#ScoreHeader.manualscoring input
+				{ margin-top: .2em; }
+#ScoreHeader.manualscoring label
+				{ min-width: 8em; text-align: right; display: inline-block; }
+
 #tab_bonuses	{ font-family: monospace; }
 
 span.keep		{ white-space: nowrap; display: inline-block; }
@@ -138,6 +142,7 @@ span.keep		{ white-space: nowrap; display: inline-block; }
 #footer			{ background-color: lightgray; border-top: solid; position: fixed; bottom: 0; margin-bottom: .1em; width: 98%;}
 #ftrAdminMenu	{ padding-left: 1em; padding-right: 1em; float: right; }
 
+h4				{ margin-top: .9em; margin-bottom: 5px; }
 .menulist		{ list-style-type: none; }
 
 #sgroups		{ margin-top: 2em; }
@@ -289,6 +294,8 @@ table.qdfinishers th {
 	padding: .5em;
 	border: solid; 
 }
+input[name="RallyTitle"]	{ width: 20em; }
+input[name="RallySlogan"]	{ width: 20em; }
 .wizitem	{
 	border-bottom: dotted;
 	padding-bottom: .5em;

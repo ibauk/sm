@@ -171,121 +171,6 @@ function editCertificate()
 	//showFooter();
 }
 
-function presortTeams($TeamRanking)
-{
-	global $DB, $TAGS, $KONSTANTS;
-	
-	$sql = 'SELECT * FROM _ranking WHERE TeamID>0 ORDER BY TeamID,TotalPoints';
-	if ($TeamRanking == $KONSTANTS['TeamRankHighest'])
-		$sql .= ' DESC';
-	$LastTeamID = -1;
-	$LastTeamPoints = 0;
-	$LastTeamMiles = 0;
-
-	//echo($sql.'<br>');
-	$R = $DB->query($sql);
-
-	while ($rd = $R->fetchArray())
-	{
-
-		if ($LastTeam <> $rd['TeamID'])
-		{
-			$LastTeam = $rd['TeamID'];
-			$LastTeamPoints = $rd['TotalPoints'];
-			$LastTeamMiles = $rd['CorrectedMiles'];
-			//echo("UPDATE _ranking SET TotalPoints=$LastTeamPoints, CorrectedMiles=$LastTeamMiles WHERE TeamID=$LastTeam<br>");
-			$DB->exec("UPDATE _ranking SET TotalPoints=$LastTeamPoints, CorrectedMiles=$LastTeamMiles WHERE TeamID=$LastTeam");
-		}	
-	}
-
-}
-
-
-
-function rankEntrants()
-{
-	global $DB, $TAGS, $KONSTANTS;
-
-	$R = $DB->query('SELECT * FROM rallyparams');
-	$rd = $R->fetchArray();
-	$TiedPointsRanking = $rd['TiedPointsRanking'];
-	$TeamRanking = $rd['TeamRanking'];
-	
-	$DB->exec('UPDATE entrants SET FinishPosition=0');
-
-	$sql = 'CREATE TEMPORARY TABLE "_ranking" ';
-	$sql .= 'AS SELECT EntrantID,TeamID,TotalPoints,CorrectedMiles,0 AS Rank FROM entrants WHERE EntrantStatus = '.$KONSTANTS['EntrantFinisher'];
-	$DB->exec($sql);
-
-	if ($TeamRanking != $KONSTANTS['TeamRankIndividuals'])
-		presortTeams($TeamRanking);
-
-	$R = $DB->query('SELECT * FROM _ranking ORDER BY TotalPoints DESC,CorrectedMiles ASC');
-	
-	$fp = 0;
-	$lastTotalPoints = -1;
-	$N = 1;
-	$LastTeam = -1;
-
-	$DB->query('BEGIN TRANSACTION');
-
-	While ($rd = $R->fetchArray()) 
-	{
-		//echo($rd['EntrantID'].':'.$rd['TeamID'].' = '.$rd['TotalPoints'].', '.$rd['CorrectedMiles'].'<br>');
-		
-		
-		If (($TiedPointsRanking != $KONSTANTS['TiesSplitByMiles']) || ($rd['TotalPoints'] <> $lastTotalPoints)) 
-		{
-			// No splitting needed, just assign rank
-			if ($rd['TeamID'] == $LastTeam && $TeamRanking != $KONSTANTS['TeamRankIndividuals']) 
-				;
-			else if ($rd['TotalPoints'] == $lastTotalPoints)
-				$N++;
-		
-			else 
-			{
-				$fp += $N;
-				$N = 1;
-			}
-		}
-		else
-		{
-			// Must be split according to mileage
-			if ($LastTeam != $rd['TeamID'])
-			{
-				$fp += $N;
-				$N = 1;
-			}
-			else if ($rd['TeamID'] > 0 && $rd['TeamID'] != $LastTeam)
-				$N++;
-		}
-		if ($rd['TeamID'] > 0)
-			$LastTeam = $rd['TeamID'];
-		
-		$lastTotalPoints = $rd['TotalPoints'];
-		$sql = "UPDATE entrants SET FinishPosition=$fp WHERE EntrantID=".$rd['EntrantID'];
-		//echo($sql.'; LastTeam='.$LastTeam.', N='.$N.', fp='.$fp.'<br>');
-		$DB->exec($sql);
-
-	}
-	$DB->query('COMMIT TRANSACTION');
-}
-
-if (isset($_REQUEST['c']) && $_REQUEST['c']=='rank')
-{
-	rankEntrants();
-	include("entrants.php");
-	listEntrants('EntrantStatus DESC,FinishPosition');
-	exit;
-}
-if (isset($_REQUEST['savecert']))
-	saveCertificate();
-
-if (isset($_REQUEST['c']) && $_REQUEST['c']=='editcert')
-{
-	editCertificate();
-	exit;
-}
 
 function dbInitialized()
 {
@@ -376,6 +261,15 @@ function show_tagmenu($tag)
 	global $TAGS,$DB;
 	
 	//showNav();
+	$bchome = "<a href='".$HOME_URL."'> / </a>";
+	$bcstep = "<a href='".$HOME_URL.'?menu='.$menuid."'>".$TAGS[$rd['menulbl']][0].'</a>';
+	if ($menuid == 'admin')
+		pushBreadcrumb('');
+	else
+		pushBreadcrumb($bcstep);
+
+	emitBreadcrumbs();
+
 	echo('<div id="adminMM">');
 	echo('<h4 title="'.$TAGS['AdmShowTagMatches'][1].$tag.'">'.$TAGS['AdmShowTagMatches'][0].$tag.'</h4>');
 	echo('<ul class="menulist">');
@@ -476,6 +370,26 @@ function isZapDBCommand()
 	return $res;
 	
 }
+
+
+if (isset($_REQUEST['c']) && $_REQUEST['c']=='rank')
+{
+	rankEntrants();
+	include("entrants.php");
+	listEntrants('EntrantStatus DESC,FinishPosition');
+	exit;
+}
+if (isset($_REQUEST['savecert']))
+	saveCertificate();
+
+if (isset($_REQUEST['c']) && $_REQUEST['c']=='editcert')
+{
+	editCertificate();
+	exit;
+}
+
+
+
 
 global $TAGS;
 

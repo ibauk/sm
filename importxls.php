@@ -128,11 +128,13 @@ function showUpload()
 	global $TAGS, $SPECFILES;
 	
 	startHtml($TAGS['ttUpload'][0]);
-
-	echo('<h1>'.$TAGS['UploadEntrantsH1'][1].'</h1>');
 ?>
 <form action="importxls.php" method="post" enctype="multipart/form-data">
 <?php
+	pushBreadcrumb('#');
+	emitBreadcrumbs();
+
+	echo('<h1>'.$TAGS['UploadEntrantsH1'][1].'</h1>');
 	$chk = TRUE;
 	$i = 0;
 	foreach ($SPECFILES as $spc => $specs)
@@ -183,6 +185,8 @@ if (!isset($_REQUEST['specfile']))
 require_once($_REQUEST['specfile']);
 
 startHtml($TAGS['ttImport'][0],$TAGS['xlsImporting'][0]);
+//pushBreadcrumb('#');
+emitBreadcrumbs();
 
 $debugging = 0;
 

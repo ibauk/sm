@@ -1340,7 +1340,7 @@ function setFinisherStatus()
 
 function setFinishTimeDNF()
 {
-	var CH = parseInt(document.getElementById('CertificateHours').value);
+	var CH = parseInt(document.getElementById('MaxHours').value);
 	var ST = document.getElementById('RallyTimeStart').value;
 	var st = document.getElementById('StartDate').value + 'T' + document.getElementById('StartTime').value;
 	var mst = st < ST ? ST : st;

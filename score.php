@@ -159,7 +159,7 @@ function loginNewScorer()
 
 function putScore()
 {
-	global $DB, $TAGS, $KONSTANTS;
+	global $DB, $TAGS, $KONSTANTS, $AUTORANK;
 
 	//var_dump($_REQUEST);
 	
@@ -206,6 +206,9 @@ function putScore()
 	$DB->exec($sql);
 	if (($res = $DB->lastErrorCode()) <> 0)
 		echo('ERROR: '.$DB->lastErrorMsg().'<br />'.$sql.'<hr>');
+	
+	if ($AUTORANK)
+		rankEntrants();
 	
 }
 
@@ -273,7 +276,8 @@ function scoreEntrant($showBlankForm = FALSE)
 	$OneDayRally = $dts[0] == $dtf[0];
 	$rallyTimeDNF = $rd['FinishTime'];
 	$rallyTimeStart = $rd['StartTime'];
-	$certhours = $rd['CertificateHours'];
+	
+	$certhours = ($DBVERSION >= 4) ? $rd['MaxHours'] : $rd['CertificateHours'];
 	
 	$axisnames = [];
 
@@ -378,7 +382,7 @@ function scoreEntrant($showBlankForm = FALSE)
 		$myTimeDNF = $rallyTimeDNF;
 		
 		
-	echo('<input type="hidden" id="CertificateHours" value="'.$certhours.'">');
+	echo('<input type="hidden" id="MaxHours" value="'.$certhours.'">');
 	echo('<input type="hidden" id="RallyTimeDNF" value="'.$rallyTimeDNF.'">');
 	echo('<input type="hidden" id="RallyTimeStart" value="'.$rallyTimeStart.'">');
 	echo('<input type="hidden" id="FinishTimeDNF" value="'.$myTimeDNF.'">');
@@ -448,9 +452,9 @@ function scoreEntrant($showBlankForm = FALSE)
 	echo('</span> ');
 	echo('<span id="Timings" title="'.$TAGS['FinishTimeE'][1].'"><label for="FinishTime">'.$TAGS['FinishTimeE'][0].' </label> ');
 	echo('<input '.$sbfro.'type="'.$timetype.'" id="FinishTime" name="FinishTime" value="'.$dt[1].'" onchange="calcScore(true)" />');
-	if ($ScoringMethod == $KONSTANTS['ManualScoring'])
-		echo(' <input type="button" value="'.$TAGS['nowlit'][0].'" onclick="setSplitNow(\'Finish\');" />');	
-	echo('</span> ');
+	//if ($ScoringMethod == $KONSTANTS['ManualScoring'])
+	//	echo(' <input type="button" value="'.$TAGS['nowlit'][0].'" onclick="setSplitNow(\'Finish\');" />');	
+	//echo('</span> ');
 	
 	//echo('<input type="hidden" id="OdoRallyStart" name="OdoRallyStart" value="0'.$rd['OdoRallyStart'].'">');
 
@@ -779,7 +783,10 @@ function filterByName(x)
 	while ($rd = $R->fetchArray())
 	{
 		echo('<tr class="link" onclick="submitMe(this)"><td class="EntrantID">'.$rd['EntrantID'].'</td>');
-		echo('<td class="RiderName">'.$rd['RiderName'].'</td>');
+		echo('<td class="RiderName">'.$rd['RiderName']);
+		if ($rd['PillionName'] != '')
+			echo(' / '.$rd['PillionName']);
+		echo('</td>');
 		$es = $evs[''.$rd['EntrantStatus']];
 		if ($es=='')
 			$es = '[[ '.$rd['EntrantStatus'].']]';

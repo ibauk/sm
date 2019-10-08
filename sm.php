@@ -366,7 +366,10 @@ function saveRallyConfig()
 	$sql = "UPDATE rallyparams SET ";
 	$sql .= "RallyTitle='".$DB->escapeString($_REQUEST['RallyTitle'])."'";
 	$sql .= ",RallySlogan='".$DB->escapeString($_REQUEST['RallySlogan'])."'";
-	$sql .= ",CertificateHours=".intval($_REQUEST['CertificateHours']);
+	if ($DBVERSION >= 4)
+		$sql .= ",MaxHours=".intval($_REQUEST['MaxHours']);
+	else
+		$sql .= ",CertificateHours=".intval($_REQUEST['CertificateHours']);
 	$sql .= ",StartTime='".$DB->escapeString($_REQUEST['StartDate']).'T'.$DB->escapeString($_REQUEST['StartTime'])."'";
 	$sql .= ",FinishTime='".$DB->escapeString($_REQUEST['FinishDate']).'T'.$DB->escapeString($_REQUEST['FinishTime'])."'";
 	$sql .= ",OdoCheckMiles=".floatval($_REQUEST['OdoCheckMiles']);
@@ -380,10 +383,12 @@ function saveRallyConfig()
 	$sql .= ",ShowMultipliers=".intval($_REQUEST['ShowMultipliers']);
 	$sql .= ",TiedPointsRanking=0".(isset($_REQUEST['TiedPointsRanking']) ? intval($_REQUEST['TiedPointsRanking']) : 0);
 	$sql .= ",TeamRanking=".intval($_REQUEST['TeamRanking']);
+	if ($DBVERSION >= 4)
+	{
+		$sql .= ",AutoRank=".(isset($_REQUEST['AutoRank']) ? intval($_REQUEST['AutoRank']) : 0);
+	}
 	for ($i=1; $i <= $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $i++)
 		$sql .= ",Cat".$i."Label='".$DB->escapeString($_REQUEST['Cat'.$i.'Label'])."'";
-	//$sql .= ",Cat2Label='".$DB->escapeString($_REQUEST['Cat2Label'])."'";
-	//$sql .= ",Cat3Label='".$DB->escapeString($_REQUEST['Cat3Label'])."'";
 	$sql .= ",RejectReasons='".$DB->escapeString($RejectReasons)."'";
 	//echo($sql.'<hr>');
 	$DB->exec($sql);
@@ -1553,6 +1558,7 @@ function showRallyConfig()
 	echo('<div class="tabs_area" style="display:inherit"><ul id="tabs">');
 	echo('<li><a href="#tab_basic">'.$TAGS['BasicRallyConfig'][0].'</a></li>');
 	echo('<li><a href="#tab_scoring">'.$TAGS['ScoringMethod'][0].'</a></li>');
+	echo('<li><a href="#tab_categories">'.$TAGS['rcCategories'][0].'</a></li>');
 	echo('<li><a href="#tab_penalties">'.$TAGS['ExcessMileage'][0].'</a></li>');
 	echo('<li><a href="#tab_rejections">'.$TAGS['RejectReasons'][0].'</a></li>');
 	echo('</ul></div>');
@@ -1572,9 +1578,10 @@ function showRallyConfig()
 	echo('<input size="50" type="text" name="RallySlogan" id="RallySlogan" value="'.htmlspecialchars($rd['RallySlogan']).'" title="'.$TAGS['RallySlogan'][1].'"> ');
 	echo('</span>');
 	
+	$maxhourslit = ($DBVERSION >= 4) ? "MaxHours" : "CertificateHours";
 	echo('<span class="vlabel">');
-	echo('<label for="CertificateHours" class="vlabel">'.$TAGS['CertificateHours'][0].' </label> ');
-	echo('<input type="number" name="CertificateHours" id="CertificateHours" value="'.$rd['CertificateHours'].'" title="'.$TAGS['CertificateHours'][1].'"> ');
+	echo('<label for="MaxHours" class="vlabel">'.$TAGS['MaxHours'][0].' </label> ');
+	echo('<input type="number" name="MaxHours" id="MaxHours" value="'.$rd[$maxhourslit].'" title="'.$TAGS['MaxHours'][1].'"> ');
 	echo('</span>');
 
 	$dt = splitDatetime($rd['StartTime']); 
@@ -1617,33 +1624,29 @@ function showRallyConfig()
 	
 	echo('<span class="vlabel">');
 	echo('<span>'.$TAGS['ScoringMethod'][0].': </span> ');
-	echo('<label for="ScoringMethodM" title="'.$TAGS['ScoringMethodM'][1].'">'.$TAGS['ScoringMethodM'][0].' </label> ');
-		$chk = ($rd['ScoringMethod']==$KONSTANTS['ManualScoring']) ? ' checked="checked" ' : '';
-	echo('<input type="radio"'.$chk.' name="ScoringMethod" id="ScoringMethodM" value="'.$KONSTANTS['ManualScoring'].'" title="'.$TAGS['ScoringMethodM'][1].'"> ');
-	echo('<label for="ScoringMethodS" title="'.$TAGS['ScoringMethodS'][1].'">'.$TAGS['ScoringMethodS'][0].' </label> ');
-	$chk = ($rd['ScoringMethod']==$KONSTANTS['SimpleScoring']) ? ' checked="checked" ' : '';
-	echo('<input type="radio"'.$chk.' name="ScoringMethod" id="ScoringMethodS" value="'.$KONSTANTS['SimpleScoring'].'" title="'.$TAGS['ScoringMethodS'][1].'"> ');
-	echo('<label for="ScoringMethodC" title="'.$TAGS['ScoringMethodC'][1].'">'.$TAGS['ScoringMethodC'][0].' </label> ');
-	$chk = ($rd['ScoringMethod']==$KONSTANTS['CompoundScoring']) ? ' checked="checked" ' : '';
-	echo('<input type="radio" '.$chk.'name="ScoringMethod" id="ScoringMethodC" value="'.$KONSTANTS['CompoundScoring'].'" title="'.$TAGS['ScoringMethodC'][1].'"> ');
-	echo('<label for="ScoringMethodA" title="'.$TAGS['ScoringMethodA'][1].'">'.$TAGS['ScoringMethodA'][0].' </label> ');
-	$chk = ($rd['ScoringMethod']==$KONSTANTS['AutoScoring']) ? ' checked="checked" ' : '';
-	echo('<input type="radio" '.$chk.'name="ScoringMethod" id="ScoringMethodA" value="'.$KONSTANTS['AutoScoring'].'" title="'.$TAGS['ScoringMethodA'][1].'"> ');
+	echo('<select name="ScoringMethod">');
+	$chk = ($rd['ScoringMethod']==$KONSTANTS['ManualScoring']) ? ' selected ' : '';
+	echo('<option '.$chk.' value="'.$KONSTANTS['ManualScoring'].'">'.$TAGS['ScoringMethodM'][0].'</option>');
+	$chk = ($rd['ScoringMethod']==$KONSTANTS['SimpleScoring']) ? ' selected ' : '';
+	echo('<option '.$chk.' value="'.$KONSTANTS['SimpleScoring'].'">'.$TAGS['ScoringMethodS'][0].'</option>');
+	$chk = ($rd['ScoringMethod']==$KONSTANTS['CompoundScoring']) ? ' selected ' : '';
+	echo('<option '.$chk.' value="'.$KONSTANTS['CompoundScoring'].'">'.$TAGS['ScoringMethodC'][0].'</option>');
+	$chk = ($rd['ScoringMethod']==$KONSTANTS['AutoScoring']) ? ' selected ' : '';
+	echo('<option '.$chk.' value="'.$KONSTANTS['AutoScoring'].'">'.$TAGS['ScoringMethodA'][0].'</option>');
+	echo('</select>');
 	echo('</span>');
 
 	echo('<span class="vlabel">');
 	echo('<span>'.$TAGS['ShowMultipliers'][0].': </span> ');
-	echo('<label for="ShowMultipliersN" title="'.$TAGS['ShowMultipliersN'][1].'">'.$TAGS['ShowMultipliersN'][0].' </label> ');
-	$chk = ($rd['ShowMultipliers']==$KONSTANTS['SuppressMults']) ? ' checked="checked" ' : '';
-	echo('<input type="radio"'.$chk.' name="ShowMultipliers" id="ShowMultipliersN" value="'.$KONSTANTS['SuppressMults'].'" title="'.$TAGS['ShowMultipliersN'][1].'"> ');
+	echo('<select name="ShowMultipliers">');
+	$chk = ($rd['ShowMultipliers']==$KONSTANTS['SuppressMults']) ? ' selected ' : '';
+	echo('<option '.$chk.' value="'.$KONSTANTS['SuppressMults'].'">'.$TAGS['ShowMultipliersN'][0].'</option>');
+	$chk = ($rd['ShowMultipliers']==$KONSTANTS['ShowMults']) ? ' selected ' : '';
+	echo('<option '.$chk.' value="'.$KONSTANTS['ShowMults'].'">'.$TAGS['ShowMultipliersY'][0].'</option>');
+	$chk = ($rd['ShowMultipliers']==$KONSTANTS['AutoShowMults']) ? ' selected ' : '';
+	echo('<option '.$chk.' value="'.$KONSTANTS['AutoShowMults'].'">'.$TAGS['ScoringMethodA'][0].'</option>');
 	
-	echo('<label for="ShowMultipliersY" title="'.$TAGS['ShowMultipliersY'][1].'">'.$TAGS['ShowMultipliersY'][0].' </label> ');
-	$chk = ($rd['ShowMultipliers']==$KONSTANTS['ShowMults']) ? ' checked="checked" ' : '';
-	echo('<input type="radio"'.$chk.' name="ShowMultipliers" id="ShowMultipliersY" value="'.$KONSTANTS['ShowMults'].'" title="'.$TAGS['ShowMultipliersY'][1].'"> ');
-	
-	echo('<label for="ShowMultipliersA" title="'.$TAGS['ShowMultipliersA'][1].'">'.$TAGS['ShowMultipliersA'][0].' </label> ');
-	$chk = ($rd['ShowMultipliers']==$KONSTANTS['AutoShowMults']) ? ' checked="checked" ' : '';
-	echo('<input type="radio"'.$chk.' name="ShowMultipliers" id="ShowMultipliersA" value="'.$KONSTANTS['AutoShowMults'].'" title="'.$TAGS['ShowMultipliersA'][1].'"> ');
+	echo('</select>');
 	echo('</span>');
 
 
@@ -1656,16 +1659,28 @@ function showRallyConfig()
 
 	echo('<span class="vlabel">');
 	echo('<span>'.$TAGS['TeamRankingText'][0].': </span>');
-	echo('<label for="TeamRankingI" class="inline wide" title="'.$TAGS['TeamRankingI'][1].'">'.$TAGS['TeamRankingI'][0].'</label> ');
-	$chk = ($rd['TeamRanking']==$KONSTANTS['RankTeamsAsIndividuals']) ? ' checked="checked" ' : '';
-	echo('<input type="radio" '.$chk.'name="TeamRanking" id="TeamRankingI" value="'.$KONSTANTS['RankTeamsAsIndividuals'].'" title="'.$TAGS['TeamRankingI'][1].'"> ');
-	echo('<label for="TeamRankingH" class="inline wide" title="'.$TAGS['TeamRankingH'][1].'">'.$TAGS['TeamRankingH'][0].'</label> ');
-	$chk = ($rd['TeamRanking']==$KONSTANTS['RankTeamsHighest']) ? ' checked="checked" ' : '';
-	echo('<input type="radio" '.$chk.'name="TeamRanking" id="TeamRankingH" value="'.$KONSTANTS['RankTeamsHighest'].'" title="'.$TAGS['TeamRankingH'][1].'"> ');
-	echo('<label for="TeamRankingL" class="inline wide" title="'.$TAGS['TeamRankingL'][1].'">'.$TAGS['TeamRankingL'][0].'</label> ');
-	$chk = ($rd['TeamRanking']==$KONSTANTS['RankTeamsLowest']) ? ' checked="checked" ' : '';
-	echo('<input type="radio" '.$chk.'name="TeamRanking" id="TeamRankingL" value="'.$KONSTANTS['RankTeamsLowest'].'" title="'.$TAGS['TeamRankingL'][1].'"> ');
+	echo('<select name="TeamRanking">');
+	$chk = ($rd['TeamRanking']==$KONSTANTS['RankTeamsAsIndividuals']) ? ' selected ' : '';
+	echo('<option '.$chk.' value="'.$KONSTANTS['RankTeamsAsIndividuals'].'">'.$TAGS['TeamRankingI'][0].'</option>');
+	$chk = ($rd['TeamRanking']==$KONSTANTS['RankTeamsHighest']) ? ' selected ' : '';
+	echo('<option '.$chk.' value="'.$KONSTANTS['RankTeamsHighest'].'">'.$TAGS['TeamRankingH'][0].'</option>');
+	$chk = ($rd['TeamRanking']==$KONSTANTS['RankTeamsLowest']) ? ' selected ' : '';
+	echo('<option '.$chk.' value="'.$KONSTANTS['RankTeamsLowest'].'">'.$TAGS['TeamRankingL'][0].'</option>');
+	echo('</select>');
 	echo('</span>');
+
+	if ($DBVERSION >= 4)
+	{
+		echo('<span class="vlabel">');
+		echo('<label for="AutoRank" title="'.$TAGS['AutoRank'][1].'">'.$TAGS['AutoRank'][0].' </label> ');
+		$chk = ($rd['AutoRank']==$KONSTANTS['AutoRank']) ? ' checked ' : '';
+		echo(' &nbsp;&nbsp;<input type="checkbox"'.$chk.' name="AutoRank" id="AutoRank" value="'.$KONSTANTS['AutoRank'].'">');
+		echo('</span>');
+	}
+	echo('</fieldset>');
+
+	echo('<fieldset id="tab_categories" class="tabContent"><legend>'.$TAGS['rcCategories'][0].'</legend>');
+	
 
 	for ($i=1; $i <= $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $i++)
 	{
@@ -1688,15 +1703,20 @@ function showRallyConfig()
 
 	echo('<span class="vlabel">');
 	echo('<span>'.$TAGS['MilesPenaltyText'][0].': </span> ');
-	echo('<label for="MaxMilesFixedP"  class="vlabel" title="'.$TAGS['MaxMilesFixedP'][1].'">'.$TAGS['MaxMilesFixedP'][0].' </label> ');
-	$chk = ($rd['MaxMilesMethod']==$KONSTANTS['MaxMilesFixedP']) ? ' checked="checked" ' : '';
-	echo(' <input type="radio"'.$chk.' name="MaxMilesMethod" id="MaxMilesFixedP" value="'.$KONSTANTS['MaxMilesFixedP'].'" title="'.$TAGS['MaxMilesFixedP'][1].'"> ');
-	echo('<label for="MaxMilesFixedM" title="'.$TAGS['MaxMilesFixedM'][1].'">'.$TAGS['MaxMilesFixedM'][0].' </label> ');
-	$chk = ($rd['MaxMilesMethod']==$KONSTANTS['MaxMilesFixedM']) ? ' checked="checked" ' : '';
-	echo(' <input type="radio"'.$chk.' name="MaxMilesMethod" id="MaxMilesFixedM" value="'.$KONSTANTS['MaxMilesFixedM'].'" title="'.$TAGS['MaxMilesFixedM'][1].'"> ');
-	echo('<label for="MaxMilesPerMile" title="'.$TAGS['MaxMilesPerMile'][1].'">'.$TAGS['MaxMilesPerMile'][0].' </label> ');
-	$chk = ($rd['MaxMilesMethod']==$KONSTANTS['MaxMilesPerMile']) ? ' checked="checked" ' : '';
-	echo(' <input type="radio"'.$chk.' name="MaxMilesMethod" id="MaxMilesPerMile" value="'.$KONSTANTS['MaxMilesPerMile'].'" title="'.$TAGS['MaxMilesPerMile'][1].'"> ');
+	echo('<select name="MaxMilesMethod">');
+	//echo('<label for="MaxMilesFixedP"  class="vlabel" title="'.$TAGS['MaxMilesFixedP'][1].'">'.$TAGS['MaxMilesFixedP'][0].' </label> ');
+	$chk = ($rd['MaxMilesMethod']==$KONSTANTS['MaxMilesFixedP']) ? ' selected ' : '';
+	echo('<option '.$chk.' value="'.$KONSTANTS['MaxMilesFixedP'].'">'.$TAGS['MaxMilesFixedP'][0].'</option>');
+	//echo(' <input type="radio"'.$chk.' name="MaxMilesMethod" id="MaxMilesFixedP" value="'.$KONSTANTS['MaxMilesFixedP'].'" title="'.$TAGS['MaxMilesFixedP'][1].'"> ');
+	//echo('<label for="MaxMilesFixedM" title="'.$TAGS['MaxMilesFixedM'][1].'">'.$TAGS['MaxMilesFixedM'][0].' </label> ');
+	$chk = ($rd['MaxMilesMethod']==$KONSTANTS['MaxMilesFixedM']) ? ' selected ' : '';
+	echo('<option '.$chk.' value="'.$KONSTANTS['MaxMilesFixedM'].'">'.$TAGS['MaxMilesFixedM'][0].'</option>');	
+	//echo(' <input type="radio"'.$chk.' name="MaxMilesMethod" id="MaxMilesFixedM" value="'.$KONSTANTS['MaxMilesFixedM'].'" title="'.$TAGS['MaxMilesFixedM'][1].'"> ');
+	//echo('<label for="MaxMilesPerMile" title="'.$TAGS['MaxMilesPerMile'][1].'">'.$TAGS['MaxMilesPerMile'][0].' </label> ');
+	$chk = ($rd['MaxMilesMethod']==$KONSTANTS['MaxMilesPerMile']) ? ' selected ' : '';
+	echo('<option '.$chk.' value="'.$KONSTANTS['MaxMilesPerMile'].'">'.$TAGS['MaxMilesPerMile'][0].'</option>');
+	//echo(' <input type="radio"'.$chk.' name="MaxMilesMethod" id="MaxMilesPerMile" value="'.$KONSTANTS['MaxMilesPerMile'].'" title="'.$TAGS['MaxMilesPerMile'][1].'"> ');
+	echo('</select>');
 	echo('</span>');
 
 	echo('<span class="vlabel">');
