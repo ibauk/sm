@@ -118,6 +118,8 @@ const class_unchecked	= ' unchecked ';
 /* Don't create any elements with this id */
 const NON_EXISTENT_BONUSID = 'zz'; 
 
+const ORDINARY_BONUS_PREFIX = 'B';
+
 // Nice flexible string formatting
 if (!String.format) {
   String.format = function(format) {
@@ -265,11 +267,13 @@ function calcComplexScore(res)
 	{
 		if (debug) alert("ccs_processBonuses");
 		
+		var totalSoFar = 0;
+		
 		var bonuses	= document.getElementsByName("BonusID[]");		// Individual Bonus records
 		// Now process individual bonuses
 		for (var i = 0; i < bonuses.length; i++)
 		{
-			if (!bonuses[i].checked)
+			if (!bonuses[i].checked || bonuses[i].getAttribute('data-rejected') > 0)
 				continue;
 			
 			totalTickedBonuses++;
@@ -379,10 +383,12 @@ function calcComplexScore(res)
 
 			// Any mods complete now so add the score
 			totalBonusPoints += bonusPoints;
-			sxappend(bonuses[i].getAttribute('id'),bonuses[i].parentNode.getAttribute("title").replace(/\[.+\]/,""),bonusPoints,0,totalBonusPoints);
+			//sxappend(bonuses[i].getAttribute('id'),bonuses[i].parentNode.getAttribute("title").replace(/\[.+\]/,""),bonusPoints,0,totalBonusPoints);
 			
 		} // Bonus loop
 
+		explainOrdinaryBonuses(totalSoFar);
+		
 		scoreReason += "\r\n" + RPT_Bonuses + ": " +totalTickedBonuses;
 
 	} // ccs_processBonuses
@@ -581,7 +587,7 @@ function calcComplexScore(res)
 				sbonuses = document.getElementsByName("SpecialID_"+sg[j]+"[]");
 				for (var i = 0, bps = 0, mults = 0; i < sbonuses.length; i++ )
 				{
-					if (!sbonuses[i].checked)
+					if (!sbonuses[i].checked || sbonuses[i].getAttribute('data-rejected') > 0)
 						continue;
 				
 					bps = parseInt(sbonuses[i].getAttribute('data-points'));
@@ -598,7 +604,7 @@ function calcComplexScore(res)
 		sbonuses = document.getElementsByName("SpecialID[]");
 		for (var i = 0, bps = 0, mults = 0; i < sbonuses.length; i++ )
 		{
-			if (!sbonuses[i].checked)
+			if (!sbonuses[i].checked || sbonuses[i].getAttribute('data-rejected') > 0)
 				continue;
 			bps = parseInt(sbonuses[i].getAttribute('data-points'));
 			totalBonusPoints += bps;
@@ -622,7 +628,7 @@ function calcComplexScore(res)
 		var bonuses = document.getElementsByName("ComboID[]");
 		for (var i = 0, bps = 0, mults = 0; i < bonuses.length; i++ )
 		{
-			if (!bonuses[i].checked)
+			if (!bonuses[i].checked || bonuses[i].getAttribute('data-rejected') > 0)
 				continue;
 		
 			//alert(bonuses[i].getAttribute('id')+' checked = '+bonuses[i].getAttribute('data-points'));
@@ -791,7 +797,7 @@ function calcScore(enableSave)
 	{
 		setFinishTimeDNF();
 		if (debug) alert("calcScore[0][1]");
-		clearUnrejectedClaims();
+		//clearUnrejectedClaims();
 		sxstart();
 		reportRejectedClaims();
 		tickCombos();
@@ -833,14 +839,16 @@ function calcSimpleScore(res)
 
 	var bp = document.getElementsByName("BonusID[]");
 	for (var i = 0, bps = 0; i < bp.length; i++ )
-		if (bp[i].checked)
+		if (bp[i].checked && bp[i].getAttribute('data-rejected') < 1)
 		{
 			bps += parseInt(bp[i].getAttribute('data-points'));
 			ticks++;
-			sxappend(bp[i].getAttribute('id'),bp[i].parentNode.getAttribute("title").replace(/\[.+\]/,""),bp[i].getAttribute('data-points'),0,TS + bps);
+			//sxappend(bp[i].getAttribute('id'),bp[i].parentNode.getAttribute("title").replace(/\[.+\]/,""),bp[i].getAttribute('data-points'),0,TS + bps);
 		}
 	reason += "\r\n" + RPT_Bonuses + ': ' + ticks;
-		
+
+	explainOrdinaryBonuses(TS);
+	
 	TS += bps;
 
 	var sgObj = document.getElementById("SGroupsUsed");
@@ -851,7 +859,7 @@ function calcSimpleScore(res)
 		{
 			bp = document.getElementsByName("SpecialID_"+sg[j]+"[]");
 			for (var i = 0, bps = 0; i < bp.length; i++ )
-				if (bp[i].checked)
+				if (bp[i].checked && bp[i].getAttribute('data-rejected') < 1)
 				{
 					bps = parseInt(bp[i].getAttribute('data-points'));
 					TS += bps;
@@ -863,7 +871,7 @@ function calcSimpleScore(res)
 	
 	bp = document.getElementsByName("SpecialID[]");
 	for (var i = 0, bps = 0; i < bp.length; i++ )
-		if (bp[i].checked)
+		if (bp[i].checked && bp[i].getAttribute('data-rejected') < 1)
 		{
 			bps += parseInt(bp[i].getAttribute('data-points'));
 			sxappend(bp[i].getAttribute('id'),bp[i].parentNode.firstChild.innerHTML,bp[i].getAttribute('data-points'),0,TS + bps);
@@ -875,7 +883,7 @@ function calcSimpleScore(res)
 
 	bp = document.getElementsByName("ComboID[]");
 	for (var i = 0, bps = 0; i < bp.length; i++ )
-		if (bp[i].checked)
+		if (bp[i].checked && bp[i].getAttribute('data-rejected') < 1)
 		{
 			bps += parseInt(bp[i].getAttribute('data-points'));
 			sxappend(bp[i].getAttribute('id'),bp[i].parentNode.firstChild.innerHTML,bp[i].getAttribute('data-points'),0,TS + bps);
@@ -1036,6 +1044,38 @@ function enableSaveButton()
 	
 }
 
+function explainOrdinaryBonuses(totalSoFar)
+{
+	function showB(B)
+	{
+		sxappend(B.getAttribute('id'),B.parentNode.getAttribute("title").replace(/\[.+\]/,""),B.getAttribute('data-points'),0,totalSoFar += parseInt(B.getAttribute('data-points')));
+	}
+	var bv = document.getElementById('BonusesVisited');
+	if (!bv)
+	{
+		var bp = document.getElementsByName("BonusID[]");
+		for (var i = 0; i < bp.length; i++ )
+			if (bp[i].checked)
+				if (bp[i].getAttribute('data-rejected') < 1)
+					showB(bp[i]);
+				else
+					reportRejectedClaim(bp[i].id,bp[i].getAttribute('data-rejected'));
+	}
+	else if (bv.value.length > 0)
+	{
+		var bva = bv.value.split(',');
+		for (var i = 0; i < bva.length; i++ )
+		{
+			var bp = document.getElementById('B'+bva[i]);
+			if (bp && bp.checked)
+				if (bp.getAttribute('data-rejected') < 1)
+					showB(bp);
+				else
+					reportRejectedClaim(bp.id,bp.getAttribute('data-rejected'));
+		}
+	}
+}
+
 function findEntrant()
 {
 	var x;
@@ -1184,7 +1224,7 @@ function reflectBonusCheckedState(B)
 	//if (B.id == 'CLinked1')
 		//alert('Bonus ' + B.id + ' has checked = ' + B.checked + ' and Reject = ' + B.getAttribute('data-rejected'));
 	var S = B.parentElement;
-	if (B.checked)
+	if (B.checked && B.getAttribute('data-rejected') <= 0)
 		S.className = class_showbonus + class_checked;
 	else if (B.getAttribute('data-rejected') > 0)
 		S.className = class_showbonus + class_rejected;
@@ -1254,7 +1294,8 @@ function reportRejectedClaims()
 	for (var i = 0; i < rca.length; i++ )
 	{
 		var cr = rca[i].split('=');
-		reportRejectedClaim(cr[0],cr[1]);
+		if (cr[0].substr(0,1) != ORDINARY_BONUS_PREFIX)
+			reportRejectedClaim(cr[0],cr[1]);
 	}
 }
 
@@ -1368,7 +1409,9 @@ function setRejectedClaim(bonusid,reason)
 	B.setAttribute('data-rejected',reason);
 	var RC = document.getElementById('RejectedClaims');
 //	alert('src:' + bonusid + '=' + reason + '; rc=' + RC.value);
-	var rca = RC.value.split(',');
+	var rca = [];
+	if (RC.value.length > 0)
+		rca = RC.value.split(',');
 	var done = false;
 	for (var i = 0; i < rca.length; i++ )
 	{
@@ -1377,9 +1420,11 @@ function setRejectedClaim(bonusid,reason)
 		{
 			cr[1] = reason;
 			if (reason == 0)
-				cr[0] = NON_EXISTENT_BONUSID;
+				rca.splice(i);
+				//cr[0] = NON_EXISTENT_BONUSID;
+			else
+				rca[i] = cr.join('=');	
 			done = true;
-			rca[i] = cr.join('=');	
 			break;
 		}
 	}
@@ -1495,11 +1540,16 @@ function showPopup(obj)
 		var code = reason.innerText.split('=')[0];
 		var bid = menu.getAttribute('data-bonusid');
 		//alert('bid is ' + bid);
-		if (code > 0)
-			document.getElementById(bid).checked = false; 
-//		document.getElementById(bid).disabled = code > 0;
+		//if (code > 0)
+		
+		document.getElementById(bid).checked = true; 
+
+	//		document.getElementById(bid).disabled = code > 0;
 		setRejectedClaim(bid,code);
-		calcScore(true);
+		if (bid.substr(0,1) == ORDINARY_BONUS_PREFIX)
+			tickBonus(document.getElementById(bid));
+		else
+			calcScore(true);
 	}
     menu.style.left = ee.left + window.scrollX + 'px';
     menu.style.top = ee.top + + window.scrollY + 'px';
@@ -1705,6 +1755,27 @@ function tabsShowTab()
       return false;
 }
 
+
+function tickBonus(B)
+/*
+ * This handles individual ordinary bonus tick/unticks
+ * B is the checkbox obect
+ */
+{
+	var bv = document.getElementById('BonusesVisited');
+	if (bv)
+	{
+		var bva = [];
+		if (bv.value.length > 0)
+			bva = bv.value.split(',');
+		if (B.checked)
+			bva.push(B.value);
+		else
+			bva.splice(bva.indexOf(B.value),1);
+		bv.value = bva.join(',');			
+	}
+	calcScore(true);	
+}
 
 function tickCombos()
 /*

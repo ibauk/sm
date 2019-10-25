@@ -181,8 +181,12 @@ function putScore()
 		$sql .= ",CorrectedMiles=".intval($_REQUEST['CorrectedMiles']);
 	if (isset($_REQUEST['FinishTime']))
 			$sql .= ",FinishTime='".$DB->escapeString($_REQUEST['FinishDate']).'T'.$DB->escapeString($_REQUEST['FinishTime'])."'";
-	if (isset($_REQUEST['BonusID']) || isset($_REQUEST['update_bonuses'])) 
+		
+	if (isset($_REQUEST['BonusesVisited'])) 
+		$sql .= ",BonusesVisited='".$_REQUEST['BonusesVisited']."'";	
+	elseif (isset($_REQUEST['BonusID']) || isset($_REQUEST['update_bonuses'])) 
 		$sql .= ",BonusesVisited='".implode(',',$_REQUEST['BonusID'])."'";
+	
 	if (isset($_REQUEST['SpecialID']) || isset($_REQUEST['update_specials']))
 		//$sql .= ",SpecialsTicked='".implode(',',$_REQUEST['SpecialID'])."'";
 		$sql .= saveSpecials();
@@ -386,6 +390,7 @@ function scoreEntrant($showBlankForm = FALSE)
 	echo('<input type="hidden" id="RallyTimeDNF" value="'.$rallyTimeDNF.'">');
 	echo('<input type="hidden" id="RallyTimeStart" value="'.$rallyTimeStart.'">');
 	echo('<input type="hidden" id="FinishTimeDNF" value="'.$myTimeDNF.'">');
+	echo('<input type="hidden" name="BonusesVisited" id="BonusesVisited" value="'.$rd['BonusesVisited'].'">');
 	
 	$chk = $rd['OdoKms'] == $KONSTANTS['OdoCountsKilometres'] ? ' checked="checked" ' : ' ';
 	echo('<input type="hidden" id="OdoKmsK" '.$chk.'>');
@@ -454,7 +459,7 @@ function scoreEntrant($showBlankForm = FALSE)
 	echo('<input '.$sbfro.'type="'.$timetype.'" id="FinishTime" name="FinishTime" value="'.$dt[1].'" onchange="calcScore(true)" />');
 	//if ($ScoringMethod == $KONSTANTS['ManualScoring'])
 	//	echo(' <input type="button" value="'.$TAGS['nowlit'][0].'" onclick="setSplitNow(\'Finish\');" />');	
-	//echo('</span> ');
+	echo('</span> ');
 	
 	//echo('<input type="hidden" id="OdoRallyStart" name="OdoRallyStart" value="0'.$rd['OdoRallyStart'].'">');
 
@@ -615,7 +620,7 @@ function showBonuses($bonusesTicked,$showBlankForm)
 			echo(' compulsory');
 		echo(' title="'.htmlspecialchars($bd).' [ '.$rd['Points'].' ]">');
 		echo('<label for="B'.$bk.'">'.$bk.'-</label>');
-		echo('<input type="checkbox"'.$chk.' name="BonusID[]" id="B'.$bk.'" value="'.$bk.'" onchange="calcScore(true)"');
+		echo('<input type="checkbox"'.$chk.' name="BonusID[]" id="B'.$bk.'" value="'.$bk.'" onchange="tickBonus(this)"');
 		echo(' data-points="'.$rd['Points'].'" ');
 		for ($c = 1; $c <= $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $c++)
 			echo('data-cat'.$c.'="'.intval($rd['Cat'.$c]).'" ');
