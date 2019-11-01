@@ -210,8 +210,13 @@ table#entrants	.FinishPosition,.TotalPoints,.CorrectedMiles	{ text-align: center
 .hidescorex		{ display:none; }
 .showscorex		{ display:inherit; }
 
-.hide			{ display:none; } /* General purpose content hider */
+/* Drag n drop bonus reordering area */
+#ddarea			{ background-color: #66D2FF; margin: 0 auto 0 auto; padding: 0 .5em 0 .5em; border: solid; font-size: 0.6em; max-width: 20em; }
+#ddarea .ddlist	{ cursor: grab; }
 
+
+.hide			{ display:none; } /* General purpose content hider */
+.show			{ display:inherit; }
 .clickme		{ cursor: pointer; }
 
 .breadcrumb		{ 

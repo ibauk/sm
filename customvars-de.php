@@ -349,6 +349,7 @@ $TAGS = array(
 	'ScoreSaved'		=> array('Scorecard saved','This screen matches the database, no changes yet'),
 	'ScoreThis'			=> array('Score this rider',''),
 	'ScoreValue'		=> array('Value(s)','The number of points or multipliers; use commas for variable values starting with MinTicks'),
+	'ScorexHints'		=> array('Right-click to reorder; double-click to print',''),
 	'ScorexLit'			=> array('ScoreX','Score explanation'),
 	'ScoringMethod'		=> array('Scoring method',''),
 	'ScoringMethodA'	=> array('Automatic','The system will figure it out'),

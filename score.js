@@ -34,6 +34,7 @@
  *  2.2	Variable specials
  *	2.3	OdoScaleFactor SanityCheck
  *	2.4	Variable combos, flexible axes
+ *	2.5	Reorder ordinary bonus visits
  *
  */
  
@@ -118,7 +119,9 @@ const class_unchecked	= ' unchecked ';
 /* Don't create any elements with this id */
 const NON_EXISTENT_BONUSID = 'zz'; 
 
+const DDAREA_id	= "ddarea";
 const ORDINARY_BONUS_PREFIX = 'B';
+const ORDINARY_BONUSES_VISITED = 'BonusesVisited';
 
 // Nice flexible string formatting
 if (!String.format) {
@@ -131,6 +134,36 @@ if (!String.format) {
       ;
     });
   };
+}
+
+
+// Drag n drop stuff
+const NODE_IS_DOCUMENT = 9;
+var _el;
+
+
+function dragOver(e) {
+	if (isBefore(_el, e.target))
+		e.target.parentNode.insertBefore(_el, e.target);
+	else
+		e.target.parentNode.insertBefore(_el, e.target.nextSibling);
+	
+	// This is a bit cheeky cos it ASSUMES that you're using DDAREA!
+	document.getElementById(DDAREA_id).setAttribute('dropped',1);
+}
+
+function dragStart(e) {
+  e.dataTransfer.effectAllowed = "move";
+  e.dataTransfer.setData("text/plain", null); // Firefox
+  _el = e.target;
+}
+
+function isBefore(el1, el2) {
+  if (el2.parentNode === el1.parentNode)
+    for (var cur = el1.previousSibling; cur && cur.nodeType !== NODE_IS_DOCUMENT; cur = cur.previousSibling)
+      if (cur === el2)
+        return true;
+  return false;
 }
 
 
@@ -182,13 +215,6 @@ function askPoints(inp)
 
 function bodyLoaded()
 {
-	//var B = document.getElementsByName('BonusID[]');
-	//for (var i = 0; i < B.length; i++)
-	//{
-	//B[i].parentElement.addEventListener('contextmenu',function(e){e.preventDefault()});
-//		for (var j = 0; j < B[i].parentElement.childNodes.length; j++)
-	//		B[i].parentElement.childNodes[j].addEventListener('contextmenu',function(e){e.preventDefault()});
-	//}
 	
 	var dbv = document.getElementById('DBVERSION');
 	if (dbv)
@@ -209,7 +235,7 @@ function bodyLoaded()
 	
 	if (!isScoresheetpage)
 		return;
-
+	
 	trapDirtyPage();
 	calcScore(false);	
 		
@@ -1050,7 +1076,7 @@ function explainOrdinaryBonuses(totalSoFar)
 	{
 		sxappend(B.getAttribute('id'),B.parentNode.getAttribute("title").replace(/\[.+\]/,""),B.getAttribute('data-points'),0,totalSoFar += parseInt(B.getAttribute('data-points')));
 	}
-	var bv = document.getElementById('BonusesVisited');
+	var bv = document.getElementById(ORDINARY_BONUSES_VISITED);
 	if (!bv)
 	{
 		var bp = document.getElementsByName("BonusID[]");
@@ -1468,6 +1494,113 @@ function setSplitNow(id_prefix)
 	enableSaveButton();
 }
 
+function synchronizeCssStyles(src, destination, recursively) {
+
+    // if recursively = true, then we assume the src dom structure and destination dom structure are identical (ie: cloneNode was used)
+
+    // window.getComputedStyle vs document.defaultView.getComputedStyle 
+    // @TBD: also check for compatibility on IE/Edge 
+    destination.style.cssText = document.defaultView.getComputedStyle(src, "").cssText;
+
+    if (recursively) {
+        var vSrcElements = src.getElementsByTagName("*");
+        var vDstElements = destination.getElementsByTagName("*");
+
+        for (var i = vSrcElements.length; i--;) {
+            var vSrcElement = vSrcElements[i];
+            var vDstElement = vDstElements[i];
+//          console.log(i + " >> " + vSrcElement + " :: " + vDstElement);
+            vDstElement.style.cssText = document.defaultView.getComputedStyle(vSrcElement, "").cssText;
+        }
+    }
+}
+function fetchBonusOrder()
+{
+	var obs = document.getElementById(ORDINARY_BONUSES_VISITED);
+	var res = [];
+	if (obs.value.length > 0)
+		res = obs.value.split(',');
+	return res;
+}
+
+function finishBonusOrder()
+{
+	var dda = document.getElementById(DDAREA_id);
+	var lis = dda.getElementsByClassName('ddlist')[0].getElementsByTagName('li');
+	var obs = [];
+	for (var i = 0; i < lis.length; i++)
+	{
+		var txt = lis[i].innerText;
+		obs.push(txt.substr(0,txt.indexOf(' ')));
+	}
+	var bv = document.getElementById(ORDINARY_BONUSES_VISITED);
+	bv.value = obs.join(',');
+	dda.className = 'hide';
+	if (dda.getAttribute('dropped')==1)
+		calcScore(true);
+	sxshow();
+}
+
+function showBonusOrder()
+{
+	event.preventDefault();
+	var dda = document.getElementById(DDAREA_id);
+	var obs = fetchBonusOrder();
+	var html = '<input type="button" title="' + OBSORTAZ + '" style="font-size: 1.1em;" value="&duarr;" onclick="sortBonusOrder()"/> ';
+	html += '<input type="button" title="' + APPLYCLOSE + '" style="float: right; font-size: 1.1em;" value="&cross;" onclick="finishBonusOrder()"/>';
+	html += '<ol class="ddlist">';
+	for (var i = 0; i < obs.length; i++)
+	{
+		var bon = document.getElementById(ORDINARY_BONUS_PREFIX+obs[i]);
+		html += '<li draggable="true" ondragstart="dragStart(event)" ondragover="dragOver(event)" >';
+		var tit = bon.parentNode.getAttribute('title');
+		var p = tit.indexOf('[');
+		if (p >= 0)
+			tit = tit.substr(0,p);
+		html += obs[i] + ' ' + tit;
+		html += '</li>';
+	}
+	html += '</ol>';
+	dda.innerHTML = html;
+	dda.setAttribute('dropped',0);
+	sxhide();
+	dda.className = 'show';
+	return false;
+}
+
+function sortBonusOrder()
+{
+	var ddl = document.getElementById(DDAREA_id).getElementsByClassName('ddlist')[0];
+	sortList(ddl);
+}
+
+function sortList(ul){
+    var new_ul = ul.cloneNode(false);
+
+    // Add all lis to an array
+    var lis = [];
+    for(var i = ul.childNodes.length; i--;){
+        if(ul.childNodes[i].nodeName === 'LI')
+            lis.push(ul.childNodes[i]);
+    }
+
+//    lis.sort(function(a, b){
+//      return parseInt(a.childNodes[0].data , 10) - 
+//              parseInt(b.childNodes[0].data , 10);
+//    });
+
+    lis.sort(function(a, b){
+       return a.childNodes[0].data > 
+              b.childNodes[0].data;
+    });
+
+    // Add them into the ul in order
+    for(var i = 0; i < lis.length; i++)
+        new_ul.appendChild(lis[i]);
+    ul.parentNode.replaceChild(new_ul, ul);
+}
+
+
 function showBreadcrumbs()
 {
 	var obj = document.getElementById('breadcrumbs');
@@ -1672,7 +1805,7 @@ function sxstart()
 	var sx = document.getElementById(SX_id);
 	if (!sx) return;
 	
-	var html = '<table><caption>'+document.getElementById("RiderID").innerHTML+' [&nbsp;<span id="sxsfs"></span>&nbsp;]</caption><thead><tr><th class="id">id</th><th class="desc"></th><th class="bp">BP</th>';
+	var html = '<table oncontextmenu="showPopup(this);"><caption>'+document.getElementById("RiderID").innerHTML+' [&nbsp;<span id="sxsfs"></span>&nbsp;]</caption><thead><tr><th class="id">id</th><th class="desc"></th><th class="bp">BP</th>';
 	if (showMults) html += '<th class="bm">BM</th>';
 	html += '<th class="tp">TP</th></tr></thead><tbody></tbody></table>';
 	sx.innerHTML = html;
@@ -1762,14 +1895,17 @@ function tickBonus(B)
  * B is the checkbox obect
  */
 {
-	var bv = document.getElementById('BonusesVisited');
+	var bv = document.getElementById(ORDINARY_BONUSES_VISITED);
 	if (bv)
 	{
 		var bva = [];
 		if (bv.value.length > 0)
 			bva = bv.value.split(',');
 		if (B.checked)
-			bva.push(B.value);
+			if (bva.indexOf(B.value) < 0)
+				bva.push(B.value);
+			else
+				;
 		else
 			bva.splice(bva.indexOf(B.value),1);
 		bv.value = bva.join(',');			

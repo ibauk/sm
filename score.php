@@ -597,7 +597,8 @@ function scoreEntrant($showBlankForm = FALSE)
 				showCategory($i,$axisnames[$i]);
 		echo('</div>');
 	}
-	echo('<div id="scorex" title="'.$TAGS['dblclickprint'][0].'" class="'.$scorex_class.' scorex" data-show="0" ondblclick="sxprint();" >'.$rd['ScoreX'].'</div>');
+	echo('<div id="scorex" oncontextmenu="showBonusOrder()" title="'.$TAGS['ScorexHints'][0].'" class="'.$scorex_class.' scorex" data-show="0" ondblclick="sxprint();" >'.$rd['ScoreX'].'</div>');
+	echo('<div id="ddarea"><p> </p></div>');
 	echo('</body></html>');
 }
 
