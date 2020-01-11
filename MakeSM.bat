@@ -17,7 +17,7 @@ set SMDATE=%Year%-%Month%-%Day%
 set CADDYFOLDER=C:\Users\bobst\go\src\github.com\mholt\caddy\caddy\
 set PHPFOLDER=C:\PHP
 set SMFOLDER=%CADDYFOLDER%sm
-set EXECNAME=runsm-debug.bat
+set EXECNAME=debugsm.bat
 set RBLRCERTS=rblrcerts.sql
 set DB2USE=
 set OK=
@@ -95,6 +95,8 @@ xcopy %PHPFOLDER% %DESTFOLDER%\php /e /i>nul
 echo     PHPSpreadsheet
 xcopy %SMFOLDER%\vendor %DESTFOLDER%\sm\vendor /e /i>nul
 xcopy %SMFOLDER%\PhpSpreadsheet %DESTFOLDER%\sm\PhpSpreadsheet /e /i>nul
+echo     Quill
+xcopy %SMFOLDER%\quill %DESTFOLDER%\sm\quill /i>nul
 echo     images
 :: xcopy %SMFOLDER%\images %DESTFOLDER%\sm\images /e /i>nul
 mkdir %DESTFOLDER%\sm\images
@@ -110,7 +112,8 @@ for %%a in (about.php,admin.php,bbrspec.php,certificate.php,common.php,
 			score.css,setup.php,favicon.ico,bblspec.php,utils.php,
 			entrants.php,exportxls.php,importxls.php,index.php,
 			jorvicspec.php,licence.txt,rblrspec.php,readme.txt,customvars.php,
-			custom.js,score.js,score.php,sm.php,specfiles.php) do copy %SMFOLDER%\%%a %DESTFOLDER%\sm>nul
+			custom.js,score.js,score.php,sm.php,specfiles.php,teams.php,
+			certedit.php,reboot.css,certificate.css) do copy %SMFOLDER%\%%a %DESTFOLDER%\sm>nul
 
 echo Copying %DB2USE% database ...
 if NOT %DB2USE%==LIVE sqlite3 %DESTFOLDER%\sm\ScoreMaster.db <%SMFOLDER%\scoremaster.sql
@@ -136,6 +139,7 @@ echo echo.>> %DESTFOLDER%\%EXECNAME%
 echo set PORT=%PORT%>> %DESTFOLDER%\%EXECNAME%
 echo echo.>> %DESTFOLDER%\%EXECNAME%
 echo echo.>> %DESTFOLDER%\%EXECNAME%
+echo goto :SINGLEUSER>> %DESTFOLDER%\%EXECNAME%
 echo set MU=MU>> %DESTFOLDER%\%EXECNAME%
 echo echo If you're going to run ScoreMaster on this machine only, please choose Single-user mode>> %DESTFOLDER%\%EXECNAME%
 echo echo otherwise, to allow two or more computers at the same time, choose Multi-user mode.>> %DESTFOLDER%\%EXECNAME%

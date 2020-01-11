@@ -378,15 +378,15 @@ function showNav()
 	
 	echo( '<span id="navbar_breadcrumbs"></span> ');
 	
-	echo(' <span title="'.$TAGS['UtlFindEntrant'][1].'">');
 	$xx = "return document.getElementById('EntrantSearchKey').value!='';";
 	echo('<form method="get" action="entrants.php"  onsubmit="'.$xx.'">');
+	echo(' <span title="'.$TAGS['UtlFindEntrant'][1].'">');
 	echo('<input type="hidden" name="c" value="entrants">');
 	echo('<input type="hidden" name="mode" value="find">');
 	echo('<input type="text" name="x" id="EntrantSearchKey" placeholder="'.$TAGS['UtlFindEntrant'][0].'">');
 	echo('<input type="submit" value="?"> ');
-	echo('</form>');
 	echo('</span> ');
+	echo('</form>');
 	
 	show_menu_taglist();
 	echo('</div>');
@@ -414,9 +414,10 @@ echo('<title>'.$pagetitle.'</title>');
 ?>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" type="text/css" href="reboot.css?ver=<?= filemtime('reboot.css')?>">
 <link rel="stylesheet" type="text/css" href="score.css?ver=<?= filemtime('score.css')?>">
-<script src="custom.js?ver=<?= filemtime('custom.js')?>" defer="defer"></script>
-<script src="score.js?ver=<?= filemtime('score.js')?>" defer="defer"></script>
+<script src="custom.js?ver=<?= filemtime('custom.js')?>" defer></script>
+<script src="score.js?ver=<?= filemtime('score.js')?>" defer></script>
 </head>
 <body onload="bodyLoaded();">
 <?php echo('<input type="hidden" id="BasicDistanceUnits" value="'.$KONSTANTS['BasicDistanceUnits'].'"/>'); ?>

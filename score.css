@@ -5,7 +5,7 @@
  * I am written for readability rather than efficiency, please keep me that way.
  *
  *
- * Copyright (c) 2019 Bob Stammers
+ * Copyright (c) 2020 Bob Stammers
  *
  *
  * This file is part of IBAUK-SCOREMASTER.
@@ -125,7 +125,21 @@ ul#tabs li a.selected { color: #000; background-color: #f1f0ee; font-weight: bol
 #hdrRallyTitle 	{ padding-left: 1em; }
 #hdrOtherInfo 	{ padding-right: 1em; float: right; }
 #frontpage		{ margin-top: 3em; margin-left: 3em; font-size: 1.3em; }
-#ScoreHeader 	{ margin-top: 1em; padding-bottom: .5em; border-bottom: solid;  max-width: 100%; }
+
+#pickentrant	{
+					/* Keep the header visible when scrolling down */
+					position: -webkit-sticky; position: sticky; top:0; background-color: var(--regular-background);
+				}
+				
+.listhead		{
+					/* Keep the header visible when scrolling down */
+					position: -webkit-sticky; position: sticky; top:0; background-color: var(--regular-background);
+				}
+				
+#ScoreHeader 	{ margin-top: 1em; padding-bottom: .5em; border-bottom: solid;  max-width: 100%; 
+					/* Keep the header visible when scrolling down */
+					position: -webkit-sticky; position: sticky; top:0; background-color: var(--regular-background);
+				}
 #ScoreHeader span { margin-left: 1em; margin-right: 1em; white-space: nowrap; }
 
 #ScoreHeader.manualscoring span:before
@@ -325,8 +339,15 @@ input[name="RallySlogan"]	{ width: 20em; }
 	padding-right: 1em;
 }
 
+.teamslist		{ font-size: .6em; }
+.teamslist pre	{ margin: 0;}
+.teamslist strong	{ font-size: 1.1em; font-weight: bold; }
+.teamslist .BonusMatches	{ font-family: monospace; }
+.teamslist .lastrow	td	{ padding-bottom: .5em; }
+
 @media print {
 .noprint		{ display: none !important; }
+#navbar			{ display: none !important; }
 .scorex			{ font-size: 0.7em; page-break-after: always; }
 #ScoreSheet		{ font-size: 1.2em; font-family: monospace;}
 input[type='checkbox'] {
