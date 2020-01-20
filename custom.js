@@ -33,6 +33,7 @@ const DNF_TOOMANYMILES = "Too many miles";
 const DNF_FINISHEDTOOLATE = "Finished too late";
 const DNF_MISSEDCOMPULSORY = "Missed a compulsory bonus";
 const DNF_COMPOUNDRULE = "Breached a compound rule";
+const DNF_SPEEDING = "Excessive speed";
 
 // Elements of Score explanation, include trailing space, etc
 const RPT_Tooltip	= "Click for explanation\rdoubleclick to print";
@@ -42,6 +43,7 @@ const RPT_Combos	= "Combos";
 const RPT_MPenalty	= "Mileage penalty";
 const RPT_TPenalty	= "Late penalty";
 const RPT_Total 	= "TOTAL";
+const RPT_SPenalty	= "Speed penalty";
 
 const CFGERR_MethodNIY = "Error: compoundCalcRuleMethod {0} not implemented yet";
 const CFGERR_NotBonuses = "Error: compoundCalcRuleType {0} not applicable to bonuses";

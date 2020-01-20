@@ -113,7 +113,7 @@ for %%a in (about.php,admin.php,bbrspec.php,certificate.php,common.php,
 			entrants.php,exportxls.php,importxls.php,index.php,
 			jorvicspec.php,licence.txt,rblrspec.php,readme.txt,customvars.php,
 			custom.js,score.js,score.php,sm.php,specfiles.php,teams.php,
-			certedit.php,reboot.css,certificate.css) do copy %SMFOLDER%\%%a %DESTFOLDER%\sm>nul
+			certedit.php,reboot.css,certificate.css,speeding.php) do copy %SMFOLDER%\%%a %DESTFOLDER%\sm>nul
 
 echo Copying %DB2USE% database ...
 if NOT %DB2USE%==LIVE sqlite3 %DESTFOLDER%\sm\ScoreMaster.db <%SMFOLDER%\scoremaster.sql

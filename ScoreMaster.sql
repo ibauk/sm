@@ -228,12 +228,19 @@ CREATE TABLE IF NOT EXISTS `bonuses` (
 	PRIMARY KEY(`BonusID`)
 );
 
+CREATE TABLE IF NOT EXISTS "speedpenalties" (
+	"Basis"	INTEGER NOT NULL DEFAULT 0,
+	"MinSpeed"	INTEGER NOT NULL,
+	"PenaltyType"	INTEGER NOT NULL DEFAULT 0,
+	"PenaltyPoints"	INTEGER DEFAULT 0
+);
 
 DELETE FROM `rallyparams`;
 DELETE FROM `functions`;
 DELETE FROM `menus`;
 
 DELETE FROM `certificates`;
+DELETE FROM `speedpenalties`;
 DELETE FROM `timepenalties`;
 DELETE FROM `specials`;
 DELETE FROM `sgroups`;
@@ -259,7 +266,7 @@ INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (9,'AdmSGro
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (10,'AdmCombosTable','sm.php?c=combos',NULL,'bonus,combo/combination');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (11,'AdmEntrants','entrants.php?c=entrants&amp;ord=EntrantID&amp;mode=full',NULL,'entrant');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (12,'AdmNewEntrant','entrants.php?c=newentrant',NULL,'entrant');
-INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (13,'AdmDoBlank','score.php?c=blank',NULL,'score,blank score sheet');
+INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (13,'AdmDoBlank','score.php?c=blank&prf=1',NULL,'score,blank score sheet');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (14,'AdmRankEntries','admin.php?c=rank',NULL,'entrant,rank,finisher');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (15,'AdmImportEntrants','importxls.php?showupload',NULL,'entrant,import');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (16,'AdmRallyParams','sm.php?c=rallyparams',NULL,'params,rally');
@@ -278,12 +285,15 @@ INSERT INTO `functions` (functionid,menulbl,url,onclick,tags) VALUES (28,'UtlRen
 INSERT INTO `functions` (functionid,menulbl,url,onclick,tags) VALUES (29,'UtlRAE','entrants.php?c=showrae',NULL,'entrant,renumber all entrants,entrant number,number');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (30,'AdmUtilHeader','admin.php?menu=util',NULL,'utilities,delete');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (31,'UtlFindEntrant','#','return findEntrant();','entrant,find');
+INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (32,'AdmDoBlankB4','score.php?c=blank&prf=0',NULL,'score,blank score sheet');
+INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (33,'ttTeams','teams.php?m=3&g=2',NULL,'teams,integrity');
+INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (34,'AdmSpeedPenalties','speeding.php',NULL,'speeding,penalties');
 
-INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('admin','AdmMenuHeader','1,2,3,4,24,5,6,25');
-INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('setup','AdmSetupHeader','16,17,18,19,20,21,22,23,30');
-INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('entrant','AdmEntrantsHeader','1,11,12,2,13,15,24,31');
+INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('admin','AdmMenuHeader','25,5,2,4,24,6');
+INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('setup','AdmSetupHeader','16,17,18,19,20,34,21,22,23,30');
+INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('entrant','AdmEntrantsHeader','1,11,12,2,15,24,31');
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('bonus','AdmBonusHeader','7,8,9,10');
-INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('util','AdmUtilHeader','29,28,27,26');
+INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('util','AdmUtilHeader','29,28,27,26,32,13,33');
 
 
 

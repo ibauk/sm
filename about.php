@@ -59,6 +59,7 @@ $PROGRAM = array("version" => "2.4.1",	"title"	=> "ScoreMaster");
  *				parseInt(EntrantID) in scoring picklist
  *				BCMethod support
  *				Trap unsaved scorecard
+ *				Average speed
  */
 $HOME_URL = "admin.php";
 require_once("common.php");
@@ -146,7 +147,7 @@ function showAbout()
 	echo('<dt title="'.$TAGS['abtBasicDistance'][1].'">'.$TAGS['abtBasicDistance'][0].'</dt><dd>'.$mk.'</dd>');
 	$mk = ($KONSTANTS['DefaultKmsOdo'] == $KONSTANTS['OdoCountsMiles'] ? 'miles' : 'kilometres');
 	echo('<dt title="'.$TAGS['abtDefaultOdo'][1].'">'.$TAGS['abtDefaultOdo'][0].'</dt><dd>'.$mk.'</dd>');
-	echo('<dt title="'.$TAGS['abtAuthor'][1].'">'.$TAGS['abtAuthor'][0].'</dt><dd>Bob Stammers &lt;webmaster@ironbutt.co.uk&gt; on behalf of <span title="Iron Butt Association (UK)">IBAUK</span></dd>');
+	echo('<dt title="'.$TAGS['abtAuthor'][1].'">'.$TAGS['abtAuthor'][0].'</dt><dd>Bob Stammers &lt;webmaster@ironbutt.co.uk&gt; on behalf of <span title="Iron Butt Association (UK)">IBAUK</span>, inspired by Steve Eversfield (IBA #169)</dd>');
 	echo('<dt title="'.$TAGS['abtLicence'][1].'">'.$TAGS['abtLicence'][0].'</dt><dd>MIT</dd>');
 	echo('</dl>');
 	echo("</div> <!-- helpabout -->\n");

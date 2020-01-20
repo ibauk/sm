@@ -393,7 +393,7 @@ if (isset($_REQUEST['c']) && $_REQUEST['c']=='editcert')
 
 global $TAGS;
 
-startHtml($TAGS['ttAdminMenu'][0],'<a href="about.php" class="techie" title="'.$TAGS['HelpAbout'][1].'">'.$TAGS['HelpAbout'][0].'</a>');
+startHtml($TAGS['ttAdminMenu'][0],'<a href="about.php" class="techie" title="'.$TAGS['HelpAbout'][1].'">'.$TAGS['HelpAbout'][0].'</a>',dbInitialized());
 //var_dump($_REQUEST);
 if (isset($_REQUEST['c']) && $_REQUEST['c']=='entrants')
 	show_menu('entrant');

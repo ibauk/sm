@@ -113,6 +113,7 @@ $TAGS = array(
 	'AdmShowSetup'		=> array('Rally setup &amp; config','View/maintain rally configuration records'),
 	'AdmShowTagMatches'	=> array('Items matching ','Showing functions matching tag '),
 	'AdmSpecialTable'	=> array('Special bonuses','View/edit special bonuses'),
+	'AdmSpeedPenalties'	=> array('Speed penalties','Maintain table of speed penalties'),
 	'AdmTimePenalties'	=> array('Time penalties','Maintain table of time penalties'),
 	'AdmUtilHeader'		=> array('Utility functions',',,'),
 	
@@ -160,7 +161,8 @@ $TAGS = array(
 	
 	'CertExplainer'		=> array('Certificates are "web" documents comprising well-formed HTML and CSS parts.',
 									'Please carefully specify the certificate layout and content in the texts below.'),
-	
+	'CertExplainerW'	=> array('Certificates are "web" documents. This editor allows you to define the content and layout in a user-friendly way.',
+									'If you need more control please use the "advanced" editor, this one has only limited capabilities.'),
 	'MaxHours'			=> array('Maximum hours','The duration of the rally in hours. Used to calculate DNF time, may show on certificates'),
 	'CertTitle'			=> array('Title','Description of this certificate class'),
 	'Class'				=> array('Class #','The certificate class applicable'),
@@ -347,6 +349,7 @@ $TAGS = array(
 	'SaveNewCC'			=> array('Update database',''),
 	'SaveRallyConfig'	=> array('Update rally configuration parameters',''),
 	'SaveScore'			=> array('Save scorecard','Save the updated score/status of this entrant'),
+	'SaveSettings'		=> array('Save settings','Save these details to the database'),
 	'ScoredBy'			=> array('Scored by','Who is (or did) scoring this entrant?'),
 	'ScoreNow'			=> array('Score now','Switch to live scoring this entrant(new tab)'),
 	'ScoreMethodLit'	=> array('Score method',''),
@@ -367,6 +370,7 @@ $TAGS = array(
 	'ScoringMethodWM'	=> array('Manual scoring','Scores will be calculated manually by the scorers and entered as a simple points value'),
 	'ScoringMethodWS'	=> array('Simple scoring','The rally uses only ordinary bonuses, special bonuses and combination bonuses'),
 	'ScoringNow'		=> array('Being scored now','Is this entrant being scored by someone right now?'),
+	'SettingsSaved'		=> array('Settings saved','This screen matches the database, no changes yet'),
 	'SGroupLit'			=> array('Specials Group','Specials group name'),
 	'SGroupMaintHead'	=> array('Specials Bonus Groups','List of groups for specials'),
 	'SGroupTypeLit'		=> array('Interface','Radio buttons or checkboxes'),
@@ -384,6 +388,14 @@ $TAGS = array(
 	'SpecialMultLit'	=> array('Multipliers',''),
 	'SpecialPointsLit'	=> array('Points',''),
 	'SpecialsLit'		=> array('Specials','Special bonuses'),
+	'SpeedPExplain'		=> array('Penalties for speeding based on average speed. The unit is either MPH or Km/h depending on the rally setting. Only the highest matching speed is applied.',''),
+	'spMinSpeedCol'		=> array('Speed','Minimum average speed'),
+	'spPenaltyPointsCol'
+						=> array('Points','Number of penalty points'),
+	'spPenaltyTypeCol'	=> array('Penalty','Type of penalty'),
+	'spPenaltyTypeDNF'	=> array('DNF','Penalty applied is DNF'),
+	'spPenaltyTypePoints'
+						=> array('Points','Penalty points'),
 	'StartDate'			=> array('Start date','The first day of the rally. Rally riding day as opposed to must arrive by day'),
 	'StartDateE'		=> array('Start date','The first day of rally riding'),
 	'StartTime'			=> array('Start time','Official start time. Rally clock starts at this time.'),
@@ -397,6 +409,7 @@ $TAGS = array(
 	'ttFinishers'		=> array('SM:Finishers','Quicklists'),
 	'ttCertificates'	=> array('Certificates',''),
 	'ttScoreX'			=> array('ScoreX',''),
+	'ttTeams'			=> array('SM:Teams','Potential team matches'),
 	'ttUpload'			=> array('SM:Upload','File pick screen'),
 	'ttImport'			=> array('SM:Import','Importing'),
 	'ttScoring'			=> array('Scoring','Logged on to scoring'),

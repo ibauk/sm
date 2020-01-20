@@ -167,6 +167,8 @@ function putScore()
 	
 	$sql .= ",ScoringNow=0";	// Score's being saved so probably not continuing to be scored
 	
+	if (isset($_REQUEST['OdoKms']))
+		$sql .= ",OdoKms=".intval($_REQUEST['OdoKms']);
 	if (isset($_REQUEST['OdoCheckStart']))
 		$sql .= ",OdoCheckStart=".floatval($_REQUEST['OdoCheckStart']);
 	if (isset($_REQUEST['OdoCheckFinish']))
@@ -242,11 +244,17 @@ function saveSpecials()
 	return ",SpecialsTicked='".$sv."'";
 }
 
-function scoreEntrant($showBlankForm = FALSE)
+function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
+/*
+ * showBlankForm 	Produce template for ticksheets only
+ * postRallyForm	Ticksheet used to capture score at check-in
+ *
+ */
 {
 	global $DB, $TAGS, $KONSTANTS, $DBVERSION;
 
-	
+	if (isset($_REQUEST['prf']))
+		$postRallyForm = $_REQUEST['prf'] == '1';
 	if (!$showBlankForm) 
 	{
 		$sql = 'SELECT * FROM entrants';
@@ -268,7 +276,10 @@ function scoreEntrant($showBlankForm = FALSE)
 		$scorex_class = 'hidescorex';
 	}
 	
-	startHtml($TAGS['ttScoring'][0],$TAGS['Scorer'][0].': '.$ScorerName,false);
+	$otherinfo = $TAGS['Scorer'][0].': '.$ScorerName;
+	if ($showBlankForm && !$postRallyForm)
+			$otherinfo = '';
+	startHtml($TAGS['ttScoring'][0],$otherinfo,false);
 
 	eval("\$evs = ".$TAGS['EntrantStatusV'][0]);
 	
@@ -347,6 +358,16 @@ function scoreEntrant($showBlankForm = FALSE)
 	while ($rd = $R->fetchArray())
 		echo('<input type="hidden" name="TimePenalty[]" data-spec="'.$rd['TimeSpec'].'" data-start="'.$rd['PenaltyStart'].'" data-end="'.$rd['PenaltyFinish'].'" data-factor="'.$rd['PenaltyFactor'].'" data-method="'.$rd['PenaltyMethod'].'">');
 	//echo(" 2 ");
+	if ($DBVERSION >= 4)
+	{
+		$R = $DB->query('SELECT Basis,MinSpeed,PenaltyType,PenaltyPoints FROM speedpenalties ORDER BY MinSpeed DESC');
+		while ($rd = $R->fetchArray())
+		{
+			echo('<input type="hidden" name="SpeedPenalty[]" data-Basis="'.$rd['Basis'].'" data-MinSpeed="'.$rd['MinSpeed'].'" ');
+			echo('data-PenaltyType="'.$rd['PenaltyType'].'" value="'.$rd['PenaltyPoints'].'">');
+		}
+	}
+	
 	$sql = ($DBVERSION < 3 ? ',0 as Compulsory' : ',Compulsory');
 	$R = $DB->query('SELECT rowid AS id,Axis,Cat,NMethod,ModBonus,NMin,PointsMults,NPower'.$sql.' FROM catcompound ORDER BY Axis,NMin DESC');
 	while ($rd = $R->fetchArray())
@@ -475,7 +496,7 @@ function scoreEntrant($showBlankForm = FALSE)
 	if (!$showBlankForm)
 	{
 		echo('<span title="'.$TAGS['OdoKms'][1].'"><label for="OdoKms">'.$TAGS['OdoKms'][0].' </label> ');
-		echo('<select name="OdoKms" id="OdoKms" onchange="calcMiles();calcScore(true)">');
+		echo('<select name="OdoKms" id="OdoKms" onchange="flipMilesKms();calcScore(true)">');
 		if ($rd['OdoKms']==$KONSTANTS['OdoCountsKilometres'])
 		{
 			echo('<option value="'.$KONSTANTS['OdoCountsMiles'].'">'.$TAGS['OdoKmsM'][0].'</option>');
@@ -491,6 +512,10 @@ function scoreEntrant($showBlankForm = FALSE)
 		echo('<span title="'.$TAGS['CorrectedMiles'][1].'"><label for="CorrectedMiles">'.$TAGS['CorrectedMiles'][0].' </label> ');
 		echo('<input '.$sbfro.' type="'.$numbertype.'"  name="CorrectedMiles" id="CorrectedMiles" value="'.$cmiles.'" onchange="calcScore(true)" /> ');
 		echo('</span> ');
+		
+		echo('<span class="explain" title="'.$TAGS['CalculatedAvgSpeed'][1].'"><label for="CalculatedAvgSpeed" '.$TAGS['CalculatedAvgSpeed'][0].' </label> ');
+		echo('<input readonly type="text" name="CalculatedAvgSpeed" id="CalculatedAvgSpeed" value="">');
+		echo('</span>');
 	}
 	
 		
@@ -554,7 +579,7 @@ function scoreEntrant($showBlankForm = FALSE)
 	
 	if ($ScoringMethod <> $KONSTANTS['ManualScoring'])
 	{
-		if ($showBlankForm && true)
+		if ($showBlankForm && $postRallyForm)
 		{
 			echo('<ul id="BlankFormRejectReasons">');
 			//print_r($rejectreasons);
@@ -567,7 +592,7 @@ function scoreEntrant($showBlankForm = FALSE)
 		
 		
 		echo('<fieldset id="tab_bonuses"><legend>'.$TAGS['BonusesLit'][0].'</legend>');
-		showBonuses($rd['BonusesVisited'],$showBlankForm);
+		showBonuses($rd['BonusesVisited'],$showBlankForm,$postRallyForm);
 		echo('</fieldset><!-- showBonuses -->'."\r\n");
 		if (getValueFromDB('SELECT count(*) as rex FROM specials','rex',0) > 0)
 		{
@@ -598,11 +623,11 @@ function scoreEntrant($showBlankForm = FALSE)
 		echo('</div>');
 	}
 	echo('<div id="scorex" oncontextmenu="showBonusOrder()" title="'.$TAGS['ScorexHints'][0].'" class="'.$scorex_class.' scorex" data-show="0" ondblclick="sxprint();" >'.$rd['ScoreX'].'</div>');
-	echo('<div id="ddarea"><p> </p></div>');
+	echo('<div id="ddarea" class="hide"><p> </p></div>');
 	echo('</body></html>');
 }
 
-function showBonuses($bonusesTicked,$showBlankForm)
+function showBonuses($bonusesTicked,$showBlankForm,$postRallyForm)
 {
 	global $DB, $TAGS, $KONSTANTS;
 
@@ -616,7 +641,9 @@ function showBonuses($bonusesTicked,$showBlankForm)
 		
 		$chk = array_search($rd['BonusID'], $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
 		$spncls = ($chk <> '') ? ' checked' : ' unchecked';
-		echo('<span class="showbonus'.$spncls.'" oncontextmenu="showPopup(this);"');
+		echo('<span class="showbonus'.$spncls.'"');
+		if (!$showBlankForm)
+			echo(' oncontextmenu="showPopup(this);"');
 		if ($rd['Compulsory']<>0)
 			echo(' compulsory');
 		echo(' title="'.htmlspecialchars($bd).' [ '.$rd['Points'].' ]">');
@@ -626,9 +653,9 @@ function showBonuses($bonusesTicked,$showBlankForm)
 		for ($c = 1; $c <= $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $c++)
 			echo('data-cat'.$c.'="'.intval($rd['Cat'.$c]).'" ');
 		echo('data-reqd="'.intval($rd['Compulsory']).'" /> ');
-		if ($showBlankForm && false)
+		if ($showBlankForm && !$postRallyForm)
 		{
-			echo(' ____ ____ &nbsp;&nbsp;&nbsp;&nbsp;');
+			echo(' ____ ____ ');
 		}
 		echo('</span>');
 		echo("\r\n");
@@ -770,6 +797,7 @@ function filterByName(x)
 }
 </script>
 <?php	
+	echo('<div id="pickentrant">');
 	echo('<p>'.$TAGS['PickAnEntrant'][1].'</p>');
 	echo('<form id="entrantpick" method="get" action="score.php">');
 	echo('<label for="EntrantID">'.$TAGS['EntrantID'][0].'</label> ');
@@ -780,6 +808,8 @@ function filterByName(x)
 	echo(' <input onchange="enableSaveButton();" type="text" id="NameFilter" title="'.$TAGS['NameFilter'][1].'" onkeyup="filterByName(this.value)">');
 	echo('<input class="button" type="submit" id="savedata" disabled="disabled" value="'.$TAGS['ScoreThis'][0].'" > ');
 	echo('</form>');
+	echo("</div>\r\n");
+	
 	echo('<table><thead><tr>');
 	echo('<th></th>');
 	echo('<th></th>');
