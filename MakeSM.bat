@@ -95,8 +95,13 @@ xcopy %PHPFOLDER% %DESTFOLDER%\php /e /i>nul
 echo     PHPSpreadsheet
 xcopy %SMFOLDER%\vendor %DESTFOLDER%\sm\vendor /e /i>nul
 xcopy %SMFOLDER%\PhpSpreadsheet %DESTFOLDER%\sm\PhpSpreadsheet /e /i>nul
-echo     Quill
-xcopy %SMFOLDER%\quill %DESTFOLDER%\sm\quill /i>nul
+echo     Jodit
+mkdir %DESTFOLDER%\sm\jodit
+
+copy %SMFOLDER%\jodit-master\build\jodit.min.js %DESTFOLDER%\sm\jodit\jodit.min.js>nul
+copy %SMFOLDER%\jodit-master\build\jodit.min.css %DESTFOLDER%\sm\jodit\jodit.min.css>nul
+for %%a in (fields.png,borders.png) do copy %SMFOLDER%\images\icons\%%a %DESTFOLDER%\sm\jodit>nul
+
 echo     images
 :: xcopy %SMFOLDER%\images %DESTFOLDER%\sm\images /e /i>nul
 mkdir %DESTFOLDER%\sm\images

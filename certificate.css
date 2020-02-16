@@ -1,5 +1,5 @@
 /*
- * css for Quill-based and free-form certificates
+ * css for Jodit edited and free-form certificates
  *
  * 2020-01-01
  *
@@ -29,20 +29,19 @@
 	top: 10mm;
 }
 
-.certificate, .ql-editor	{
+.certificate, .jodit_wysiwyg	{
 
 	font-family: "Times New Roman", Helvetica, Verdana, Arial, sans-serif, Times;
 	width: 164mm;
 	height: 253mm;
-    padding: 7mm 14mm 7mm 14mm; 
+    padding: 7mm 14mm 7mm 14mm !important;
 	margin: auto;
 	border: var(--border-style, 2mm double);
 	overflow: hidden;
 }
 
-.ql-editor p 	{
-	margin-top:0;
-	padding-top:0;
+p {
+	margin: 0 0 10px 0; /* Match settings for jodit */
 }
 
 /* RBLR certificates */
@@ -85,12 +84,6 @@
 
 /* End of RBLR */
 
-
-.ql-align-center	{ text-align: center; }
-.ql-size-large		{ font-size: 1.2em; }
-.ql-align-right		{ text-align: right; }
-.ql-align-justify	{ text-align: justify; }
-.ql-font-serif		{ font-family: serif; }
 
 @media print {
 	@page {size A4 portrait; margin:0;}

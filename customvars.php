@@ -136,6 +136,7 @@ $TAGS = array(
 	'BonusPoints'		=> array('Points','The basic points value of this bonus'),
 	'BriefDescLit'		=> array('Brief description',''),
 	'CalcMaintHead'		=> array('Compound Calculation Rules','List of rules for compound score calculations'),
+	'CalculatedAvgSpeed'=> array('','Calculated average speed'),
 	'Cat0Label'			=> array('Total','If summing across axes, use this label'),
 	'Cat1Label'			=> array('Axis 1 is','What do values on this axis represent?'),
 	'Cat2Label'			=> array('Axis 2 is','What do values on this axis represent?'),	
@@ -161,8 +162,7 @@ $TAGS = array(
 	
 	'CertExplainer'		=> array('Certificates are "web" documents comprising well-formed HTML and CSS parts.',
 									'Please carefully specify the certificate layout and content in the texts below.'),
-	'CertExplainerW'	=> array('Certificates are "web" documents. This editor allows you to define the content and layout in a user-friendly way.',
-									'If you need more control please use the "advanced" editor, this one has only limited capabilities.'),
+	'CertExplainerW'	=> array('Certificates are "web" documents. This editor allows you to define the content and layout in a user-friendly way.'),
 	'MaxHours'			=> array('Maximum hours','The duration of the rally in hours. Used to calculate DNF time, may show on certificates'),
 	'CertTitle'			=> array('Title','Description of this certificate class'),
 	'Class'				=> array('Class #','The certificate class applicable'),
@@ -225,6 +225,13 @@ $TAGS = array(
 	'ImportBikeTBC'		=> array('/tbc|tba|unknown/i','motorbike','Replace re with literal'),
 	'InsertNewCC'		=> array('Enter new compound calc',''),
 	'InsertNewCombo'	=> array('New combo','Setup a new combination bonus'),
+	'jodit_Borders'		=> array('Print borders',''),
+	'jodit_Borders_Double'
+						=> array('Double',''),
+	'jodit_Borders_None'=> array('None',''),
+	'jodit_Borders_Solid'
+						=> array('Solid',''),
+	'jodit_InsertField'	=> array('Insert database field',''),
 	'LegendPenalties'	=> array('Penalties',''),
 	'LegendScoring'		=> array('Scoring &amp; Ranking',''),
 	'LegendTeams'		=> array('Teams'),

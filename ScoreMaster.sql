@@ -116,6 +116,8 @@ CREATE TABLE IF NOT EXISTS `specials` (
 	`MultFactor`	INTEGER NOT NULL DEFAULT 0,
 	`Compulsory`	INTEGER NOT NULL DEFAULT 0,
 	`AskPoints`		INTEGER NOT NULL DEFAULT 0,
+	`RestMinutes`	INTEGER NOT NULL DEFAULT 0,
+	`AskMinutes`	INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY(`BonusID`)
 );
 CREATE TABLE IF NOT EXISTS `sgroups` (
@@ -163,6 +165,7 @@ CREATE TABLE IF NOT EXISTS `entrants` (
 	`NoKRelation` TEXT,
 	`NoKPhone` TEXT,
 	`BCMethod` INTEGER NOT NULL DEFAULT 0,
+	`RestMinutes` INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY(`EntrantID`)
 );
 CREATE TABLE IF NOT EXISTS `combinations` (
@@ -270,7 +273,7 @@ INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (13,'AdmDoB
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (14,'AdmRankEntries','admin.php?c=rank',NULL,'entrant,rank,finisher');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (15,'AdmImportEntrants','importxls.php?showupload',NULL,'entrant,import');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (16,'AdmRallyParams','sm.php?c=rallyparams',NULL,'params,rally');
-INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (17,'AdmEditCert','admin.php?c=editcert',NULL,'entrant,certificate');
+INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (17,'AdmEditCert','certedit.php',NULL,'entrant,certificate');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (18,'AdmEntrantsHeader','admin.php?menu=entrant',NULL,'entrant');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (19,'AdmBonusHeader','admin.php?menu=bonus',NULL,'bonus');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (20,'AdmTimePenalties','sm.php?c=timep',NULL,'params,time,penalty');
@@ -299,130 +302,7 @@ INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('util','AdmUtilHeader','2
 
 
 
-INSERT INTO `certificates` (EntrantID,css,html,options,image,Class,Title) VALUES (0,'/* This gives acceptable results in both Chrome v60 and FireFox v55
- * but FireFox prints first certificate too far down the page.
- *
- * This is intended to use preprinted stationery rather than plain paper.
- */
-@page 
-{
-	margin-top:0; 
-	margin-bottom:0;
-}
-* 
-{
-	margin:0;padding:0
-}
-body {
-	font-family: "Times New Roman", Helvetica, Verdana, Arial, sans-serif, Times;
-	font-size: 14pt;
-	background: #fff;
-	text-align: left;
-	color: #000;
-}
-.certificate
-{	/*                                     BBR / Jorvic - preprinted
-	 *	A4 is 210 x 297
-	 *	Less standard .5in margins = 185 x 272
-	 *
-	 * These settings produce usable results on Chrome, FireFox and Edge (with fiddling)
-	 * Improve them if you must but beware.
-	 */
-	width: 150mm;
-	height: 25.5cm;
-        padding: 1mm 14mm 1mm 14mm; 
-	border:  none; /*2mm double;*/
-	margin-left:auto;
-	margin-right:auto;
-	margin-top: 0mm;
-	margin-bottom: auto;
-	page-break-after:always;
-	position: relative;
-	top: 30mm;
-}
-#topimagefiller
-{
-        margin-top:16em;
-}
-#hdrlogo
-{
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-        width: 400px;
-}
-h1, h2, h3, p
-{ 
-	text-align: center; padding-top: 1em;
-}
-h1.RallyTitle 
-{
-	margin-top: 3em; 
-}
-h2, h3 
-{ 
-	margin-top: 1em; padding-top: 0; 
-	
-	
-}
-sup
-{
-	font-size: 80%;
-}
-p.main
-{
-    clear:both;
-    margin-left: auto; margin-right: auto;
-    text-align: center;
-    padding-top: 2em;
-    width: 100%;
-}
-p.rules
-{
-	font-size: 90%;
-	font-style: italic;
-                    text-align: justify;
-}
-p.footer
-{
-	font-size: 80%;
-	clear: both;
-	padding-top: 6em;
-}
-#signature
-{
-	margin-top: 6em;
-	margin-left: auto;
-	margin-right: auto;
-	border-top: solid;
-	padding-top: 0;
-        width: 12em;
-        text-align: center;
-}
-#signature1 
-{
-	margin-top: 6em;
-	float: left;
-	border-top: solid;
-	padding-top: 0;
-        width: 12em;
-        text-align: center;
-}
-#signature2
-{
-	margin-top: 6em;
-	float: right;
-	border-top: solid;
-	padding-top: 0;
-        width: 12em;
-        text-align: center;
-        margin-right: 1em;
-}
-.CrewName
-{
-	font-weight: bold;
-}
-','<div id="topimagefiller"></div>
+INSERT INTO `certificates` (EntrantID,css,html,options,image,Class,Title) VALUES (0,'','<div id="topimagefiller"></div>
 <h1 class="CrewName">#CrewName#</h1>
 <h2 class="FinishPosition">#FinishPosition# place</h2>
 <h3><span class="TotalPoints">#TotalPoints#</span> Points | #CorrectedMiles# Miles</h3>
