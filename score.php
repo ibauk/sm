@@ -206,6 +206,8 @@ function putScore()
 		$sql .= ",ScoreX='".$DB->escapeString($_REQUEST['ScoreX'])."'";
 	if (isset($_REQUEST['RejectedClaims']))
 		$sql .= ",RejectedClaims='".$DB->escapeString($_REQUEST['RejectedClaims'])."'";
+	if (isset($_REQUEST['RestMinutes']))
+		$sql .= ",RestMinutes=".intval($_REQUEST['RestMinutes']);
 	$sql .= " WHERE EntrantID=".$_REQUEST['EntrantID'];
 	
 	//echo('<hr>'.$sql.'<hr>');
@@ -418,7 +420,8 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 	echo('<input type="hidden" id="OdoScaleFactor" name="OdoScaleFactor" value="'.$rd['OdoScaleFactor'].'">');
 	echo('<input type="hidden" id="EntrantID" name="EntrantID" value="'.$_REQUEST['EntrantID'].'">');
 	echo('<input type="hidden" name="RejectedClaims" id="RejectedClaims" value="'.$rd['RejectedClaims'].'">');
-	
+	$rm = ($DBVERSION >= 4 ? $rd['RestMinutes'] : 0);
+	echo('<input type="hidden" name="RestMinutes" id="RestMinutes" value="'.$rm.'">');
 	
 	echo("\r\n");
 	echo('<div id="ScoreHeader"');
@@ -841,19 +844,26 @@ function filterByName(x)
 
 function showSpecials($specials)
 {
-	global $DB, $TAGS, $KONSTANTS;
+	global $DB, $TAGS, $KONSTANTS, $DBVERSION;
 
 	$BA = explode(',',','.$specials); // The leading comma means that the first element is index 1 not 0
 	
-	$R = $DB->query('SELECT specials.*,sgroups.GroupType FROM specials LEFT JOIN sgroups ON specials.GroupName=sgroups.GroupName ORDER BY GroupName,BonusID');
+	$sql = 'SELECT BonusID,BriefDesc,Points,MultFactor,Compulsory,AskPoints';
+	if ($DBVERSION >= 4)
+		$sql .= ',RestMinutes,AskMinutes';
+	else
+		$sql .= ',0 as RestMinutes,0 as AskMinutes';
+	$sql .= ',specials.GroupName,GroupType FROM specials LEFT JOIN sgroups ON specials.GroupName=sgroups.GroupName ORDER BY specials.GroupName,BonusID';
+	$R = $DB->query($sql);
 	while ($rd = $R->fetchArray())
 	{
-		$BP[$rd['BonusID']] = array($rd['BriefDesc'],$rd['Points'],$rd['MultFactor'],$rd['Compulsory'],$rd['GroupName'],$rd['GroupType'],$rd['AskPoints']);
+		$BP[$rd['BonusID']] = array($rd['BriefDesc'],$rd['Points'],$rd['MultFactor'],$rd['Compulsory'],$rd['GroupName'],$rd['GroupType'],$rd['AskPoints'],$rd['RestMinutes'],$rd['AskMinutes']);
 	}
 	echo('<input type="hidden" name="update_specials" value="1" />');
 	$lastSpecialGroup = '';
 	$SGroupsUsed = '';
 	$AP = array();
+	$AM = array();
 	foreach ($BA as $bk)
 	{
 		if (strpos($bk,'=')>0)
@@ -861,7 +871,14 @@ function showSpecials($specials)
 			$x = explode('=',$bk);
 			if (count($x)==2)
 			{
-				$AP[$x[0]] = $x[1];
+				$pm = explode(';',$x[1]);
+				if (count($pm)>1)
+				{
+					$AP[$x[0]] = $pm[0]; // points
+					$AM[$x[0]] = $pm[1]; // minutes
+				}
+				else
+					$AP[$x[0]] = $x[1];
 			}
 		}
 	}
@@ -895,12 +912,15 @@ function showSpecials($specials)
 			echo('" ');
 			$specialid = str_replace(' ','_',$bk);
 			$points = $b[1];
+			$mins = $b[7];
 			$onchange = 'calcScore(true);';
-			if ($b[6]==1)
+			if ($b[6]==1 || $b[8]==1)
 			{
-				$onchange='askPoints(this);';
+				$onchange='askVars(this);';
 				if (isset($AP[$specialid]))
 					$points = $AP[$specialid];
+				if (isset($AM[$specialid]))
+					$mins = $AM[$specialid];
 			}
 			echo('title="'.htmlspecialchars($bk).' [ ');
 			echo($points); // points value
@@ -921,7 +941,7 @@ function showSpecials($specials)
 			echo('[]" id="S'.$specialid.'" value="'.$bk.'"');
 			echo(' onchange="'.$onchange.'"');
 			
-			echo(' data-points="'.$points.'" data-mult="'.$b[2].'" data-reqd="'.$b[3].'"> ');
+			echo(' data-points="'.$points.'" data-mult="'.$b[2].'" data-reqd="'.$b[3].'" data-askpoints="'.$b[6].'" data-mins="'.$mins.'" data-askmins="'.$b[8].'"> ');
 			echo(' &nbsp;&nbsp;</span>');
 			echo("\r\n");
 	}

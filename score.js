@@ -175,39 +175,66 @@ function areYouSure(question)
 	return window.confirm(question);
 }
 
-function askPoints(inp)
+function askVars(inp)
+/*
+ * Called to ask for special bonus variables including points value
+ * and/or number of rest minutes
+ *
+ */
 {
-	if (inp.checked)
+	if (!inp.checked)
 	{
-		var par = inp.parentNode;
-		var id = inp.getAttribute('id');
-		var val = document.getElementById('ap'+id);
-		if (!val)
-		{
-			var aps = document.getElementById('apspecials');
-			if (aps)
-			{
-				val = document.createElement('input');
-				val.setAttribute('type','hidden');
-				val.setAttribute('name','ap'+id);
-				val.setAttribute('id','ap'+id);
-				aps.appendChild(val);
-			}
-		}
-		var lbl = par.firstChild.innerHTML;
-		var pts = inp.getAttribute('data-points');
+		calcScore(true);
+		return;
+	}
+	var par = inp.parentNode;
+	var id = inp.getAttribute('id');
 	
-		var npts = window.prompt(ASK_POINTS+' '+lbl,pts);
+	// Used to save the updated values to the Entrant record
+	var val = document.getElementById('ap'+id);
+	if (!val)
+	{
+		var aps = document.getElementById('apspecials');
+		if (aps)
+		{
+			val = document.createElement('input');
+			val.setAttribute('type','hidden');
+			val.setAttribute('name','ap'+id);
+			val.setAttribute('id','ap'+id);
+			val.setAttribute('value',0);
+			aps.appendChild(val);
+		}
+	}
+	
+	var lbl = par.firstChild.innerHTML;
+	
+	if (inp.getAttribute('data-askpoints') == '1')
+	{
+		let pts = inp.getAttribute('data-points');
+	
+		let npts = window.prompt(ASK_POINTS+' '+lbl,pts);
 		if (npts != null)
 			pts = parseInt(npts);
 		
 		inp.setAttribute('data-points',pts);
+	
 		if (val)
 			val.setAttribute('value',pts);
-		var tit = par.getAttribute('title');
-		var p = tit.indexOf('[');
+	
+		let tit = par.getAttribute('title');
+		let p = tit.indexOf('[');
 		if (p >= 0)
 			par.setAttribute('title',tit.substr(0,p + 1) + ' ' + pts + ' ]');
+	}
+	if (inp.getAttribute('data-askmins') == '1')
+	{
+		let mins = inp.getAttribute('data-mins');
+		let nmins = window.prompt(ASK_MINUTES+' '+lbl,mins);
+		if (nmins != null)
+			mins = parseInt(nmins);
+		inp.setAttribute('data-mins',mins);
+		if (val)
+			val.setAttribute('value',val.value+';'+mins);
 	}
 	calcScore(true);
 }
@@ -252,6 +279,22 @@ function calcAvgSpeed()
 	let dtStart = new Date(isoStart);
 	let dtFinish = new Date(isoFinish);
 	let minsDuration = Math.abs(dtFinish - dtStart) / msecsPerMinute;
+	
+	/* Now add up rest minutes and store the result for posting to Entrant record */
+	let specials = document.querySelectorAll('input[data-mins]');
+	console.log('cas: '+JSON.stringify(specials));
+	let restMins = document.querySelector('#RestMinutes');
+	if (restMins) // Just in case
+	{
+		restMins.value = 0;
+		for (let i = 0; i < specials.length; i++)
+			if (specials[i].checked)
+				restMins.value += specials[i].getAttribute('data-mins');
+		minsDuration -= restMins.value;
+		console.log('cas: '+restMins.value+' ('+specials.length+')');
+		document.querySelector('#RestMinutes').value = restMins.value;
+	}
+	
 	if (minsDuration < 1)
 		return;
 	let odoScale = parseFloat(document.querySelector('#OdoScaleFactor').value);
@@ -659,7 +702,9 @@ function calcComplexScore(res)
 					totalBonusPoints += bps;
 					mults = parseInt(sbonuses[i].getAttribute('data-mult'));
 					totalMultipliers += mults;
-					sxappend(sbonuses[i].getAttribute('id'),sbonuses[i].parentNode.firstChild.innerHTML,sbonuses[i].getAttribute('data-points'),sbonuses[i].getAttribute('data-mult'),totalBonusPoints);
+					let rm = sbonuses[i].getAttribute('data-mins');
+					let x = (rm > 0 ? ' ['+formatMinutes(rm)+']' : '');
+					sxappend(sbonuses[i].getAttribute('id'),sbonuses[i].parentNode.firstChild.innerHTML+x,sbonuses[i].getAttribute('data-points'),sbonuses[i].getAttribute('data-mult'),totalBonusPoints);
 				}
 			}
 		}
@@ -675,7 +720,9 @@ function calcComplexScore(res)
 			totalBonusPoints += bps;
 			mults = parseInt(sbonuses[i].getAttribute('data-mult'));
 			totalMultipliers += mults;
-			sxappend(sbonuses[i].getAttribute('id'),sbonuses[i].parentNode.firstChild.innerHTML,sbonuses[i].getAttribute('data-points'),sbonuses[i].getAttribute('data-mult'),totalBonusPoints);			
+			let rm = sbonuses[i].getAttribute('data-mins');
+			let x = (rm > 0 ? ' ['+formatMinutes(rm)+']' : '');
+			sxappend(sbonuses[i].getAttribute('id'),sbonuses[i].parentNode.firstChild.innerHTML+x,sbonuses[i].getAttribute('data-points'),sbonuses[i].getAttribute('data-mult'),totalBonusPoints);			
 		}
 
 	
@@ -954,7 +1001,9 @@ function calcSimpleScore(res)
 		if (bp[i].checked && bp[i].getAttribute('data-rejected') < 1)
 		{
 			bps += parseInt(bp[i].getAttribute('data-points'));
-			sxappend(bp[i].getAttribute('id'),bp[i].parentNode.firstChild.innerHTML,bp[i].getAttribute('data-points'),0,TS + bps);
+			let rm = bp[i].getAttribute('data-mins');
+			let x = (rm > 0 ? ' ['+formatMinutes(rm)+']' : '');
+			sxappend(bp[i].getAttribute('id'),bp[i].parentNode.firstChild.innerHTML+x,bp[i].getAttribute('data-points'),0,TS + bps);
 
 		}
 		
@@ -1203,6 +1252,16 @@ function findEntrant()
 		return true;
 	window.location='entrants.php?c=entrants&mode=find&x='+x;
 	return false;
+}
+
+function formatMinutes(mins)
+{
+	let hh = Math.floor(mins/60);
+	let mm = mins % 60;
+	if (hh>0)
+		return hh+'h '+mm+'m';
+	else
+		return mm+'m';
 }
 
 function formatNumberScore(n,prettyPrint)

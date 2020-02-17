@@ -83,7 +83,8 @@ input[name="BikeReg"]	{ width: 6em; }
 select[name="EntrantStatus"]	{ margin-bottom: 1em; }
 fieldset				{ margin-bottom: 1em; }
 input[name="FinishPosition"]	{ width: 3em; }
-input[name="BonusID[]"]	{ width: 3em; }
+input[name="BonusID[]"],
+input[name="BonusID"]	{ width: 3em; }
 input[name="OdoCheckMiles"]	{ width:3em; }
 input.smallnumber		{ width: 3em; }
 .link:hover				{ cursor: pointer; background-color: lightgray;}

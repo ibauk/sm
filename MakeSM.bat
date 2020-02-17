@@ -121,8 +121,8 @@ for %%a in (about.php,admin.php,bbrspec.php,certificate.php,common.php,
 			certedit.php,reboot.css,certificate.css,speeding.php) do copy %SMFOLDER%\%%a %DESTFOLDER%\sm>nul
 
 echo Copying %DB2USE% database ...
-if NOT %DB2USE%==LIVE sqlite3 %DESTFOLDER%\sm\ScoreMaster.db <%SMFOLDER%\scoremaster.sql
-if %DB2USE%==RBLR sqlite3 %DESTFOLDER%\sm\ScoreMaster.db <%SMFOLDER%\rblrcerts.sql
+if NOT %DB2USE%==LIVE sqlite3 %DESTFOLDER%\sm\ScoreMaster.db <%SMFOLDER%\scoremaster.sql>nul
+if %DB2USE%==RBLR sqlite3 %DESTFOLDER%\sm\ScoreMaster.db <%SMFOLDER%\rblrcerts.sql>nul
 if %DB2USE%==LIVE copy %SMFOLDER%\scoremaster.db %DESTFOLDER%\sm\ScoreMaster.db>nul
 
 copy %CADDYFOLDER%\caddy.exe %DESTFOLDER%\caddy>nul
@@ -131,7 +131,7 @@ echo root sm >> %DESTFOLDER%\caddy\caddyfile
 echo fastcgi / 127.0.0.1:9000 php >> %DESTFOLDER%\caddy\caddyfile
 
 :: Copy the latest portable binary
-copy %SMFOLDER%\runsm.exe %DESTFOLDER%
+copy %SMFOLDER%\runsm.exe %DESTFOLDER%>nul
 
 :: Now build the debug executable
 echo @echo off >%DESTFOLDER%\%EXECNAME%

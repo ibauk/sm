@@ -39,6 +39,18 @@ require_once('common.php');
 // Alphabetic from here on in
 
 
+function deleteSpecial($bonusid)
+{
+	global $DB;
+
+	$sql = "DELETE FROM specials WHERE BonusID='".$DB->escapeString($bonusid)."'";
+	$DB->exec($sql);
+	if ($DB->lastErrorCode()<>0) 
+		echo("SQL ERROR: ".$DB->lastErrorMsg().'<hr>'.$sql.'<hr>');
+	
+}
+
+
 function emitBonusTicks()
 {
 	global $DB;
@@ -453,6 +465,49 @@ function saveSingleCombo()
 	
 }
 
+
+function saveSpecial()
+{
+	global $DB, $TAGS, $KONSTANTS;
+
+	$R = $DB->query("SELECT BonusID FROM specials WHERE BonusID='".$DB->escapeString($_REQUEST['BonusID'])."'");
+	$newrec = $R->fetchArray()==FALSE;
+	
+	if ($newrec)
+	{
+		$sql = "INSERT INTO specials (BonusID,BriefDesc,GroupName,Points,AskPoints,MultFactor";
+		$sql .= ",Compulsory,RestMinutes,AskMinutes) VALUES(";
+		$sql .= "'".$DB->escapeString($_REQUEST['BonusID'])."'";
+		$sql .= ",'".$DB->escapeString($_REQUEST['BriefDesc'])."'";
+		$sql .= ",'".$DB->escapeString($_REQUEST['GroupName'])."'";
+		$sql .= ",".intval($_REQUEST['Points']);
+		$sql .= ",".intval($_REQUEST['AskPoints']);
+		$sql .= ",".intval($_REQUEST['MultFactor']);
+		$sql .= ",".intval($_REQUEST['Compulsory']);
+		$sql .= ",".intval($_REQUEST['RestMinutes']);
+		$sql .= ",".intval($_REQUEST['AskMinutes']);
+		$sql .= ")";
+	}
+	else
+	{
+		$sql = "UPDATE specials SET BriefDesc='".$DB->escapeString($_REQUEST['BriefDesc'])."'";
+		$sql .= ",GroupName='".$DB->escapeString($_REQUEST['GroupName'])."'";
+		$sql .= ",Points=".intval($_REQUEST['Points']);
+		$sql .= ",AskPoints=".intval($_REQUEST['AskPoints']);
+		$sql .= ",MultFactor=".intval($_REQUEST['MultFactor']);
+		$sql .= ",Compulsory=".intval($_REQUEST['Compulsory']);
+		$sql .= ",RestMinutes=".intval($_REQUEST['RestMinutes']);
+		$sql .= ",AskMinutes=".intval($_REQUEST['AskMinutes']);
+		$sql .= " WHERE BonusID='".$DB->escapeString($_REQUEST['BonusID'])."'";
+	}
+	$DB->exec($sql);
+	if ($DB->lastErrorCode()<>0) {
+		echo("SQL ERROR: ".$DB->lastErrorMsg().'<hr>'.$sql.'<hr>');
+		exit;
+	}
+}
+
+
 function saveSpecials()
 {
 	global $DB, $TAGS, $KONSTANTS;
@@ -523,11 +578,11 @@ function saveTimePenalties()
 {
 	global $DB, $TAGS, $KONSTANTS, $DBVERSION;
 
-//	var_dump($_REQUEST);
-	//exit;
-	$arr = $_REQUEST['id'];
 	$DB->query('BEGIN TRANSACTION');
-	for ($i=0; $i < count($arr); $i++)
+	$DB->exec('DELETE FROM timepenalties');
+	
+	$Nmax = count($_REQUEST['PenaltyFactor']);
+	for ($i = 0; $i < $Nmax; $i++)
 	{
 		if ($DBVERSION < 3)
 		{
@@ -537,46 +592,23 @@ function saveTimePenalties()
 		else
 			$ts = 'TimeSpec,';
 		
-		if ($arr[$i]=='')
+		$sql = "INSERT INTO timepenalties (".$ts."PenaltyStart,PenaltyFinish,PenaltyMethod,PenaltyFactor) VALUES (";
+		if ($ts != '')
+			$sql .= $_REQUEST['TimeSpec'][$i].',';
+		if ($_REQUEST['TimeSpec'][$i] == $KONSTANTS['TimeSpecDatetime'])
 		{
-			$sql = "INSERT INTO timepenalties (".$ts."PenaltyStart,PenaltyFinish,PenaltyMethod,PenaltyFactor) VALUES (";
-			if ($ts != '')
-				$sql .= $_REQUEST['TimeSpec'][$i].',';
-			if ($_REQUEST['TimeSpec'][$i] == $KONSTANTS['TimeSpecDatetime'])
-			{
-				$sql .= "'".$_REQUEST['PenaltyStartDate'][$i].'T'.$_REQUEST['PenaltyStartTime'][$i]."'";
-				$sql .= ",'".$_REQUEST['PenaltyFinishDate'][$i].'T'.$_REQUEST['PenaltyFinishTime'][$i]."'";
-			}
-			else
-			{
-				$sql .= $_REQUEST['PenaltyStartTime'][$i];
-				$sql .= ','.$_REQUEST['PenaltyFinishTime'][$i];
-			}
-			$sql .= ",".$_REQUEST['PenaltyMethod'][$i];
-			$sql .= ",".$_REQUEST['PenaltyFactor'][$i];
-			$sql .= ")";
-			
+			$sql .= "'".$_REQUEST['PenaltyStartDate'][$i].'T'.$_REQUEST['PenaltyStartTime'][$i]."'";
+			$sql .= ",'".$_REQUEST['PenaltyFinishDate'][$i].'T'.$_REQUEST['PenaltyFinishTime'][$i]."'";
 		}
 		else
 		{
-			$sql = "UPDATE timepenalties SET ";
-			if ($ts != '')
-				$sql .= "TimeSpec=".$_REQUEST['TimeSpec'][$i].',';
-			if ($_REQUEST['TimeSpec'][$i] == $KONSTANTS['TimeSpecDatetime'])
-			{
-				$sql .= "PenaltyStart='".$_REQUEST['PenaltyStartDate'][$i].'T'.$_REQUEST['PenaltyStartTime'][$i]."'";
-				$sql .= ",PenaltyFinish='".$_REQUEST['PenaltyFinishDate'][$i].'T'.$_REQUEST['PenaltyFinishTime'][$i]."'";
-			}
-			else
-			{
-				$sql .= 'PenaltyStart='.$_REQUEST['PenaltyStartTime'][$i];
-				$sql .= ',PenaltyFinish='.$_REQUEST['PenaltyFinishTime'][$i];
-			}
-			$sql .= ",PenaltyMethod=".$_REQUEST['PenaltyMethod'][$i];
-			$sql .= ",PenaltyFactor=".$_REQUEST['PenaltyFactor'][$i];
-			$sql .= " WHERE rowid=".$_REQUEST['id'][$i];
+			$sql .= $_REQUEST['PenaltyStartTime'][$i];
+			$sql .= ','.$_REQUEST['PenaltyFinishTime'][$i];
 		}
-			//echo("<hr>".$sql."<hr>");exit;
+		$sql .= ",".$_REQUEST['PenaltyMethod'][$i];
+		$sql .= ",".$_REQUEST['PenaltyFactor'][$i];
+		$sql .= ")";
+			
 		if ( ($_REQUEST['TimeSpec'][$i] != $KONSTANTS['TimeSpecDatetime'] || $_REQUEST['PenaltyStartDate'][$i] <> '') && 
 			$_REQUEST['PenaltyStartTime'][$i] <> '')
 		{
@@ -586,17 +618,8 @@ function saveTimePenalties()
 		}
 		else
 			echo('Row '.$i." wasn't posted");
-	}
-	if (isset($_REQUEST['DeleteEntry']))
-	{
-		$arr = $_REQUEST['DeleteEntry'];
-		for ($i=0; $i < count($arr); $i++)
-		{
-			$sql = "DELETE FROM timepenalties WHERE rowid=".$_REQUEST['DeleteEntry'][$i];
-			$DB->exec($sql);
-			if ($DB->lastErrorCode() <> 0)
-				echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
-		}
+		
+		
 	}
 	$DB->query('COMMIT TRANSACTION');
 	if (retraceBreadcrumb())
@@ -670,7 +693,7 @@ function triggerNewRow(obj)
 	echo('<input type="submit" name="savedata" value="'.$TAGS['UpdateBonuses'][0].'"> ');
 	echo('<table id="bonuses">');
 	echo('<caption title="'.htmlentities($TAGS['BonusMaintHead'][1]).'">'.htmlentities($TAGS['BonusMaintHead'][0]).'</caption>');
-	echo('<thead><tr><th style="text-align:left;">'.$TAGS['BonusIDLit'][0].'</th>');
+	echo('<thead class="listhead"><tr><th style="text-align:left;">'.$TAGS['BonusIDLit'][0].'</th>');
 	//echo('<thead><tr><th>B</th>');
 	echo('<th>'.$TAGS['BriefDescLit'][0].'</th>');
 	echo('<th>'.$TAGS['BonusPoints'][0].'</th>');
@@ -803,7 +826,7 @@ function triggerNewRow(obj)
 	echo('<input type="hidden" name="menu" value="setup">');
 	
 	echo('<table id="cats"><caption>'.$TAGS['AxisLit'][0].' '.$axis.'  <input type="text" name="catlabel" value="'.htmlspecialchars($CatLabel).'"></caption>');
-	echo('<thead><tr><th><a href="sm.php?c=showcat&amp;axis='.$axis.'&amp;ord=Cat'.$bcurldtl.'">'.$TAGS['CatEntry'][0].'</a></th>');
+	echo('<thead class="listhead"><tr><th><a href="sm.php?c=showcat&amp;axis='.$axis.'&amp;ord=Cat'.$bcurldtl.'">'.$TAGS['CatEntry'][0].'</a></th>');
 	echo('<th><a href="sm.php?c=showcat&amp;axis='.$axis.'&amp;ord=BriefDesc'.$bcurdtl.'">'.$TAGS['CatBriefDesc'][0].'</a></th><th>'.$TAGS['DeleteEntryLit'][0].'</th></tr>');
 	echo('</thead><tbody>');
 	
@@ -904,7 +927,7 @@ function triggerNewRow(obj)
 	echo('<input type="hidden" name="menu" value="setup">');
 	echo('<table id="bonuses">');
 	echo('<caption title="'.htmlentities($TAGS['ComboMaintHead'][1]).'">'.htmlentities($TAGS['ComboMaintHead'][0]).'</caption>');
-	echo('<thead><tr><th>'.$TAGS['ComboIDLit'][0].'</th>');
+	echo('<theadclass="listhead"><tr><th>'.$TAGS['ComboIDLit'][0].'</th>');
 	echo('<th>'.$TAGS['BriefDescLit'][0].'</th>');
 	if (false) {
 	echo('<th>'.$TAGS['ScoreMethodLit'][0].'</th>');
@@ -1168,7 +1191,7 @@ function triggerNewRow(obj)
 	echo('<input type="hidden" name="menu" value="setup">');
 	echo('<table id="catcalcs">');
 	echo('<caption title="'.htmlentities($TAGS['CalcMaintHead'][1]).'">'.htmlentities($TAGS['CalcMaintHead'][0]).'</caption>');
-	echo("\r\n".'<thead><tr><th class="rowcol"></th><th class="rowcol">'.$TAGS['AxisLit'][0].'</th>');
+	echo("\r\n".'<thead class="listhead"><tr><th class="rowcol"></th><th class="rowcol">'.$TAGS['AxisLit'][0].'</th>');
 	echo('<th class="rowcol">'.$TAGS['CatEntry'][0].'</th>');
 	echo('<th class="rowcol">'.$TAGS['ModBonusLit'][0].'</th>');
 	echo('<th class="rowcol">'.$TAGS['NMethodLit'][0].'</th>');
@@ -1828,10 +1851,168 @@ function triggerNewRow(obj)
 
 
 
-
+function showSpecial($specialid)
+{
+	global $DB, $TAGS, $KONSTANTS, $DBVERSION;
+	
+	$sql = "SELECT * FROM sgroups ORDER BY GroupName";
+	$R = $DB->query($sql);
+	if ($DB->lastErrorCode() <> 0)
+		echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
+	$groups = [''];
+	$ngroups = 1;
+	while($rd = $R->fetchArray())
+	{
+		array_push($groups,$rd['GroupName']);
+		$ngroups++;
+	}
+	//print_r($groups);
+	//echo($ngroups);
+	$sql = "SELECT * FROM specials WHERE BonusID='".$specialid."'";
+	$R = $DB->query($sql);
+	if ($DB->lastErrorCode() <> 0)
+		echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
+	$rd = $R->fetchArray();
+	$valid = "if(document.querySelector('#BonusID').value==''){";
+	$valid .= "document.querySelector('#BonusID').focus();return false;}";
+	$valid .= "if(document.querySelector('#BriefDesc').value==''){";
+	$valid .= "document.querySelector('#BriefDesc').focus();return false;}";
+	$valid .= "return true;";
+	echo("\r\n");
+	echo('<form onsubmit="'.$valid.'">');
+	echo('<input type="hidden" name="c" value="special">');
+	emitBreadcrumbs();
+	echo('<span class="vlabel" title="'.$TAGS['BonusIDLit'][1].'"><label for="BonusID">'.$TAGS['BonusIDLit'][0].'</label> ');
+	$ro = ($specialid != '' ? ' readonly ' : '');
+	echo('<input type="text"'.$ro.' name="BonusID" id="BonusID" value="'.$specialid.'" onchange="enableSaveButton();">');
+	echo('</span>');
+	echo('<span class="vlabel" title="'.$TAGS['BriefDescLit'][1].'"><label for="BriefDesc">'.$TAGS['BriefDescLit'][0].'</label> ');
+	echo('<input type="text" name="BriefDesc" id="BriefDesc" value="'.$rd['BriefDesc'].'" onchange="enableSaveButton();">');
+	echo('</span>');
+	if ($ngroups > 1)
+	{
+		echo('<span class="vlabel" title="'.$TAGS['GroupNameLit'][1].'"><label for="GroupName">'.$TAGS['GroupNameLit'][0].'</label> ');
+		echo('<select name="GroupName" id="GroupName" onchange="enableSaveButton();">');
+		for ($i=0; $i<$ngroups; $i++)
+			echo('<option value="'.$groups[$i].'" '.($rd['GroupName']==$groups[$i] ? ' selected' : '').'>'.$groups[$i].'</option>');
+		echo('</select>');
+		echo('</span>');
+	}
+	else // No special groups available so don't offer any
+		echo('<input type="hidden" name="GroupName" id="GroupName" value="'.$rd['GroupName'].'">');
+	echo('<span class="vlabel" title="'.$TAGS['SpecialPointsLit'][1].'"><label for="Points">'.$TAGS['SpecialPointsLit'][0].'</label> ');
+	echo('<input type="number" name="Points" id="Points" value="'.$rd['Points'].'" onchange="enableSaveButton();">');
+//	echo('</span>');
+//	echo('<span class="vlabel"><label for="AskPoints">'.$TAGS['AskPoints'][0].'</label> ');
+//	echo(' <label for="AskPoints">'.$TAGS['AskPoints'][0].'</label> ');
+	echo(' <select name="AskPoints" id="AskPoints" onchange="enableSaveButton();">');
+	echo('<option value="0"'.($rd['AskPoints']==0 ? ' selected>' : '>').$TAGS['AskPoints0'][0].'</option>');
+	echo('<option value="1"'.($rd['AskPoints']==0 ? '>' : ' selected>').$TAGS['AskPoints1'][0].'</option>');
+	echo('</select>');
+	echo('</span>');
+	echo('<span class="vlabel" title="'.$TAGS['SpecialMultLit'][1].'"><label for="MultFactor">'.$TAGS['SpecialMultLit'][0].'</label> ');
+	echo('<input type="number" class="smallnumber" name="MultFactor" id="MultFactor" value="'.$rd['MultFactor'].'" onchange="enableSaveButton();">');
+	echo('</span>');
+	echo('<span class="vlabel" title="'.$TAGS['CompulsoryBonus'][1].'"><label for="Compulsory">'.$TAGS['CompulsoryBonus'][0].'</label> ');
+	echo('<select name="Compulsory" id="Compulsory" onchange="enableSaveButton();">');
+	echo('<option value="0"'.($rd['Compulsory']==0 ? ' selected>' : '>').$TAGS['CompulsoryBonus0'][0].'</option>');
+	echo('<option value="1"'.($rd['Compulsory']==0 ? ' >' : ' selected>').$TAGS['CompulsoryBonus1'][0].'</option>');
+	echo('</select>');
+	echo('</span>');
+	echo('<span class="vlabel" title="'.$TAGS['RestMinutesLit'][1].'"><label for="RestMinutes">'.$TAGS['RestMinutesLit'][0].'</label> ');
+	echo('<input type="number" class="smallnumber" name="RestMinutes" id="RestMinutes" value="'.$rd['RestMinutes'].'" onchange="enableSaveButton();">');
+//	echo('</span>');
+//	echo('<span class="vlabel"><label for="AskMinutes">'.$TAGS['AskMinutes'][0].'</label> ');
+//	echo(' <label for="AskMinutes">'.$TAGS['AskMinutes'][0].'</label> ');
+	echo(' <select name="AskMinutes" id="AskMinutes" onchange="enableSaveButton();">');
+	echo('<option value="0"'.($rd['AskMinutes']==0 ? ' selected>' : '>').$TAGS['AskMinutes0'][0].'</option>');
+	echo('<option value="1"'.($rd['AskMinutes']==0 ? '>' : ' selected>').$TAGS['AskMinutes1'][0].'</option>');
+	echo('</select>');
+	echo('<span class="vlabel">');
+	if ($specialid != '')
+	{
+		echo(' <input type="submit" name="savedata" id="savedata" data-altvalue="'.$TAGS['SaveRecord'][0].'" value="'.$TAGS['RecordSaved'][0].'" disabled> ');
+		$rex = getValueFromDB("SELECT count(*) As rex FROM entrants WHERE ',' || SpecialsTicked || ',' LIKE '%,".$rd['BonusID'].",%'","rex",0);
+		if ($rex < 1)
+		{
+			echo(' <input type="submit" name="delete" value="'.$TAGS['DeleteBonus'][0].'"');
+			if ($rex > 0)
+				echo(' disabled');
+			echo('>');
+		}
+	}
+	else
+		echo(' <input type="submit" name="savedata" id="savedata" value="'.$TAGS['SaveRecord'][0].'"> ');
+	
+	
+	
+	echo('</span>');
+	echo('</form>');
+}
 
 
 function showSpecials()
+{
+	global $DB, $TAGS, $KONSTANTS;
+
+	pushBreadcrumb('#');
+	emitBreadcrumbs();
+	
+	$showclaimsbutton = (getValueFromDB("SELECT count(*) As rex FROM entrants","rex",0)>0);
+
+	$bcurldtl ='&amp;breadcrumbs='.urlencode($_REQUEST['breadcrumbs']);
+
+	echo('<table id="bonuses">');
+	echo('<caption title="'.htmlentities($TAGS['SpecialMaintHead'][1]).'">'.htmlentities($TAGS['SpecialMaintHead'][0]));
+	echo(' <input type="button" value="'.$TAGS['AdmNewBonus'][0].'" onclick="window.location='."'sm.php?c=special&bonus".$bcurldtl."'".'">');
+	echo('</caption>');
+	echo('<thead><tr><th>'.$TAGS['BonusIDLit'][0].'</th>');
+	echo('<th>'.$TAGS['BriefDescLit'][0].'</th>');
+	echo('<th>'.$TAGS['SpecialPointsLit'][0].'</th>');
+	echo('<th>'.$TAGS['AskPoints'][0].'</th>');
+	echo('<th>'.$TAGS['CompulsoryBonus'][0].'</th>');
+	if ($showclaimsbutton)
+		echo('<th class="ClaimsCount">'.$TAGS['ShowClaimsCount'][0].'</th>');
+	echo('</tr>');
+	echo('</thead><tbody>');
+
+	$sql = 'SELECT * FROM specials ORDER BY BonusID';
+	$R = $DB->query($sql);
+	if ($DB->lastErrorCode() <> 0)
+		echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
+	while ($rd = $R->fetchArray())
+	{
+	
+		echo('<tr class="link" onclick="window.location.href=\'sm.php?c=special&amp;bonus='.$rd['BonusID'].$bcurldtl.'\'">');
+		echo('<td>'.$rd['BonusID'].'</td>');
+		echo('<td>'.$rd['BriefDesc'].'</td>');
+		echo('<td>'.$rd['Points'].'</td>');
+		if ($rd['AskPoints']<>0)
+			$chk = " &checkmark; ";
+		else
+			$chk = "";
+		echo('<td class="center">'.$chk.'</td>');
+		if ($rd['Compulsory']<>0)
+			$chk = " &checkmark; ";
+		else
+			$chk = "";
+		echo('<td class="center">'.$chk.'</td>');
+		if ($showclaimsbutton)
+		{
+			$rex = getValueFromDB("SELECT count(*) As rex FROM entrants WHERE ',' || SpecialsTicked || ',' LIKE '%,".$rd['BonusID'].",%'","rex",0);
+			echo('<td class="ClaimsCount" title="'.$TAGS['ShowClaimsButton'][1].'">');
+			if ($rex > 0)
+				echo('<a href='."'entrants.php?c=entrants&mode=special&bonus=".$rd['BonusID']."'".'> '.$rex.' </a>');
+			echo('</td>');
+		}
+	
+	echo('</tr>');
+
+	}
+	echo('</tbody></table>');
+}
+
+function showSpecialsX()
 {
 	global $DB, $TAGS, $KONSTANTS;
 	
@@ -1977,6 +2158,13 @@ function showTimePenalties()
 
 ?>
 <script>
+function deleteRow(e)
+{
+    e = e || window.event;
+    let target = e.target || e.srcElement;	
+	document.querySelector('#timepenalties').deleteRow(target.parentNode.parentNode.rowIndex);
+	enableSaveButton();
+}
 function triggerNewRow(obj)
 {
 	var oldnewrow = document.getElementsByClassName('newrow')[0];
@@ -2010,6 +2198,7 @@ function changeTimeSpec(obj)
 		iti[i].type = xti;
 		setv(iti[i],v);
 	}
+	enableSaveButton();
 }
 </script>
 <?php	
@@ -2032,7 +2221,7 @@ function changeTimeSpec(obj)
 	echo('<th>'.$TAGS['tpFinishLit'][0].'</th>');
 	echo('<th>'.$TAGS['tpMethodLit'][0].'</th>');
 	echo('<th>'.$TAGS['tpFactorLit'][0].'</th>');
-	echo('<th>'.$TAGS['DeleteEntryLit'][0].'</th>');
+	echo('<th></th>');
 	echo('</tr>');
 	echo('</thead><tbody>');
 	
@@ -2053,20 +2242,20 @@ function changeTimeSpec(obj)
 		if ($rd['TimeSpec']==$KONSTANTS['TimeSpecDatetime'])
 		{
 			$dtx = splitDatetime($rd['PenaltyStart']);
-			echo('<input type="date" class="date" name="PenaltyStartDate[]" value="'.$dtx[0].'"> ');
-			echo('<input type="time" class="time" name="PenaltyStartTime[]" value="'.$dtx[1].'"></td>');
+			echo('<input type="date" class="date" name="PenaltyStartDate[]" value="'.$dtx[0].'" onchange="enableSaveButton();"> ');
+			echo('<input type="time" class="time" name="PenaltyStartTime[]" value="'.$dtx[1].'" onchange="enableSaveButton();"></td>');
 			$dtx = splitDatetime($rd['PenaltyFinish']);		
-			echo('<td title="'.$TAGS['tpFinishLit'][1].'"><input class="date" type="date" name="PenaltyFinishDate[]" value="'.$dtx[0].'"> ');
-			echo('<input class="time" type="time" name="PenaltyFinishTime[]" value="'.$dtx[1].'"></td>');
+			echo('<td title="'.$TAGS['tpFinishLit'][1].'"><input class="date" type="date" name="PenaltyFinishDate[]" value="'.$dtx[0].'" onchange="enableSaveButton();"> ');
+			echo('<input class="time" type="time" name="PenaltyFinishTime[]" value="'.$dtx[1].'" onchange="enableSaveButton();"></td>');
 		}
 		else
 		{
 			echo('<input class="date" type="hidden" name="PenaltyStartDate[]" value="0"> ');
-			echo('<input class="time" type="number" name="PenaltyStartTime[]" value="'.$rd['PenaltyStart'].'"></td>');
+			echo('<input class="time" type="number" name="PenaltyStartTime[]" value="'.$rd['PenaltyStart'].'" onchange="enableSaveButton();"></td>');
 			echo('<td title="'.$TAGS['tpFinishLit'][1].'"><input class="date" type="hidden" name="PenaltyFinishDate[]" value="0"> ');
-			echo('<input class="time" type="number" name="PenaltyFinishTime[]" value="'.$rd['PenaltyFinish'].'"></td>');
+			echo('<input class="time" type="number" name="PenaltyFinishTime[]" value="'.$rd['PenaltyFinish'].'" onchange="enableSaveButton();"></td>');
 		}
-		echo('<td><select name="PenaltyMethod[]">');
+		echo('<td><select name="PenaltyMethod[]" onchange="enableSaveButton();">');
 		for ($i=0;$i<=3;$i++)
 		{
 			echo("<option value=\"$i\"");
@@ -2076,11 +2265,11 @@ function changeTimeSpec(obj)
 			echo($TAGS['tpMethod'.$i][1].'</option>');
 		}
 		echo('</select></td>');
-		echo('<td><input type="number" name="PenaltyFactor[]" value="'.$rd['PenaltyFactor'].'"></td>');
-		echo('<td class="center"><input type="checkbox" name="DeleteEntry[]" value="'.$rd['id'].'"></td>');
+		echo('<td><input type="number" name="PenaltyFactor[]" value="'.$rd['PenaltyFactor'].'" onchange="enableSaveButton();"></td>');
+		echo('<td class="center"><button value="-" onclick="deleteRow(event);return false;">-</button></td>');
 		echo('</tr>');
 	}
-	echo('<tr class="newrow"><td><input type="hidden" name="id[]" value="">');
+	echo('<tr class="newrow hide"><td><input type="hidden" name="id[]" value="">');
 	echo('<select name="TimeSpec[]" onchange="changeTimeSpec(this)">');
 	for ($i=0; $i<3; $i++) // Max TimeSpec==3
 	{
@@ -2090,11 +2279,11 @@ function changeTimeSpec(obj)
 		echo('>'.$TAGS['tpTimeSpec'.$i][0].'</option>');
 	}
 	echo('</select></td><td title="'.$TAGS['tpStartLit'][1].'">');
-	echo('<input class="date" type="date" name="PenaltyStartDate[]" value=""> ');
-	echo('<input class="time" type="time" name="PenaltyStartTime[]" value=""></td>');
-	echo('<td title="'.$TAGS['tpFinishLit'][1].'"><input class="date" type="date" name="PenaltyFinishDate[]" value=""> ');
-	echo('<input class="time" type="time" name="PenaltyFinishTime[]" value=""></td>');
-	echo('<td><select name="PenaltyMethod[]">');
+	echo('<input class="date" type="date" name="PenaltyStartDate[]" value="" onchange="enableSaveButton();"> ');
+	echo('<input class="time" type="time" name="PenaltyStartTime[]" value="" onchange="enableSaveButton();"></td>');
+	echo('<td title="'.$TAGS['tpFinishLit'][1].'"><input class="date" type="date" name="PenaltyFinishDate[]" value="" onchange="enableSaveButton();"> ');
+	echo('<input class="time" type="time" name="PenaltyFinishTime[]" value="" onchange="enableSaveButton();"></td>');
+	echo('<td><select name="PenaltyMethod[]" onchange="enableSaveButton();">');
 	for ($i=0;$i<=3;$i++)
 	{
 		echo("<option value=\"$i\"");
@@ -2104,11 +2293,14 @@ function changeTimeSpec(obj)
 		echo($TAGS['tpMethod'.$i][1].'</option>');
 	}
 	echo('</select></td>');
-	echo('<td><input type="number" name="PenaltyFactor[]" value="0"></td>');
+	echo('<td><input type="number" name="PenaltyFactor[]" value="0" onchange="enableSaveButton();"></td>');
+	echo('<td class="center"><button value="-" onclick="deleteRow(event);return false;">-</button></td>');
 	echo('</tr>');
 	
 	echo('</tbody></table>');
-	echo('<br><input type="submit" name="savedata" value="'.$TAGS['UpdateTimeP'][0].'"> ');
+	echo('<button value="+" onclick="triggerNewRow(this);return false;">+</button><br>');
+	
+	echo('<input type="submit" class="noprint" title="'.$TAGS['SaveSettings'][1].'" id="savedata" data-triggered="0" onclick="'."this.setAttribute('data-triggered','1')".'" disabled accesskey="S" name="savedata" data-altvalue="'.$TAGS['SaveSettings'][0].'" value="'.$TAGS['SettingsSaved'][0].'" /> ');
 	echo('</form>');
 	//showFooter();
 	
@@ -2148,10 +2340,26 @@ if (isset($_REQUEST['c']))
 				saveBonuses();
 			showBonuses();
 			break;
+
+		case 'special':
+			//print_r($_REQUEST);
+			if (isset($_REQUEST['delete']) && isset($_REQUEST['BonusID']))
+			{
+				deleteSpecial($_REQUEST['BonusID']);
+				showSpecials();
+				break;
+			}
+			if (isset($_REQUEST['savedata']))
+				saveSpecial();
+			if (isset($_REQUEST['bonus']))
+			{
+				showSpecial($_REQUEST['bonus']);
+				break;
+			}
 			
 		case 'specials':
-			if (isset($_REQUEST['savedata']))
-				saveSpecials();
+//			if (isset($_REQUEST['savedata']))
+//				saveSpecials();
 			showSpecials();
 			break;
 
@@ -2201,9 +2409,10 @@ if (isset($_REQUEST['c']))
 				saveSGroups();
 			showSGroups();
 			break;
-			
+
 		default:
-			echo("<p>I don't know what to do with '".$_REQUEST['c']."'!");
+			showSpecial($_REQUEST['c']);
+			//echo("<p>I don't know what to do with '".$_REQUEST['c']."'!");
 	}
 } else
 	include "score.php"; // Some mistake has happened or maybe someone just tried logging on

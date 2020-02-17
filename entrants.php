@@ -169,7 +169,7 @@ function listEntrants($ord = "EntrantID")
 		echo('<caption title="'.htmlentities($TAGS['EntrantListCheck'][1]).'">'.htmlentities($TAGS['EntrantListCheck'][0]).'</caption>');
 	**/
 	
-	echo('<thead><tr><th class="EntrantID"><a href="entrants.php?c=entrants&amp;ord=EntrantID&amp;mode='.$_REQUEST['mode'].$bcurl.'">'.$TAGS['EntrantID'][0].'</a></th>');
+	echo('<thead class="listhead"><tr><th class="EntrantID"><a href="entrants.php?c=entrants&amp;ord=EntrantID&amp;mode='.$_REQUEST['mode'].$bcurl.'">'.$TAGS['EntrantID'][0].'</a></th>');
 	if ($ord == 'RiderName' || $ord == 'RiderFirst')
 		$riderord = 'RiderLast';
 	else
@@ -265,6 +265,8 @@ function saveEntrantRecord()
 
 	if ($DBVERSION >= 2) {
 		$fa2 = array('Phone','Email','NoKName','NoKRelation','NoKPhone');
+		if ($DBVERSION >= 4)
+			$fa2 = array_merge($fa2,['RestMinutes']);
 		$fa21 = array_merge($fa1,$fa2);
 		if ($DBVERSION >= 3) {
 			$fa3 = array('BCMethod');
@@ -338,6 +340,7 @@ function saveEntrantRecord()
 				case 'CorrectedMiles':
 				case 'TotalPoints':
 				case 'Class':
+				case 'RestMinutes':
 					$sql .= intval($_REQUEST[$faa]);
 					break;
 				case 'OdoCheckStart':
@@ -603,6 +606,11 @@ function showFinisherList()
 
 	global $DB, $TAGS, $KONSTANTS;
 
+	$TIMEOUTSECS = 30;
+	
+	if (isset($_REQUEST['t']))
+		$TIMEOUTSECS = intval($_REQUEST['t']);
+	
 	if ($KONSTANTS['DecimalPointIsComma'])
 	{
 		$dp = ',';
@@ -636,10 +644,32 @@ echo('<title>'.$TAGS['ttFinishers'][0].'</title>');
 ?>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="stylesheet" type="text/css" href="score.css?ver=<?= filemtime('score.css')?>">
-<meta http-equiv="refresh" content="30">
+<meta http-equiv="refresh" content="<?php echo($TIMEOUTSECS); ?>">
+<script>
+<!--
+function countdown(secs) {
+	var spo = document.querySelector('#countdown');
+	setInterval(function() {
+		spo.textContent = secs;
+		--secs;
+	},1000);
+}
+function countup(secs) {
+	var sex = 0;
+	var spo = document.querySelector('#countdown');
+	setInterval(function() {
+		sex++;
+		var x = 't=' + secs + ' : ' + sex;
+		spo.textContent = x;
+	},1000);
+}
+-->
+</script>
 </head>
-<body>
+<body onload="<?php echo("countup($TIMEOUTSECS)")?>">
+<p id="countdown" class="noprint" style="font-size:8pt; padding:0; margin:0;">&glj;</p>
 <?php
+	
 	$PAGEROWS = 0;
 	if (isset($_REQUEST['page']))
 		$PAGEROWS = intval($_REQUEST['page']);
@@ -1280,6 +1310,9 @@ function showEntrantRecord($rd)
 	echo('<span class="vlabel">');
 	echo('<label for="CorrectedMiles" class="vlabel">'.$TAGS['CorrectedMiles'][0].' </label>');
 	echo(' <input type="number" name="CorrectedMiles" id="CorrectedMiles" value="'.$rd['CorrectedMiles'].'" onchange="enableSaveButton();" title="'.$TAGS['CorrectedMiles'][1].'"> ');
+	echo('<label for="RestMinutes" class="vlabel">'.$TAGS['RestMinutesLit'][0].' </label>');
+	echo(' <input type="number" name="RestMinutes" id="RestMinutes" value="'.$rd['RestMinutes'].'" onchange="enableSaveButton();" title="'.$TAGS['RestMinutesLit'][1].'"> ');
+	
 	echo('</span>');
 	
 	echo('<span class="vlabel">');

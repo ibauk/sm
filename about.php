@@ -24,7 +24,7 @@
  */
 
 
-$PROGRAM = array("version" => "2.4.1",	"title"	=> "ScoreMaster");
+$PROGRAM = array("version" => "2.5",	"title"	=> "ScoreMaster");
 /*
  *	2.0	25May18	Used live at BBR18
  *
@@ -60,6 +60,9 @@ $PROGRAM = array("version" => "2.4.1",	"title"	=> "ScoreMaster");
  *				BCMethod support
  *				Trap unsaved scorecard
  *				Average speed
+ *
+ *	2.5			Average speeds, Team detection, wysiwyg editing, specials maintenance
+ *
  */
 $HOME_URL = "admin.php";
 require_once("common.php");
