@@ -8,7 +8,7 @@
  * I am written for readability rather than efficiency, please keep me that way.
  *
  *
- * Copyright (c) 2018 Bob Stammers
+ * Copyright (c) 2020 Bob Stammers
  *
  *
  * This file is part of IBAUK-SCOREMASTER.
@@ -311,7 +311,11 @@ function startCertificateHtml($css)
 <?php
 echo('<title>'.$TAGS['ttCertificates'][0].'</title>');
 ?>
+<meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="stylesheet" type="text/css" href="reboot.css?ver=<?= filemtime('reboot.css')?>">
+<link rel="stylesheet" type="text/css" href="certificate.css?ver=<?= filemtime('certificate.css')?>">
+
 <style>
 <!--	
 <?php
@@ -364,10 +368,12 @@ function viewCertificate($EntrantID=0,$DontStart=false,$DontTail=false)
 	//echo(' certificate fetched ... ');
 	if (!$DontStart)
 		StartCertificateHtml($rd['css']);
+	echo('<div class="certframe">');
 	echo('<div class="certificate" contenteditable="true">');
 	//echo(certificateMenuText($EntrantID,'Crap'));
 	echo($rd['html']);
 	echo('</div>');
+	echo('</div>'); // certframe
 	if (!$DontTail)
 		echo('</body></html');
 }

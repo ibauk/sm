@@ -8,7 +8,7 @@
  * I am written for readability rather than efficiency, please keep me that way.
  *
  *
- * Copyright (c) 2019 Bob Stammers
+ * Copyright (c) 2020 Bob Stammers
  *
  *
  * This file is part of IBAUK-SCOREMASTER.
@@ -34,6 +34,7 @@
  *  2.2	Variable specials
  *	2.3	OdoScaleFactor SanityCheck
  *	2.4	Variable combos, flexible axes
+ *	2.5	Reorder ordinary bonus visits, speeding
  *
  */
  
@@ -118,6 +119,10 @@ const class_unchecked	= ' unchecked ';
 /* Don't create any elements with this id */
 const NON_EXISTENT_BONUSID = 'zz'; 
 
+const DDAREA_id	= "ddarea";
+const ORDINARY_BONUS_PREFIX = 'B';
+const ORDINARY_BONUSES_VISITED = 'BonusesVisited';
+
 // Nice flexible string formatting
 if (!String.format) {
   String.format = function(format) {
@@ -132,6 +137,36 @@ if (!String.format) {
 }
 
 
+// Drag n drop stuff
+const NODE_IS_DOCUMENT = 9;
+var _el;
+
+
+function dragOver(e) {
+	if (isBefore(_el, e.target))
+		e.target.parentNode.insertBefore(_el, e.target);
+	else
+		e.target.parentNode.insertBefore(_el, e.target.nextSibling);
+	
+	// This is a bit cheeky cos it ASSUMES that you're using DDAREA!
+	document.getElementById(DDAREA_id).setAttribute('dropped',1);
+}
+
+function dragStart(e) {
+  e.dataTransfer.effectAllowed = "move";
+  e.dataTransfer.setData("text/plain", null); // Firefox
+  _el = e.target;
+}
+
+function isBefore(el1, el2) {
+  if (el2.parentNode === el1.parentNode)
+    for (var cur = el1.previousSibling; cur && cur.nodeType !== NODE_IS_DOCUMENT; cur = cur.previousSibling)
+      if (cur === el2)
+        return true;
+  return false;
+}
+
+
 
 // Alphabetic order below
 
@@ -140,39 +175,66 @@ function areYouSure(question)
 	return window.confirm(question);
 }
 
-function askPoints(inp)
+function askVars(inp)
+/*
+ * Called to ask for special bonus variables including points value
+ * and/or number of rest minutes
+ *
+ */
 {
-	if (inp.checked)
+	if (!inp.checked)
 	{
-		var par = inp.parentNode;
-		var id = inp.getAttribute('id');
-		var val = document.getElementById('ap'+id);
-		if (!val)
-		{
-			var aps = document.getElementById('apspecials');
-			if (aps)
-			{
-				val = document.createElement('input');
-				val.setAttribute('type','hidden');
-				val.setAttribute('name','ap'+id);
-				val.setAttribute('id','ap'+id);
-				aps.appendChild(val);
-			}
-		}
-		var lbl = par.firstChild.innerHTML;
-		var pts = inp.getAttribute('data-points');
+		calcScore(true);
+		return;
+	}
+	var par = inp.parentNode;
+	var id = inp.getAttribute('id');
 	
-		var npts = window.prompt(ASK_POINTS+' '+lbl,pts);
+	// Used to save the updated values to the Entrant record
+	var val = document.getElementById('ap'+id);
+	if (!val)
+	{
+		var aps = document.getElementById('apspecials');
+		if (aps)
+		{
+			val = document.createElement('input');
+			val.setAttribute('type','hidden');
+			val.setAttribute('name','ap'+id);
+			val.setAttribute('id','ap'+id);
+			val.setAttribute('value',0);
+			aps.appendChild(val);
+		}
+	}
+	
+	var lbl = par.firstChild.innerHTML;
+	
+	if (inp.getAttribute('data-askpoints') == '1')
+	{
+		let pts = inp.getAttribute('data-points');
+	
+		let npts = window.prompt(ASK_POINTS+' '+lbl,pts);
 		if (npts != null)
 			pts = parseInt(npts);
 		
 		inp.setAttribute('data-points',pts);
+	
 		if (val)
 			val.setAttribute('value',pts);
-		var tit = par.getAttribute('title');
-		var p = tit.indexOf('[');
+	
+		let tit = par.getAttribute('title');
+		let p = tit.indexOf('[');
 		if (p >= 0)
 			par.setAttribute('title',tit.substr(0,p + 1) + ' ' + pts + ' ]');
+	}
+	if (inp.getAttribute('data-askmins') == '1')
+	{
+		let mins = inp.getAttribute('data-mins');
+		let nmins = window.prompt(ASK_MINUTES+' '+lbl,mins);
+		if (nmins != null)
+			mins = parseInt(nmins);
+		inp.setAttribute('data-mins',mins);
+		if (val)
+			val.setAttribute('value',val.value+';'+mins);
 	}
 	calcScore(true);
 }
@@ -180,13 +242,6 @@ function askPoints(inp)
 
 function bodyLoaded()
 {
-	//var B = document.getElementsByName('BonusID[]');
-	//for (var i = 0; i < B.length; i++)
-	//{
-	//B[i].parentElement.addEventListener('contextmenu',function(e){e.preventDefault()});
-//		for (var j = 0; j < B[i].parentElement.childNodes.length; j++)
-	//		B[i].parentElement.childNodes[j].addEventListener('contextmenu',function(e){e.preventDefault()});
-	//}
 	
 	var dbv = document.getElementById('DBVERSION');
 	if (dbv)
@@ -207,10 +262,65 @@ function bodyLoaded()
 	
 	if (!isScoresheetpage)
 		return;
-
+	
 	trapDirtyPage();
 	calcScore(false);	
 		
+}
+
+
+function calcAvgSpeed()
+{
+	const msecsPerMinute = 60000;
+	let speedDisplay = document.querySelector('#CalculatedAvgSpeed');
+	speedDisplay.value = '';
+	let isoStart = document.querySelector('#StartDate').value+'T'+document.querySelector('#StartTime').value+'Z';
+	let isoFinish = document.querySelector('#FinishDate').value+'T'+document.querySelector('#FinishTime').value+'Z';
+	let dtStart = new Date(isoStart);
+	let dtFinish = new Date(isoFinish);
+	let minsDuration = Math.abs(dtFinish - dtStart) / msecsPerMinute;
+	
+	/* Now add up rest minutes and store the result for posting to Entrant record */
+	let specials = document.querySelectorAll('input[data-mins]');
+	console.log('cas: '+JSON.stringify(specials));
+	let restMins = document.querySelector('#RestMinutes');
+	if (restMins) // Just in case
+	{
+		restMins.value = 0;
+		for (let i = 0; i < specials.length; i++)
+			if (specials[i].checked)
+				restMins.value += specials[i].getAttribute('data-mins');
+		minsDuration -= restMins.value;
+		console.log('cas: '+restMins.value+' ('+specials.length+')');
+		document.querySelector('#RestMinutes').value = restMins.value;
+	}
+	
+	if (minsDuration < 1)
+		return;
+	let odoScale = parseFloat(document.querySelector('#OdoScaleFactor').value);
+	if (odoScale < 0.5)
+		odoScale = 1.0;
+	let odoDistance = (parseInt(document.querySelector('#OdoRallyFinish').value) - parseInt(document.querySelector('#OdoRallyStart').value)) * odoScale;
+	let odoKms = document.querySelector('#OdoKmsK').checked;
+	
+	// Any non-zero value here means that we're handling kilometres rather than miles
+	let basicKms = parseInt(document.querySelector('#BasicDistanceUnits').value) != 0;
+	
+	if (odoKms && !basicKms)
+		odoDistance = odoDistance / KmsPerMile;
+	else if (!odoKms && basicKms)
+		odoDistance = odoDistance * KmsPerMile;
+	
+	let hoursDuration = minsDuration / 60.0;
+	let speed = odoDistance / hoursDuration;
+	
+	console.log('Hrs='+hoursDuration+' Avg='+speed);
+	
+	
+
+	let speedText = (Math.round(speed * 100) / 100).toFixed(2);
+	
+	speedDisplay.value = speedText + ' ' + (basicKms ? 'km/h' : 'mph');
 }
 
 function calcComplexScore(res)
@@ -235,7 +345,7 @@ function calcComplexScore(res)
 
 	function ccs_initialize()
 	{
-		if (debug) alert("ccs_initialize");
+		if (debug) console.log("ccs_initialize");
 		
 		// Establish an array of counts: hits within Cat within Axis and zeroise scores
 		for (var i = 0; i < axisScores.length; i++)
@@ -263,13 +373,15 @@ function calcComplexScore(res)
 	// Ordinary bonuses
 	
 	{
-		if (debug) alert("ccs_processBonuses");
+		if (debug) console.log("ccs_processBonuses");
+		
+		var totalSoFar = 0;
 		
 		var bonuses	= document.getElementsByName("BonusID[]");		// Individual Bonus records
 		// Now process individual bonuses
 		for (var i = 0; i < bonuses.length; i++)
 		{
-			if (!bonuses[i].checked)
+			if (!bonuses[i].checked || bonuses[i].getAttribute('data-rejected') > 0)
 				continue;
 			
 			totalTickedBonuses++;
@@ -320,7 +432,7 @@ function calcComplexScore(res)
 					var minBonusesPerCat = parseInt(compoundCalcRules[j].getAttribute('data-min'));
 					var scoreFactor = parseInt(compoundCalcRules[j].getAttribute('data-power'));
 					
-					if (debug) alert("MBS: axis="+axis+" cat="+cat+" mbc="+minBonusesPerCat+" sf="+scoreFactor+" dm="+parseInt(compoundCalcRules[j].getAttribute('data-method')));
+					if (debug) console.log("MBS: axis="+axis+" cat="+cat+" mbc="+minBonusesPerCat+" sf="+scoreFactor+" dm="+parseInt(compoundCalcRules[j].getAttribute('data-method')));
 					var np = 1;
 					switch (parseInt(compoundCalcRules[j].getAttribute('data-method')))
 					{
@@ -352,7 +464,7 @@ function calcComplexScore(res)
 							break;
 								
 						default:
-							alert(String.format(CFGERR_MethodNIY,compoundCalcRules[j].getAttribute('data-method')));
+							console.log(String.format(CFGERR_MethodNIY,compoundCalcRules[j].getAttribute('data-method')));
 					}
 					if ( (matchcat == 0 || matchcat == cat) && (np >= minBonusesPerCat) )
 					{
@@ -362,7 +474,7 @@ function calcComplexScore(res)
 								case CAT_ResultPoints:
 						
 									// 2017 - bps = bps * (Math.pow(np,(ccounts[dc][cat] - 1)))
-									//alert('Updating data-points for axis=' + axis + '; cat=' + cat + '; bps =' + bonusPoints+"; sf="+scoreFactor+"; cc="+catCounts[axis][cat]);
+									//console.log('Updating data-points for axis=' + axis + '; cat=' + cat + '; bps =' + bonusPoints+"; sf="+scoreFactor+"; cc="+catCounts[axis][cat]);
 									if (scoreFactor == 0)
 										bonusPoints = bonusPoints * (np - 1);
 									else
@@ -370,7 +482,7 @@ function calcComplexScore(res)
 									break;
 								
 								default:
-									alert(String.format(CFGERR_NotBonuses,compoundCalcRules[j].getAttribute('data-pm')));
+									console.log(String.format(CFGERR_NotBonuses,compoundCalcRules[j].getAttribute('data-pm')));
 							}
 					
 					} // np > min
@@ -379,10 +491,12 @@ function calcComplexScore(res)
 
 			// Any mods complete now so add the score
 			totalBonusPoints += bonusPoints;
-			sxappend(bonuses[i].getAttribute('id'),bonuses[i].parentNode.getAttribute("title").replace(/\[.+\]/,""),bonusPoints,0,totalBonusPoints);
+			//sxappend(bonuses[i].getAttribute('id'),bonuses[i].parentNode.getAttribute("title").replace(/\[.+\]/,""),bonusPoints,0,totalBonusPoints);
 			
 		} // Bonus loop
 
+		explainOrdinaryBonuses(totalSoFar);
+		
 		scoreReason += "\r\n" + RPT_Bonuses + ": " +totalTickedBonuses;
 
 	} // ccs_processBonuses
@@ -396,7 +510,7 @@ function calcComplexScore(res)
 	// This also applies any compulsory axis participation rules
 	
 	{
-		if (debug) alert("ccs_catsPerAxisNZ");
+		if (debug) console.log("ccs_catsPerAxisNZ");
 	
 		// Now process catcompound entries that depend on number of non-zero entries per axis
 		var nzEntriesPerAxis = [];
@@ -404,7 +518,7 @@ function calcComplexScore(res)
 		for (var i = 1; i <= CALC_AXIS_COUNT; i++)
 		{
 			nzEntriesPerAxis[i] = countNZ(catCounts[i]);
-			if (debug) alert("ccs3.2." + i + ' == ' + nzEntriesPerAxis[i]);
+			if (debug) console.log("ccs3.2." + i + ' == ' + nzEntriesPerAxis[i]);
 		}
 	
 	
@@ -477,14 +591,14 @@ function calcComplexScore(res)
 	
 	{
 		
-		if (debug) alert("ccs5");
+		if (debug) console.log("ccs5");
 	
 		// Now process catcompound entries that depend on number of non-zero entries per category within axis
 	
 	
 		for (var i = 0; i <= CALC_AXIS_COUNT; i++)
 		{
-			//alert('cc '+i+' == '+catCounts[i].length);
+			//console.log('cc '+i+' == '+catCounts[i].length);
 			for (var j = 0; j < catCounts[i].length; j++)
 			{
 				var lastAxis = -1;
@@ -512,7 +626,7 @@ function calcComplexScore(res)
 						{
 							lastAxis = axis;
 							compoundCalcRules[k].setAttribute('data-triggered',RULE_TRIGGERED);
-							//if (axis == 1) alert("ccs5.1; i=" + i + "; j=" + j + "; k =" + k + "; axis=" + axis + "; catCount=" + catCount);
+							//if (axis == 1) console.log("ccs5.1; i=" + i + "; j=" + j + "; k =" + k + "; axis=" + axis + "; catCount=" + catCount);
 							var scoreFactor = parseInt(compoundCalcRules[k].getAttribute('data-power'));
 
 							var points = chooseNZ(scoreFactor,catCount);
@@ -538,12 +652,12 @@ function calcComplexScore(res)
 									var drel = ndesc+'lt;'+(++dmin); // cos not enough hits
 								else
 									var drel = ndesc+'&gt;='+dmin;
-								//if (i==0) alert('hsn1 '+catdesc+'; '+catCount);
+								//if (i==0) console.log('hsn1 '+catdesc+'; '+catCount);
 								axisScores[i].setAttribute('data-points',parseInt(axisScores[i].getAttribute('data-points')) + points);
-								//if (i==0) alert('hsn2 '+catdesc+'; '+catCount);
+								//if (i==0) console.log('hsn2 '+catdesc+'; '+catCount);
 								totalBonusPoints += points;
 								sxappend('R'+k,axisScores[i].value+drel,points,0,totalBonusPoints);
-								//if (i==0) alert('hsn3 '+catdesc+'; '+catCount);
+								//if (i==0) console.log('hsn3 '+catdesc+'; '+catCount);
 							}
 							else // Multipliers
 							{
@@ -581,14 +695,16 @@ function calcComplexScore(res)
 				sbonuses = document.getElementsByName("SpecialID_"+sg[j]+"[]");
 				for (var i = 0, bps = 0, mults = 0; i < sbonuses.length; i++ )
 				{
-					if (!sbonuses[i].checked)
+					if (!sbonuses[i].checked || sbonuses[i].getAttribute('data-rejected') > 0)
 						continue;
 				
 					bps = parseInt(sbonuses[i].getAttribute('data-points'));
 					totalBonusPoints += bps;
 					mults = parseInt(sbonuses[i].getAttribute('data-mult'));
 					totalMultipliers += mults;
-					sxappend(sbonuses[i].getAttribute('id'),sbonuses[i].parentNode.firstChild.innerHTML,sbonuses[i].getAttribute('data-points'),sbonuses[i].getAttribute('data-mult'),totalBonusPoints);
+					let rm = sbonuses[i].getAttribute('data-mins');
+					let x = (rm > 0 ? ' ['+formatMinutes(rm)+']' : '');
+					sxappend(sbonuses[i].getAttribute('id'),sbonuses[i].parentNode.firstChild.innerHTML+x,sbonuses[i].getAttribute('data-points'),sbonuses[i].getAttribute('data-mult'),totalBonusPoints);
 				}
 			}
 		}
@@ -598,13 +714,15 @@ function calcComplexScore(res)
 		sbonuses = document.getElementsByName("SpecialID[]");
 		for (var i = 0, bps = 0, mults = 0; i < sbonuses.length; i++ )
 		{
-			if (!sbonuses[i].checked)
+			if (!sbonuses[i].checked || sbonuses[i].getAttribute('data-rejected') > 0)
 				continue;
 			bps = parseInt(sbonuses[i].getAttribute('data-points'));
 			totalBonusPoints += bps;
 			mults = parseInt(sbonuses[i].getAttribute('data-mult'));
 			totalMultipliers += mults;
-			sxappend(sbonuses[i].getAttribute('id'),sbonuses[i].parentNode.firstChild.innerHTML,sbonuses[i].getAttribute('data-points'),sbonuses[i].getAttribute('data-mult'),totalBonusPoints);			
+			let rm = sbonuses[i].getAttribute('data-mins');
+			let x = (rm > 0 ? ' ['+formatMinutes(rm)+']' : '');
+			sxappend(sbonuses[i].getAttribute('id'),sbonuses[i].parentNode.firstChild.innerHTML+x,sbonuses[i].getAttribute('data-points'),sbonuses[i].getAttribute('data-mult'),totalBonusPoints);			
 		}
 
 	
@@ -616,16 +734,16 @@ function calcComplexScore(res)
 	function ccs_processCombos()
 	{
 		
-		if (debug) alert("ccs8");
+		if (debug) console.log("ccs8");
 
 		// Combos
 		var bonuses = document.getElementsByName("ComboID[]");
 		for (var i = 0, bps = 0, mults = 0; i < bonuses.length; i++ )
 		{
-			if (!bonuses[i].checked)
+			if (!bonuses[i].checked || bonuses[i].getAttribute('data-rejected') > 0)
 				continue;
 		
-			//alert(bonuses[i].getAttribute('id')+' checked = '+bonuses[i].getAttribute('data-points'));
+			//console.log(bonuses[i].getAttribute('id')+' checked = '+bonuses[i].getAttribute('data-points'));
 			if (parseInt(bonuses[i].getAttribute('data-method')) == CMB_ScoreMults)
 			{
 				mults = parseInt(bonuses[i].getAttribute('data-points'));
@@ -668,7 +786,7 @@ function calcComplexScore(res)
 
 	function ccs_mileagePenalty()
 	{
-		if (debug) alert("ccs9");
+		if (debug) console.log("ccs9");
 
 		var MPenalty = calcMileagePenalty();
 	
@@ -688,7 +806,17 @@ function calcComplexScore(res)
 				sxappend('',RPT_MPenalty,MPenalty[0],0,totalBonusPoints);
 			}
 	} // ccs_mileagePenalty
-	
+
+	function ccs_speedPenalty()
+	{
+		let SPenalty = calcSpeedPenalty(false);
+		totalBonusPoints += SPenalty;
+		if (SPenalty != 0)
+			scoreReason += "\r\n" + RPT_SPenalty + ': ' +SPenalty;
+		if (SPenalty != 0)
+			sxappend('',RPT_SPenalty,SPenalty,0,totalBonusPoints);
+		
+	}
 
 	function ccs_timePenalty()
 	{
@@ -727,6 +855,7 @@ function calcComplexScore(res)
 	ccs_entriesPerCat();
 	ccs_mileagePenalty();
 	ccs_timePenalty();
+	ccs_speedPenalty();
 	
 	
 	res.reason = scoreReason;
@@ -757,7 +886,7 @@ function calcMileagePenalty()
 	if (PenaltyMiles <= 0) // No penalty
 		return [0,0]; 
 		
-	//alert('PM='+PenaltyMiles+'; Method='+PMMethod+'; Points='+PMPoints);
+	//console.log('PM='+PenaltyMiles+'; Method='+PMMethod+'; Points='+PMPoints);
 	switch (PMMethod)
 	{
 		case MMM_PointsPerMile:
@@ -783,32 +912,36 @@ function calcScore(enableSave)
 	var res = { reason: "" };
 	var TPS = 0;
 	
-	if (debug) alert("calcScore[0]");
+	if (debug) console.log("calcScore[0]");
 	
 	hidePopup();
 	
 	if (sm != SM_Manual)
 	{
 		setFinishTimeDNF();
-		if (debug) alert("calcScore[0][1]");
-		clearUnrejectedClaims();
+		if (debug) console.log("calcScore[0][1]");
+		//clearUnrejectedClaims();
+		
+		calcAvgSpeed();
+		
 		sxstart();
 		reportRejectedClaims();
 		tickCombos();
-		if (debug) alert("calcScore[0][2]");
+		if (debug) console.log("calcScore[0][2]");
 		repaintBonuses();
 
-		if (debug) alert("calcScore[1]");
+		if (debug) console.log("calcScore[1]");
 		if (sm == SM_Compound)
 			TPS = calcComplexScore(res);
 		else
 			TPS = calcSimpleScore(res);
-		if (debug) alert("calcScore[2]");
+		if (debug) console.log("calcScore[2]");
 		sxappend('',RPT_Total,'',0,TPS);
 		document.getElementById('TotalPoints').value = formatNumberScore(TPS);
 		document.getElementById('TotalPoints').setAttribute('title',res.reason);
 	}
-	if (debug) alert("calcScore[3]");
+	if (debug) console.log("calcScore[3]");
+	
 	
 	setFinisherStatus();
 	if (enableSave)
@@ -833,14 +966,16 @@ function calcSimpleScore(res)
 
 	var bp = document.getElementsByName("BonusID[]");
 	for (var i = 0, bps = 0; i < bp.length; i++ )
-		if (bp[i].checked)
+		if (bp[i].checked && bp[i].getAttribute('data-rejected') < 1)
 		{
 			bps += parseInt(bp[i].getAttribute('data-points'));
 			ticks++;
-			sxappend(bp[i].getAttribute('id'),bp[i].parentNode.getAttribute("title").replace(/\[.+\]/,""),bp[i].getAttribute('data-points'),0,TS + bps);
+			//sxappend(bp[i].getAttribute('id'),bp[i].parentNode.getAttribute("title").replace(/\[.+\]/,""),bp[i].getAttribute('data-points'),0,TS + bps);
 		}
 	reason += "\r\n" + RPT_Bonuses + ': ' + ticks;
-		
+
+	explainOrdinaryBonuses(TS);
+	
 	TS += bps;
 
 	var sgObj = document.getElementById("SGroupsUsed");
@@ -851,7 +986,7 @@ function calcSimpleScore(res)
 		{
 			bp = document.getElementsByName("SpecialID_"+sg[j]+"[]");
 			for (var i = 0, bps = 0; i < bp.length; i++ )
-				if (bp[i].checked)
+				if (bp[i].checked && bp[i].getAttribute('data-rejected') < 1)
 				{
 					bps = parseInt(bp[i].getAttribute('data-points'));
 					TS += bps;
@@ -863,10 +998,12 @@ function calcSimpleScore(res)
 	
 	bp = document.getElementsByName("SpecialID[]");
 	for (var i = 0, bps = 0; i < bp.length; i++ )
-		if (bp[i].checked)
+		if (bp[i].checked && bp[i].getAttribute('data-rejected') < 1)
 		{
 			bps += parseInt(bp[i].getAttribute('data-points'));
-			sxappend(bp[i].getAttribute('id'),bp[i].parentNode.firstChild.innerHTML,bp[i].getAttribute('data-points'),0,TS + bps);
+			let rm = bp[i].getAttribute('data-mins');
+			let x = (rm > 0 ? ' ['+formatMinutes(rm)+']' : '');
+			sxappend(bp[i].getAttribute('id'),bp[i].parentNode.firstChild.innerHTML+x,bp[i].getAttribute('data-points'),0,TS + bps);
 
 		}
 		
@@ -875,7 +1012,7 @@ function calcSimpleScore(res)
 
 	bp = document.getElementsByName("ComboID[]");
 	for (var i = 0, bps = 0; i < bp.length; i++ )
-		if (bp[i].checked)
+		if (bp[i].checked && bp[i].getAttribute('data-rejected') < 1)
 		{
 			bps += parseInt(bp[i].getAttribute('data-points'));
 			sxappend(bp[i].getAttribute('id'),bp[i].parentNode.firstChild.innerHTML,bp[i].getAttribute('data-points'),0,TS + bps);
@@ -884,7 +1021,7 @@ function calcSimpleScore(res)
 		
 	TS += bps;
 
-	if (debug) alert('css[M]');
+	if (debug) console.log('css[M]');
 	var MPenalty = calcMileagePenalty();
 	
 	TS -= MPenalty[0];
@@ -895,13 +1032,20 @@ function calcSimpleScore(res)
 		sxappend('',RPT_MPenalty,MPenalty[0],0,TS);
 
 	var TPenalty = calcTimePenalty();
-	if (debug) alert('TP[0]=='+TPenalty[0]+'; TP[1]=='+TPenalty[1]);
-	TS -= TPenalty[0];
+	if (debug) console.log('TP[0]=='+TPenalty[0]+'; TP[1]=='+TPenalty[1]);
+	TS += TPenalty[0];
 	if (TPenalty[0] != 0)
 		reason += "\r\n" + RPT_TPenalty + ': ' + TPenalty[0];
 	if (TPenalty[0] != 0)
 		sxappend('',RPT_TPenalty,TPenalty[0],0,TS);
 
+	let SPenalty = calcSpeedPenalty(false);
+	TS += SPenalty;
+	if (SPenalty != 0)
+		reason += "\r\n" + RPT_SPenalty + SPenalty;
+	if (SPenalty != 0)
+		sxappend('',RPT_SPenalty,SPenalty,0,TS);
+	
 	res.reason = reason;
 	
 	return TS;
@@ -909,7 +1053,38 @@ function calcSimpleScore(res)
 }
 
 
-
+function calcSpeedPenalty(dnf)
+/*
+ * If parameter dnf is false then
+ * This will return the number of penalty points (not multipliers) or 0
+ * If highest match gives DNF, I return 0
+ *
+ * If pafsrameter dnf is true then
+ * If highest match give DNF, return true otherwise false
+ *
+ */
+{
+	let SP = document.getElementsByName('SpeedPenalty[]');
+	let speed = parseFloat(document.querySelector('#CalculatedAvgSpeed').value);
+	for (let i =0; i < SP.length; i++)
+		if (speed >= parseFloat(SP[i].getAttribute('data-MinSpeed')))
+		{
+			console.log('Matched '+speed+' to '+SP[i].getAttribute('data-MinSpeed'));
+			if (parseInt(SP[i].getAttribute('data-PenaltyType'))==1)
+			{
+				if (dnf)
+					return true;
+				else
+					return 0; /* Penalty points */
+			}
+			if (dnf)
+				return false;
+			else
+				return 0 - parseInt(SP[i].value);
+			
+		}
+		return 0;
+}
 
 function calcTimePenalty()
 {
@@ -917,7 +1092,7 @@ function calcTimePenalty()
 	var TP = document.getElementsByName('TimePenalty[]');
 	var FT = new Date(document.getElementById('FinishDate').value + 'T' + document.getElementById('FinishTime').value+'Z');
 	var  FTDate = new Date(FT);
-	//alert("TP: "+FTDate);
+	//console.log("TP: "+FTDate);
 	for ( var i = 0 ; i < TP.length ; i++ )
 	{
 		var ds, de, dnf;
@@ -945,7 +1120,7 @@ function calcTimePenalty()
 			var PM = parseInt(TP[i].getAttribute('data-method'));
 			var PStartDate = ds; //new Date(TP[i].getAttribute('data-start'));
 			var Mins = 1 + (Math.abs(FTDate - PStartDate) / OneMinute);
-			//alert(PStartDate + ' == ' + FTDate + ' == ' + PM + '=' + TPM_PointsPerMin + ' == ' + Mins);
+			//console.log(PStartDate + ' == ' + FTDate + ' == ' + PM + '=' + TPM_PointsPerMin + ' == ' + Mins);
 			switch(PM)
 			{
 				case TPM_MultPerMin:
@@ -1036,6 +1211,38 @@ function enableSaveButton()
 	
 }
 
+function explainOrdinaryBonuses(totalSoFar)
+{
+	function showB(B)
+	{
+		sxappend(B.getAttribute('id'),B.parentNode.getAttribute("title").replace(/\[.+\]/,""),B.getAttribute('data-points'),0,totalSoFar += parseInt(B.getAttribute('data-points')));
+	}
+	var bv = document.getElementById(ORDINARY_BONUSES_VISITED);
+	if (!bv)
+	{
+		var bp = document.getElementsByName("BonusID[]");
+		for (var i = 0; i < bp.length; i++ )
+			if (bp[i].checked)
+				if (bp[i].getAttribute('data-rejected') < 1)
+					showB(bp[i]);
+				else
+					reportRejectedClaim(bp[i].id,bp[i].getAttribute('data-rejected'));
+	}
+	else if (bv.value.length > 0)
+	{
+		var bva = bv.value.split(',');
+		for (var i = 0; i < bva.length; i++ )
+		{
+			var bp = document.getElementById('B'+bva[i]);
+			if (bp && bp.checked)
+				if (bp.getAttribute('data-rejected') < 1)
+					showB(bp);
+				else
+					reportRejectedClaim(bp.id,bp.getAttribute('data-rejected'));
+		}
+	}
+}
+
 function findEntrant()
 {
 	var x;
@@ -1045,6 +1252,16 @@ function findEntrant()
 		return true;
 	window.location='entrants.php?c=entrants&mode=find&x='+x;
 	return false;
+}
+
+function formatMinutes(mins)
+{
+	let hh = Math.floor(mins/60);
+	let mm = mins % 60;
+	if (hh>0)
+		return hh+'h '+mm+'m';
+	else
+		return mm+'m';
 }
 
 function formatNumberScore(n,prettyPrint)
@@ -1177,14 +1394,27 @@ function clearUnrejectedClaims()
 	}
  }
  
+ function flipMilesKms()
+ /*
+  * I'm called by the dropdown on the scoresheet to flip
+  * between miles and kilometres for odo readings
+  *
+  */
+ {
+	let sel = document.querySelector('#OdoKms');
+	let val = sel.options[sel.selectedIndex].value;
+	let oks = document.querySelector('#OdoKmsK');
+	oks.checked = (val != 0);
+	calcMiles();
+ }
 
 
 function reflectBonusCheckedState(B)
 {
 	//if (B.id == 'CLinked1')
-		//alert('Bonus ' + B.id + ' has checked = ' + B.checked + ' and Reject = ' + B.getAttribute('data-rejected'));
+		//console.log('Bonus ' + B.id + ' has checked = ' + B.checked + ' and Reject = ' + B.getAttribute('data-rejected'));
 	var S = B.parentElement;
-	if (B.checked)
+	if (B.checked && B.getAttribute('data-rejected') <= 0)
 		S.className = class_showbonus + class_checked;
 	else if (B.getAttribute('data-rejected') > 0)
 		S.className = class_showbonus + class_rejected;
@@ -1208,7 +1438,9 @@ function repaintBonuses()
 
 function reportRejectedClaim(bonusid,reason)
 {
-//	alert('rRC-'+bonusid);
+//	console.log('rRC: '+bonusid+','+reason);
+	if (bonusid=='')
+		return;
 	var B = document.getElementById(bonusid);
 	if (B == null)
 		return;
@@ -1219,7 +1451,7 @@ function reportRejectedClaim(bonusid,reason)
 	for (var i = 0; i < R.length; i++)
 		if (R[i].getAttribute('data-code') == reason)
 		{
-			//alert("Reporting " + bonusid + " for " + R[i].value);
+			//console.log("Reporting " + bonusid + " for " + R[i].value);
 			if (B.name != 'BonusID[]')
 				sxappend(B.getAttribute('id'),B.parentNode.firstChild.innerHTML.replace(/\[.+\]/,""),'X','','');
 			else
@@ -1237,7 +1469,7 @@ function reportRejectedClaim(bonusid,reason)
 		B.parentElement.className = class_showbonus + class_unchecked;
 	else
 		B.parentElement.className = class_showbonus + class_rejected;
-	//alert("Reporting reason " + reason + " for bonus " + bonusid);
+	//console.log("Reporting reason " + reason + " for bonus " + bonusid);
 }
 
 function reportRejectedClaims()
@@ -1248,13 +1480,14 @@ function reportRejectedClaims()
  */
 {
 	var RC = document.getElementById('RejectedClaims');
-//	alert('rca ['+RC.value+']');
+//	console.log('rca ['+RC.value+']');
 	var rca = RC.value.split(',');
-//	alert(rca.length);
+//	console.log(rca.length);
 	for (var i = 0; i < rca.length; i++ )
 	{
 		var cr = rca[i].split('=');
-		reportRejectedClaim(cr[0],cr[1]);
+		if (cr[0].substr(0,1) != ORDINARY_BONUS_PREFIX)
+			reportRejectedClaim(cr[0],cr[1]);
 	}
 }
 
@@ -1264,7 +1497,7 @@ function setFinisherStatus()
  *
  *							s e t F i n i s h e r S t a t u s
  *
- * This determines status depending on score, mileage and timings.
+ * This determines status depending on score, mileage, speed and timings.
  *
  */
 {
@@ -1283,10 +1516,9 @@ function setFinisherStatus()
 	var CS = parseInt(document.getElementById('EntrantStatus').value);
 	//if (CS != EntrantOK && CS != EntrantFinisher)
 		//return;
-	var TS = parseInt(document.getElementById('TotalPoints').value);
-	var MP = parseInt(document.getElementById('MinPoints').value);
-	if (MP > 0 && TS < MP)
-		return SFS(EntrantDNF,DNF_TOOFEWPOINTS);
+	
+	if (calcSpeedPenalty(true))
+		return SFS(EntrantDNF,DNF_SPEEDING);
 	
 	var CM = parseInt(document.getElementById('CorrectedMiles').value);
 	var MM = parseInt(document.getElementById('MinMiles').value);
@@ -1334,41 +1566,49 @@ function setFinisherStatus()
 		else if (BL[i].getAttribute('data-reqd')==MUSTNOTMATCH && BL[i].getAttribute('data-triggered')==RULE_TRIGGERED)
 			return SFS(EntrantDNF,DNF_COMPOUNDRULE);
 	
+	var TS = parseInt(document.getElementById('TotalPoints').value);
+	var MP = parseInt(document.getElementById('MinPoints').value);
+	if (MP > 0 && TS < MP)
+		return SFS(EntrantDNF,DNF_TOOFEWPOINTS);
+	
+	
 	SFS(EntrantFinisher,'');
 	
 }
 
 function setFinishTimeDNF()
 {
-	var CH = parseInt(document.getElementById('CertificateHours').value);
+	var CH = parseInt(document.getElementById('MaxHours').value);
 	var ST = document.getElementById('RallyTimeStart').value;
 	var st = document.getElementById('StartDate').value + 'T' + document.getElementById('StartTime').value;
 	var mst = st < ST ? ST : st;
 	var dt = new Date(mst+'Z');
 	dt.setHours(dt.getHours()+CH);
-	//alert('ST='+st);
-	//alert('DNF='+dt.toISOString());
+	//console.log('ST='+st);
+	//console.log('DNF='+dt.toISOString());
 	var FT = document.getElementById('RallyTimeDNF').value;
 	var xt = dt.toISOString();
 	xt = xt.substring(0,16);
 	if (FT < xt)
 		xt = FT;
 	document.getElementById('FinishTimeDNF').value = xt;
-	//alert("set="+xt);
+	//console.log("set="+xt);
 
 }
 
 function setRejectedClaim(bonusid,reason)
 {
 	// reason == 0 - unset, claim not rejected
-	//alert(' Flagging ' + bonusid + ' as ' + reason);
+	//console.log(' Flagging ' + bonusid + ' as ' + reason);
 	var B = document.getElementById(bonusid);
 	if (B == null)
 		return;
 	B.setAttribute('data-rejected',reason);
 	var RC = document.getElementById('RejectedClaims');
-//	alert('src:' + bonusid + '=' + reason + '; rc=' + RC.value);
-	var rca = RC.value.split(',');
+//	console.log('src:' + bonusid + '=' + reason + '; rc=' + RC.value);
+	var rca = [];
+	if (RC.value.length > 0)
+		rca = RC.value.split(',');
 	var done = false;
 	for (var i = 0; i < rca.length; i++ )
 	{
@@ -1377,9 +1617,11 @@ function setRejectedClaim(bonusid,reason)
 		{
 			cr[1] = reason;
 			if (reason == 0)
-				cr[0] = NON_EXISTENT_BONUSID;
+				rca.splice(i);
+				//cr[0] = NON_EXISTENT_BONUSID;
+			else
+				rca[i] = cr.join('=');	
 			done = true;
-			rca[i] = cr.join('=');	
 			break;
 		}
 	}
@@ -1392,7 +1634,7 @@ function setRejectedClaim(bonusid,reason)
 		B.parentElement.className = class_showbonus + class_rejected;
 	
 	setRejectedTooltip(B.parentNode,reason);
-	//alert('Setting RC value == ' + RC.value);
+	//console.log('Setting RC value == ' + RC.value);
 }
 
 function setRejectedTooltip(BP,reason)
@@ -1417,11 +1659,118 @@ function setSplitNow(id_prefix)
 	var x = dt.toJSON();
 	var xd = x.slice(0,10);
 	var xt = x.slice(11,16);
-	//alert('ssn:'+id_prefix+' x='+x+' xd='+xd+' xt='+xt);
+	//console.log('ssn:'+id_prefix+' x='+x+' xd='+xd+' xt='+xt);
 	dtDate.value = xd;
 	dtTime.value = xt;
 	enableSaveButton();
 }
+
+function synchronizeCssStyles(src, destination, recursively) {
+
+    // if recursively = true, then we assume the src dom structure and destination dom structure are identical (ie: cloneNode was used)
+
+    // window.getComputedStyle vs document.defaultView.getComputedStyle 
+    // @TBD: also check for compatibility on IE/Edge 
+    destination.style.cssText = document.defaultView.getComputedStyle(src, "").cssText;
+
+    if (recursively) {
+        var vSrcElements = src.getElementsByTagName("*");
+        var vDstElements = destination.getElementsByTagName("*");
+
+        for (var i = vSrcElements.length; i--;) {
+            var vSrcElement = vSrcElements[i];
+            var vDstElement = vDstElements[i];
+//          console.log(i + " >> " + vSrcElement + " :: " + vDstElement);
+            vDstElement.style.cssText = document.defaultView.getComputedStyle(vSrcElement, "").cssText;
+        }
+    }
+}
+function fetchBonusOrder()
+{
+	var obs = document.getElementById(ORDINARY_BONUSES_VISITED);
+	var res = [];
+	if (obs.value.length > 0)
+		res = obs.value.split(',');
+	return res;
+}
+
+function finishBonusOrder()
+{
+	var dda = document.getElementById(DDAREA_id);
+	var lis = dda.getElementsByClassName('ddlist')[0].getElementsByTagName('li');
+	var obs = [];
+	for (var i = 0; i < lis.length; i++)
+	{
+		var txt = lis[i].innerText;
+		obs.push(txt.substr(0,txt.indexOf(' ')));
+	}
+	var bv = document.getElementById(ORDINARY_BONUSES_VISITED);
+	bv.value = obs.join(',');
+	dda.className = 'hide';
+	if (dda.getAttribute('dropped')==1)
+		calcScore(true);
+	sxshow();
+}
+
+function showBonusOrder()
+{
+	event.preventDefault();
+	var dda = document.getElementById(DDAREA_id);
+	var obs = fetchBonusOrder();
+	var html = '<input type="button" title="' + OBSORTAZ + '" style="font-size: 1.1em;" value="&duarr;" onclick="sortBonusOrder()"/> ';
+	html += '<input type="button" title="' + APPLYCLOSE + '" style="float: right; font-size: 1.1em;" value="&cross;" onclick="finishBonusOrder()"/>';
+	html += '<ol class="ddlist">';
+	for (var i = 0; i < obs.length; i++)
+	{
+		var bon = document.getElementById(ORDINARY_BONUS_PREFIX+obs[i]);
+		html += '<li draggable="true" ondragstart="dragStart(event)" ondragover="dragOver(event)" >';
+		var tit = bon.parentNode.getAttribute('title');
+		var p = tit.indexOf('[');
+		if (p >= 0)
+			tit = tit.substr(0,p);
+		html += obs[i] + ' ' + tit;
+		html += '</li>';
+	}
+	html += '</ol>';
+	dda.innerHTML = html;
+	dda.setAttribute('dropped',0);
+	sxhide();
+	dda.className = 'show';
+	return false;
+}
+
+function sortBonusOrder()
+{
+	var ddl = document.getElementById(DDAREA_id).getElementsByClassName('ddlist')[0];
+	sortList(ddl);
+}
+
+function sortList(ul){
+    var new_ul = ul.cloneNode(false);
+
+    // Add all lis to an array
+    var lis = [];
+    for(var i = ul.childNodes.length; i--;){
+        if(ul.childNodes[i].nodeName === 'LI')
+            lis.push(ul.childNodes[i]);
+    }
+
+//    lis.sort(function(a, b){
+//      return parseInt(a.childNodes[0].data , 10) - 
+//              parseInt(b.childNodes[0].data , 10);
+//    });
+
+    lis.sort(function(a, b){
+       return a.childNodes[0].data > 
+              b.childNodes[0].data;
+    });
+
+    // Add them into the ul in order
+    for(var i = 0; i < lis.length; i++)
+        new_ul.appendChild(lis[i]);
+    ul.parentNode.replaceChild(new_ul, ul);
+}
+
 
 function showBreadcrumbs()
 {
@@ -1483,7 +1832,7 @@ function showPopup(obj)
 	if (menu == null)
 		return true;
 	var el = obj;
-	//alert(el.tagName + ' == ' + (el.tagName != 'SPAN') + ' id=' + el.id);
+	//console.log(el.tagName + ' == ' + (el.tagName != 'SPAN') + ' id=' + el.id);
 	if (el.tagName != 'SPAN')
 		el = el.parentElement;
 	var ee = el.getBoundingClientRect();
@@ -1494,12 +1843,17 @@ function showPopup(obj)
 		var reason = e.target; 
 		var code = reason.innerText.split('=')[0];
 		var bid = menu.getAttribute('data-bonusid');
-		//alert('bid is ' + bid);
-		if (code > 0)
-			document.getElementById(bid).checked = false; 
-//		document.getElementById(bid).disabled = code > 0;
+		//console.log('bid is ' + bid);
+		//if (code > 0)
+		
+		document.getElementById(bid).checked = true; 
+
+	//		document.getElementById(bid).disabled = code > 0;
 		setRejectedClaim(bid,code);
-		calcScore(true);
+		if (bid.substr(0,1) == ORDINARY_BONUS_PREFIX)
+			tickBonus(document.getElementById(bid));
+		else
+			calcScore(true);
 	}
     menu.style.left = ee.left + window.scrollX + 'px';
     menu.style.top = ee.top + + window.scrollY + 'px';
@@ -1543,7 +1897,7 @@ function sxappend(id,desc,bp,bm,tp)
 	
 	var sxb = getFirstChildWithTagName(sx,'TABLE');
 	if (!sxb) return;
-	
+	sxb = getFirstChildWithTagName(sxb,'TBODY');
 	//return;
 	
 	var estat = document.getElementById('EntrantStatus');
@@ -1616,13 +1970,17 @@ function sxshow()
 }	
 function sxstart()
 {
-//	alert('start');
+//	console.log('start');
 	var showMults = document.getElementById("ShowMults").value == SM_ShowMults;
 	
 	var sx = document.getElementById(SX_id);
 	if (!sx) return;
 	
-	var html = '<table><caption>'+document.getElementById("RiderID").innerHTML+' [&nbsp;<span id="sxsfs"></span>&nbsp;]</caption><thead><tr><th class="id">id</th><th class="desc"></th><th class="bp">BP</th>';
+	var html = '<table><caption>'+document.getElementById("RiderID").innerHTML+' [&nbsp;<span id="sxsfs"></span>&nbsp;]';
+	let avg = document.querySelector('#CalculatedAvgSpeed').value;
+	if (avg != '')
+		html += '<br><span class="explain">'+avg+'</span>';
+	html += '</caption><thead><tr><th class="id">id</th><th class="desc"></th><th class="bp">BP</th>';
 	if (showMults) html += '<th class="bm">BM</th>';
 	html += '<th class="tp">TP</th></tr></thead><tbody></tbody></table>';
 	sx.innerHTML = html;
@@ -1705,6 +2063,30 @@ function tabsShowTab()
       return false;
 }
 
+
+function tickBonus(B)
+/*
+ * This handles individual ordinary bonus tick/unticks
+ * B is the checkbox obect
+ */
+{
+	var bv = document.getElementById(ORDINARY_BONUSES_VISITED);
+	if (bv)
+	{
+		var bva = [];
+		if (bv.value.length > 0)
+			bva = bv.value.split(',');
+		if (B.checked)
+			if (bva.indexOf(B.value) < 0)
+				bva.push(B.value);
+			else
+				;
+		else
+			bva.splice(bva.indexOf(B.value),1);
+		bv.value = bva.join(',');			
+	}
+	calcScore(true);	
+}
 
 function tickCombos()
 /*

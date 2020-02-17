@@ -5,7 +5,7 @@
  * I am written for readability rather than efficiency, please keep me that way.
  *
  *
- * Copyright (c) 2019 Bob Stammers
+ * Copyright (c) 2020 Bob Stammers
  *
  *
  * This file is part of IBAUK-SCOREMASTER.
@@ -83,7 +83,8 @@ input[name="BikeReg"]	{ width: 6em; }
 select[name="EntrantStatus"]	{ margin-bottom: 1em; }
 fieldset				{ margin-bottom: 1em; }
 input[name="FinishPosition"]	{ width: 3em; }
-input[name="BonusID[]"]	{ width: 3em; }
+input[name="BonusID[]"],
+input[name="BonusID"]	{ width: 3em; }
 input[name="OdoCheckMiles"]	{ width:3em; }
 input.smallnumber		{ width: 3em; }
 .link:hover				{ cursor: pointer; background-color: lightgray;}
@@ -125,12 +126,30 @@ ul#tabs li a.selected { color: #000; background-color: #f1f0ee; font-weight: bol
 #hdrRallyTitle 	{ padding-left: 1em; }
 #hdrOtherInfo 	{ padding-right: 1em; float: right; }
 #frontpage		{ margin-top: 3em; margin-left: 3em; font-size: 1.3em; }
-#ScoreHeader 	{ margin-top: 1em; padding-bottom: .5em; border-bottom: solid;  max-width: 100%; }
+
+#pickentrant	{
+					/* Keep the header visible when scrolling down */
+					position: -webkit-sticky; position: sticky; top:0; background-color: var(--regular-background);
+				}
+				
+.listhead		{
+					/* Keep the header visible when scrolling down */
+					position: -webkit-sticky; position: sticky; top:0; background-color: var(--regular-background);
+				}
+				
+#ScoreHeader 	{ margin-top: 1em; padding-bottom: .5em; border-bottom: solid;  max-width: 100%; 
+					/* Keep the header visible when scrolling down */
+					position: -webkit-sticky; position: sticky; top:0; background-color: var(--regular-background);
+				}
 #ScoreHeader span { margin-left: 1em; margin-right: 1em; white-space: nowrap; }
 
 #ScoreHeader.manualscoring span:before
-				{ content: '\A\A'; white-space: pre; }
-				
+				{ content: '\A'; white-space: pre; }
+#ScoreHeader.manualscoring input
+				{ margin-top: .2em; }
+#ScoreHeader.manualscoring label
+				{ min-width: 8em; text-align: right; display: inline-block; }
+
 #tab_bonuses	{ font-family: monospace; }
 
 span.keep		{ white-space: nowrap; display: inline-block; }
@@ -138,6 +157,7 @@ span.keep		{ white-space: nowrap; display: inline-block; }
 #footer			{ background-color: lightgray; border-top: solid; position: fixed; bottom: 0; margin-bottom: .1em; width: 98%;}
 #ftrAdminMenu	{ padding-left: 1em; padding-right: 1em; float: right; }
 
+h4				{ margin-top: .9em; margin-bottom: 5px; }
 .menulist		{ list-style-type: none; }
 
 #sgroups		{ margin-top: 2em; }
@@ -205,8 +225,13 @@ table#entrants	.FinishPosition,.TotalPoints,.CorrectedMiles	{ text-align: center
 .hidescorex		{ display:none; }
 .showscorex		{ display:inherit; }
 
-.hide			{ display:none; } /* General purpose content hider */
+/* Drag n drop bonus reordering area */
+#ddarea			{ background-color: #66D2FF; margin: 0 auto 0 auto; padding: 0 .5em 0 .5em; border: solid; font-size: 0.6em; max-width: 20em; }
+#ddarea .ddlist	{ cursor: grab; }
 
+
+.hide			{ display:none; } /* General purpose content hider */
+.show			{ display:inherit; }
 .clickme		{ cursor: pointer; }
 
 .breadcrumb		{ 
@@ -289,6 +314,8 @@ table.qdfinishers th {
 	padding: .5em;
 	border: solid; 
 }
+input[name="RallyTitle"]	{ width: 20em; }
+input[name="RallySlogan"]	{ width: 20em; }
 .wizitem	{
 	border-bottom: dotted;
 	padding-bottom: .5em;
@@ -313,8 +340,15 @@ table.qdfinishers th {
 	padding-right: 1em;
 }
 
+.teamslist		{ font-size: .6em; }
+.teamslist pre	{ margin: 0;}
+.teamslist strong	{ font-size: 1.1em; font-weight: bold; }
+.teamslist .BonusMatches	{ font-family: monospace; }
+.teamslist .lastrow	td	{ padding-bottom: .5em; }
+
 @media print {
 .noprint		{ display: none !important; }
+#navbar			{ display: none !important; }
 .scorex			{ font-size: 0.7em; page-break-after: always; }
 #ScoreSheet		{ font-size: 1.2em; font-family: monospace;}
 input[type='checkbox'] {

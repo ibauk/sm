@@ -77,7 +77,7 @@ function savePage($page_number)
 
 function showPage($page_number)
 {
-	global $TAGS,$DB,$KONSTANTS;
+	global $TAGS,$DB,$KONSTANTS, $DBVERSION;
 	
 //	echo('Showing page '.$page_number.'</hr>');
 	function isChecked($n)
@@ -105,9 +105,10 @@ function showPage($page_number)
 			echo('<label for "RallySlogan">'.$TAGS['RallySlogan'][0].'</label> ');
 			echo('<input type="text" name="RallySlogan" id="RallySlogan" value="'.$rd['RallySlogan'].'">');
 			echo('</div>');
-			echo('<div class="wizitem"><p>'.$TAGS['CertificateHours'][1].'</p>');
-			echo('<label for "CertificateHours">'.$TAGS['CertificateHours'][0].'</label> ');
-			echo('<input type="number" class="smallnumber" name="CertificateHours" id="CertificateHours" value="'.$rd['CertificateHours'].'">');
+			echo('<div class="wizitem"><p>'.$TAGS['MaxHours'][1].'</p>');
+			echo('<label for "MaxHours">'.$TAGS['MaxHours'][0].'</label> ');
+			$mhl = ($DBVERSION >= 4) ? "MaxHours" : "CertificateHours";
+			echo('<input type="number" class="smallnumber" name="MaxHours" id="MaxHours" value="'.$rd[$mhl].'">');
 			echo('</div>');
 			break;
 		case 2:
@@ -185,7 +186,7 @@ function showPage($page_number)
 			$sm = intval($rd['ScoringMethod']);
 			echo('<div class="wizitem"><p>'.$TAGS['ScoringMethodWA'][1].'</p>');
 			echo('<label for "ScoringMethodWA">'.$TAGS['ScoringMethodWA'][0].'</label> ');
-			echo('<input type="radio" name="ScoringMethod" id="ScoringMethodWA" '.isChecked($rd['ScoringMethod']==$KONSTANTS['AutoScoring']).' value="'.$KONSTANTS['AutoScoring'].'">');
+			echo('<input autofocus type="radio" name="ScoringMethod" id="ScoringMethodWA" '.isChecked($rd['ScoringMethod']==$KONSTANTS['AutoScoring']).' value="'.$KONSTANTS['AutoScoring'].'">');
 			echo('</div>');
 			echo('<div class="wizitem"><p>'.$TAGS['ScoringMethodWM'][1].'</p>');
 			echo('<label for "ScoringMethodWM">'.$TAGS['ScoringMethodWM'][0].'</label> ');
@@ -231,12 +232,14 @@ function showPageTrailer($page_number)
 	global $TAGS, $LAST_WIZARD_PAGE;
 	
 	//echo("Showing page $page_number of ".$LAST_WIZARD_PAGE."<hr>");
-	if ($page_number > 1)
-		echo('<input type="submit" class="wizbutton" name="prevpage" title="'.$TAGS['WizPrevPage'][1].'" value="'.$TAGS['WizPrevPage'][0].'"> ');
 	if ($page_number < $LAST_WIZARD_PAGE)
 		echo('<input type="submit" class="wizbutton" name="nextpage" title="'.$TAGS['WizNextPage'][1].'" value="'.$TAGS['WizNextPage'][0].'"> ');
 	else
-		echo('<input type="submit" class="wizbutton" name="endwiz" title="'.$TAGS['WizFinish'][1].'" value="'.$TAGS['WizFinish'][0].'"> ');
+		echo('<input type="submit" class="wizbutton" name="endwiz" autofocus title="'.$TAGS['WizFinish'][1].'" value="'.$TAGS['WizFinish'][0].'"> ');
+	
+	// Show 'back' button second so that it's not the default button
+	if ($page_number > 1)
+		echo('<input type="submit" class="wizbutton" name="prevpage" title="'.$TAGS['WizPrevPage'][1].'" value="'.$TAGS['WizPrevPage'][0].'"> ');
 
 		
 ?>

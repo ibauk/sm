@@ -17,7 +17,7 @@ set SMDATE=%Year%-%Month%-%Day%
 set CADDYFOLDER=C:\Users\bobst\go\src\github.com\mholt\caddy\caddy\
 set PHPFOLDER=C:\PHP
 set SMFOLDER=%CADDYFOLDER%sm
-set EXECNAME=runsm0.bat
+set EXECNAME=debugsm.bat
 set RBLRCERTS=rblrcerts.sql
 set DB2USE=
 set OK=
@@ -95,6 +95,13 @@ xcopy %PHPFOLDER% %DESTFOLDER%\php /e /i>nul
 echo     PHPSpreadsheet
 xcopy %SMFOLDER%\vendor %DESTFOLDER%\sm\vendor /e /i>nul
 xcopy %SMFOLDER%\PhpSpreadsheet %DESTFOLDER%\sm\PhpSpreadsheet /e /i>nul
+echo     Jodit
+mkdir %DESTFOLDER%\sm\jodit
+
+copy %SMFOLDER%\jodit-master\build\jodit.min.js %DESTFOLDER%\sm\jodit\jodit.min.js>nul
+copy %SMFOLDER%\jodit-master\build\jodit.min.css %DESTFOLDER%\sm\jodit\jodit.min.css>nul
+for %%a in (fields.png,borders.png) do copy %SMFOLDER%\images\icons\%%a %DESTFOLDER%\sm\jodit>nul
+
 echo     images
 :: xcopy %SMFOLDER%\images %DESTFOLDER%\sm\images /e /i>nul
 mkdir %DESTFOLDER%\sm\images
@@ -110,11 +117,12 @@ for %%a in (about.php,admin.php,bbrspec.php,certificate.php,common.php,
 			score.css,setup.php,favicon.ico,bblspec.php,utils.php,
 			entrants.php,exportxls.php,importxls.php,index.php,
 			jorvicspec.php,licence.txt,rblrspec.php,readme.txt,customvars.php,
-			custom.js,score.js,score.php,sm.php,specfiles.php) do copy %SMFOLDER%\%%a %DESTFOLDER%\sm>nul
+			custom.js,score.js,score.php,sm.php,specfiles.php,teams.php,
+			certedit.php,reboot.css,certificate.css,speeding.php) do copy %SMFOLDER%\%%a %DESTFOLDER%\sm>nul
 
 echo Copying %DB2USE% database ...
-if NOT %DB2USE%==LIVE sqlite3 %DESTFOLDER%\sm\ScoreMaster.db <%SMFOLDER%\scoremaster.sql
-if %DB2USE%==RBLR sqlite3 %DESTFOLDER%\sm\ScoreMaster.db <%SMFOLDER%\rblrcerts.sql
+if NOT %DB2USE%==LIVE sqlite3 %DESTFOLDER%\sm\ScoreMaster.db <%SMFOLDER%\scoremaster.sql>nul
+if %DB2USE%==RBLR sqlite3 %DESTFOLDER%\sm\ScoreMaster.db <%SMFOLDER%\rblrcerts.sql>nul
 if %DB2USE%==LIVE copy %SMFOLDER%\scoremaster.db %DESTFOLDER%\sm\ScoreMaster.db>nul
 
 copy %CADDYFOLDER%\caddy.exe %DESTFOLDER%\caddy>nul
@@ -123,7 +131,7 @@ echo root sm >> %DESTFOLDER%\caddy\caddyfile
 echo fastcgi / 127.0.0.1:9000 php >> %DESTFOLDER%\caddy\caddyfile
 
 :: Copy the latest portable binary
-copy %SMFOLDER%\runsm.exe %DESTFOLDER%
+copy %SMFOLDER%\runsm.exe %DESTFOLDER%>nul
 
 :: Now build the debug executable
 echo @echo off >%DESTFOLDER%\%EXECNAME%
@@ -136,6 +144,7 @@ echo echo.>> %DESTFOLDER%\%EXECNAME%
 echo set PORT=%PORT%>> %DESTFOLDER%\%EXECNAME%
 echo echo.>> %DESTFOLDER%\%EXECNAME%
 echo echo.>> %DESTFOLDER%\%EXECNAME%
+echo goto :SINGLEUSER>> %DESTFOLDER%\%EXECNAME%
 echo set MU=MU>> %DESTFOLDER%\%EXECNAME%
 echo echo If you're going to run ScoreMaster on this machine only, please choose Single-user mode>> %DESTFOLDER%\%EXECNAME%
 echo echo otherwise, to allow two or more computers at the same time, choose Multi-user mode.>> %DESTFOLDER%\%EXECNAME%
@@ -151,7 +160,7 @@ echo set MU=SU>> %DESTFOLDER%\%EXECNAME%
 echo :MULTIUSER>> %DESTFOLDER%\%EXECNAME%
 echo echo.>> %DESTFOLDER%\%EXECNAME%
 echo echo Starting PHP service>> %DESTFOLDER%\%EXECNAME%
-echo set PHP_FCGI_MAX_REQUESTS=0>> %DESTFOLDER%\%EXECNAME%
+echo set PHP_FCGI_MAX_REQUESTS=0 >> %DESTFOLDER%\%EXECNAME%
 echo set t=none>> %DESTFOLDER%\%EXECNAME%
 echo for /f "Delims=:-. " %%%%a in ('tasklist /fi "IMAGENAME eq php-cgi.exe" /nh') do if not "%%%%a" == "INFO" set t=%%%%a>> %DESTFOLDER%\%EXECNAME%
 echo for /f "Delims=:-. " %%%%a in ('tasklist /fi "IMAGENAME eq php.exe" /nh') do if not "%%%%a" == "INFO" set t=%%%%a>> %DESTFOLDER%\%EXECNAME%
