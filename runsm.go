@@ -9,7 +9,7 @@
  * I am written for readability rather than efficiency, please keep me that way.
  *
  *
- * Copyright (c) 2019 Bob Stammers
+ * Copyright (c) 2020 Bob Stammers
  *
  *
  * This file is part of IBAUK-SCOREMASTER.
@@ -23,7 +23,10 @@
  * MIT License for more details.
  *
  *
- *	2019-09	First Go release
+ *	2019-09-21	First Go release
+ *	2019-09-29	Check/report changed IP
+ *	2019-11-05	Linux setup; webserver/PHP already available
+ *	2020-02-19	Apple Mac setup
  *
  */
 
@@ -39,43 +42,43 @@ import ("fmt"
 		"runtime"
 		"context"
 		"os/exec"
-		"browser"
+		"github.com/pkg/browser"
 		"strings"
 		"flag")
 
-var PROGTITLE = "ScoreMaster Server v2.4 [2019-09-21]"
+const PROGTITLE = "ScoreMaster Server v2.5 [2020-02-19]"
 
-var phpf_linux	= "/usr/bin"	
-var phpf_windows = "php"
+var phpcgi		= filepath.Join("php","php-cgi")
+var phpdbg 		= ""
 
-var def_phpf, phpf string
+var debug			= flag.Bool("debug",false,"Run in PHP debug mode (Windows only)")
+var port 			= flag.String("port","80","Webserver port specification")
+var ipspec 			= flag.String("ip","*","Webserver IP specification")
+var spawnInterval 	= flag.Int("respawn",60,"Number of minutes before restarting PHP server")
+var nolocal 		= flag.Bool("nolocal",false,"Don't start a web browser on the host machine")
+var root 			= flag.String("root","/","HTTP document root")
 
-var port = flag.String("port","80","Webserver port specification")
-var ipspec = flag.String("ip","*","Webserver IP specification")
-var spawnInterval = flag.Int("respawn",60,"Number of minutes before restarting PHP server")
-var cdyf = flag.String("caddy","caddy","Folder containing Caddy files")
-var nolocal = flag.Bool("nolocal",false,"Don't start a web browser on the host machine")
-var root = flag.String("root","/","HTTP document root")
-
-var cgiport = "127.0.0.1:9000"
-var phpx = "php-cgi"
-var cdyx = "caddy"
-var smf = "sm" 			// Contains ScoreMaster application files
-var starturl = "http://localhost"
+const cgiport 			= "127.0.0.1:9000"
+const sm_caddyFolder	= "caddy"
+const starturl 			= "http://localhost"
 
 func init() {
 	os := runtime.GOOS;
 	switch os {
-	case "darwin":
-		// Apple
+	case "darwin":  // Apple
+	
+		phpdbg = "/usr/bin/php"
+		
 	case "linux":
-		def_phpf = phpf_linux
+	
+	case "windows":
+	
+		phpdbg = "\\php\\php"
+		
 	default:
 		// freebsd, openbsd,
-		// plan9, windows...
-		def_phpf = phpf_windows
+		// plan9, ...
 	}
-	flag.StringVar(&phpf,"php",def_phpf,"Folder containing PHP executables")
 }
 
 func main() {
@@ -83,17 +86,37 @@ func main() {
 	fmt.Printf("\n%s\t\t%s\n","Iron Butt Association UK","webmaster@ironbutt.co.uk")
 	fmt.Printf("\n%s\n\n",PROGTITLE)
 	setupRun()
-	fmt.Printf("%s IPv4 = %s\n",timestamp(),getOutboundIP())
-	go runCaddy()
-	go runPHP()
+	serverIP := getOutboundIP()
+	fmt.Printf("%s IPv4 = %s\n",timestamp(),serverIP)
+	
+	if *debug && runtime.GOOS != "windows" {
+		
+		*debug = false
+	}
+	if *debug && phpdbg != "" {
+		debugPHP()
+	} else if runtime.GOOS != "linux" {
+		go runCaddy()
+		go runPHP()
+	}
 	
 	if !*nolocal {
 		showInvite()
 	}
 	
+	if *debug {
+		fmt.Printf("%s Quitting\n\n",timestamp())
+		os.Exit(0)
+	}
+	
 	// Now just kill time and wait for someone to kill me
 	for {
-		time.Sleep(5*time.Minute)
+		time.Sleep(1*time.Minute)
+		myIP := getOutboundIP()
+		if !myIP.Equal(serverIP) {
+			serverIP = myIP
+			fmt.Printf("%s IPv4 = %s\n",timestamp(),serverIP)
+		}
 	}
 }
 
@@ -105,22 +128,38 @@ func showInvite() {
 
 }
 
+func debugPHP() {
+// This runs PHP as a local, single user, webserver as an aid to debugging or for
+// very lightweight usage
+
+	if phpdbg == "" {
+		return
+	}
+	fmt.Println(timestamp()+" debugging PHP")
+	cmd := exec.Command("cmd","/C","start","/min",phpdbg,"-S","127.0.0.1:"+*port,"-t","sm","-c",filepath.Join("php","php.ini"))
+	cmd.Env = append(os.Environ(),"PHP_FCGI_MAX_REQUESTS=0")
+	err := cmd.Start()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+}
+
 
 func execPHP() {
 // This runs PHP as a background service to an external webserver
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*spawnInterval)*time.Minute)
 	defer cancel()
-	fp := filepath.Join(phpf,phpx)
-	//fmt.Println(fp+" <=== ")
-	if err := exec.CommandContext(ctx, fp,"-b",cgiport).Run(); err != nil {
-		//log.Println(err)
+	if err := exec.CommandContext(ctx, phpcgi,"-b",cgiport).Run(); err != nil {
+		fmt.Println(phpcgi+" <=== ")
+		log.Println(err)
 	}
 }
 
 
 func getOutboundIP() net.IP {
 	udp := "udp4"
-	ip := "8.8.8.8:80"
+	ip := "8.8.8.8:80"	// Google public DNS
     conn, err := net.Dial(udp, ip)
     if err != nil {
         log.Fatal(err)
@@ -167,14 +206,14 @@ func runCaddy() {
 	}
 	fmt.Printf(timestamp()+" serving on "+*ipspec+":"+*port+"\n")
 	// Create the conf file
-	cp := filepath.Join(*cdyf,"caddyfile")
-	ep := filepath.Join(*cdyf,"error.log")
+	cp := filepath.Join(sm_caddyFolder,"caddyfile")
+	ep := filepath.Join(sm_caddyFolder,"error.log")
 	f, err := os.Create(cp)
 	if err != nil {
 		log.Fatal(err)
 	}
 	f.WriteString(*ipspec+":"+*port+"\n")
-	f.WriteString("root "+smf+"\n")
+	f.WriteString("root sm\n")
 	f.WriteString("errors "+ep+"\n")
 	f.WriteString("fastcgi "+*root+" "+cgiport+" php\n")
 	f.Close()
@@ -182,7 +221,7 @@ func runCaddy() {
 	// Now run Caddy
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	fp := filepath.Join(*cdyf,cdyx)
+	fp := filepath.Join(sm_caddyFolder,"caddy")
 	if err := exec.CommandContext(ctx, fp,"-agree","-conf",cp).Run(); err != nil {
 		log.Fatal(err)
 	}
@@ -197,7 +236,10 @@ func setupRun() {
 	dir := filepath.Dir(args[0])
 	os.Chdir(dir)
 	flag.Parse()
-	
+	if !*debug && runtime.GOOS == "windows" {
+		filename := filepath.Base(os.Args[0])
+		*debug = strings.Index(filename,"debug") >= 0
+	}
 }
 
 
@@ -214,3 +256,4 @@ func raw_portAvail(port string) bool {
 	}
 	return true
 }
+
