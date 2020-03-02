@@ -52,6 +52,7 @@ const RPT_SPenalty	= "Speed penalty";
 const CFGERR_MethodNIY = "Error: compoundCalcRuleMethod {0} not implemented yet";
 const CFGERR_NotBonuses = "Error: compoundCalcRuleType {0} not applicable to bonuses";
 
+const ASK_MINUTES = "Please enter the number of rest minutes for ";
 const ASK_POINTS = "Please enter the points for";
 const LOOKUP_ENTRANT = "Find entrant record matching what?";
 const CLAIM_REJECTED = "Anspruch abgelehnt/Claim rejected<br>";

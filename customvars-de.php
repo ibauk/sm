@@ -87,7 +87,8 @@ $TAGS = array(
 	'AdmCatTable'		=> array('Categories','View/edit axis categories'),
 	'AdmCombosTable'	=> array('Combinations','View/edit combination bonuses'),
 	'AdmCompoundCalcs'	=> array('Compound calculations','Maintain table of calculation records'),
-	'AdmDoBlank'		=> array('Blank score sheet','Show blank score sheet ready for printing'),
+	'AdmDoBlank'		=> array('Post score ticksheet','Show blank score with reject reasons sheet ready for printing'),
+	'AdmDoBlankB4'		=> array('Scoring ticksheet','Show paper scoring log sheet ready for printing'),
 	'AdmDoScoring'		=> array('Scoring','Score individual entrants'),
 	'AdmEditCert'		=> array('Edit certificate content','Edit the HTML &amp; CSS of the master certificate'),
 	'AdmEntrants'		=> array('Entrants table','View/edit list of Entrants'),
@@ -167,7 +168,6 @@ $TAGS = array(
 									'Please carefully specify the certificate layout and content in the texts below.'),
 	'CertExplainerW'	=> array('Certificates are "web" documents. This editor allows you to define the content and layout in a user-friendly way.'),
 	
-	'MaxHours'			=> array('Certificate hours','The duration of the rally in hours for the certificate'),
 	'CertTitle'			=> array('Title','Description of this certificate class'),
 	'Class'				=> array('Class #','The certificate class applicable'),
 	'ChooseEntrant'		=> array('Choose entrant','Pick an entrant from this list'),
@@ -212,11 +212,11 @@ $TAGS = array(
 	'ExtraData'			=> array('ExtraData','Extra data to be passed on to the main database. Format is <i>name</i>=<i>value</i>'),
 	
 	'FetchCert'			=> array('Fetch certificate','Fetch the HTML, CSS &amp; options for this certificate'),
-	'FinishDate'		=> array('Finish date','The last riding day of the rally.'),
-	'FinishDateE'		=> array('Finish date','The last riding day of the rally.'),
+	'FinishDate'		=> array('Finish date','Der letzte Reittag der Rallye.'),
+	'FinishDateE'		=> array('Finish date','Der letzte Reittag der Rallye.'),
 	'FinishersExported'	=> array('Finishers exported!','Finisher details exported to CSV'),
 	'FinishPosition'	=> array('Final place','Finisher ranking position',''),
-	'FinishTime'		=> array('Ziel zeit/End time','Official finish time. Entrants finishing later are DNF'),
+	'FinishTime'		=> array('Ziel zeit/End time','Offizielle Zielzeit. Teilnehmer, die später fertig werden, sind DNF'),
 	'FinishTimeE'		=> array('Ziel zeit/End time','Official finish time. The check-in time'),
 
 	'FullDetails'		=> array('Full details','Show the complete record'),
@@ -245,18 +245,19 @@ $TAGS = array(
 	'login'				=> array('login','Go on, log me in then!'),
 	'LogoutScorer'		=> array('Logout','Log the named scorer off this terminal'),
 	
+	'MaxHours'			=> array('Max hours','Die Dauer der Rallye in Stunden. Wird zur Berechnung der DNF-Zeit verwendet und kann auf Zertifikaten angezeigt werden'),
 	'MaxMilesFixedM'	=> array('Multiplier','Excess distance incurs deduction of multipliers'),							// Miles/Kms
 	'MaxMilesFixedP'	=> array('Fixed points','Excess distance incurs fixed points deduction'),							// Miles/Kms
 	'MaxMilesPerMile'	=> array('Points per KM','Excess distance incurs points deduction per excess kilometre'),				// Miles/Kms
 	'MaxMilesPoints'	=> array('Points or Multipliers deducted','Number of points or multipliers for excess distance'),	// Miles/Kms
-	'MaxMilesUsed'		=> array('Tick if maximum kms used','Will entrants be DNF if they exceed a maximum distance?'),	// Miles/Kms
+	'MaxMilesUsed'		=> array('Tick if maximum kms used','Werden Teilnehmer DNF sein, wenn sie eine maximale Entfernung überschreiten?'),	// Miles/Kms
 	'MilesPenaltyText'	=> array('Distance penalty deduction',''),															// Miles/Kms
 	'MinimumTicks'		=> array('MinTicks','The minimum number of underlying bonus ticks needed to score this combo; 0=all'),
 	'MinMiles'			=> array('Minimum kms','Minimum distance to qualify as a finisher'),						// Miles/Kms
-	'MinMilesUsed'		=> array('Tick if minimum kms used','Will entrants need to ride a minimum distance in order to qualify as finishers?'), // Miles/Kms
+	'MinMilesUsed'		=> array('Tick if minimum kms used','Müssen Teilnehmer eine Mindeststrecke zurücklegen, um sich als Finisher zu qualifizieren?'), // Miles/Kms
 	
 	'MinPoints'			=> array('Minimum points','Minimum points scored to be a finisher'),
-	'MinPointsUsed'		=> array('Tick if minimum points used','Will entrants need to score a minimum number of points in order to qualify as finishers?'),
+	'MinPointsUsed'		=> array('Tick if minimum points used','Müssen Teilnehmer eine Mindestpunktzahl erreichen, um sich als Finisher zu qualifizieren?'),
 	'ModBonus0'			=> array('Axis','Affects compound axis score'),
 	'ModBonus1'			=> array('Bonus','Modifies bonus score'),
 	'ModBonusLit'		=> array('Usage','1=This calc directly affects bonus value, 0=This calc builds the axis score'),
@@ -284,7 +285,7 @@ $TAGS = array(
 	'OdoCheckMiles'		=> array('Odo check distance','The length of the route used to check the accuracy of odometers'),	// Miles/Kms
 	'OdoCheckStart'		=> array('Odo check start','The reading at the start of the odometer check'),						// Miles/Kms
 	'OdoCheckTrip'		=> array('Odo check trip','What distance did the trip meter record?'),								// Miles/Kms
-	'OdoCheckUsed'		=> array('Tick if odo check used','Will entrants be required to ride an odometer check route?'),	// Miles/Kms
+	'OdoCheckUsed'		=> array('Tick if odo check used','Müssen Teilnehmer eine Kilometerzähler-Kontrollroute fahren??'),	// Miles/Kms
 	'OdoKms'			=> array('Odo counts',''),																			// Miles/Kms
 	'OdoKmsK'			=> array('kilometres',''),																			// Miles/Kms
 	'OdoKmsM'			=> array('miles',''),																				// Miles/Kms
@@ -329,8 +330,8 @@ $TAGS = array(
 	'raeSubmit'			=> array('Go ahead, Renumber all entrants','Go ahead! Renumber all entrants'),
 	
 	'RallyResults'		=> array('Rally&nbsp;results',''),
-	'RallySlogan'		=> array('Rally slogan','Brief description of the rally, usually shown on finisher certificates.'),
-	'RallyTitle'		=> array('Rally title','Formal title of the rally. Surround an optional part with [ ]; Use | for newlines'),
+	'RallySlogan'		=> array('Rally slogan','Kurze Beschreibung der Rallye, normalerweise auf Finisher-Zertifikaten angegeben.'),
+	'RallyTitle'		=> array('Rallye titel','Formeller Titel der Rallye. Surround an optional part with [ ]; Use | for newlines'),
 	'rcCategories'		=> array('Categories','Schedule of categories used for scoring'),
 	'RecordSaved'		=> array('Record saved',''),
 	
@@ -381,10 +382,10 @@ $TAGS = array(
 	'ScoringMethodS'	=> array('Simple','Bonuses are ticked and points added up'),
 	
 	// Texts for use in setup wizard
-	'ScoringMethodWA'	=> array('Automatic','The system takes care of scoring method decisions based on your other configuration choices. This is probably the setting you should use.'),
-	'ScoringMethodWC'	=> array('Compound scoring','Scoring makes use of categories to modify bonus scores or provide an extra layer of scoring with/without multipliers'),
-	'ScoringMethodWM'	=> array('Manual scoring','Scores will be calculated manually by the scorers and entered as a simple points value'),
-	'ScoringMethodWS'	=> array('Simple scoring','The rally uses only ordinary bonuses, special bonuses and combination bonuses'),
+	'ScoringMethodWA'	=> array('Automatic','Das System kümmert sich um Entscheidungen zu Bewertungsmethoden basierend auf Ihren anderen Konfigurationsoptionen. Dies ist wahrscheinlich die Einstellung, die Sie verwenden sollten.'),
+	'ScoringMethodWC'	=> array('Compound scoring','Bei der Wertung werden Kategorien verwendet, um die Bonuspunktzahlen zu ändern oder eine zusätzliche Bewertungsebene mit / ohne Multiplikatoren bereitzustellen'),
+	'ScoringMethodWM'	=> array('Manual scoring','Die Punktzahlen werden von den Torschützen manuell berechnet und als einfacher Punktewert eingegeben'),
+	'ScoringMethodWS'	=> array('Simple scoring','Bei der Rallye werden nur normale Boni, Spezialboni und Kombinationsboni verwendet'),
 	'ScoringNow'		=> array('Being scored now','Is this entrant being scored by someone right now?'),
 	'SettingsSaved'		=> array('Settings saved','This screen matches the database, no changes yet'),
 	'SGroupLit'			=> array('Specials Group','Specials group name'),
@@ -412,30 +413,17 @@ $TAGS = array(
 	'spPenaltyTypeDNF'	=> array('DNF','Penalty applied is DNF'),
 	'spPenaltyTypePoints'
 						=> array('Points','Penalty points'),
-	'StartDate'			=> array('Start date','The first day of the rally. Rally riding day as opposed to must arrive by day'),
-	'StartDateE'		=> array('Start date','The first day of rally riding'),
-	'StartTime'			=> array('Start zeit/time','Official start time. Rally clock starts at this time.'),
-	'StartTimeE'		=> array('Start zeit/time','Official start time. Rally clock starts at this time.'),
-	
-	// Titles for browser tabs
-	'ttWelcome'			=> array('ScoreMaster','Welcome page for anyone'),
-	'ttAdminMenu'		=> array('ScoreMaster','Showing main admin menu'),
-	'ttAbout'			=> array('SM:About',''),
-	'ttEntrants'		=> array('SM:Entrants',''),
-	'ttFinishers'		=> array('SM:Finishers','Quicklists'),
-	'ttCertificates'	=> array('Certificates',''),
-	'ttScoreX'			=> array('ScoreX',''),
-	'ttTeams'			=> array('SM:Teams','Potential team matches'),
-	'ttUpload'			=> array('SM:Upload','File pick screen'),
-	'ttImport'			=> array('SM:Import','Importing'),
-	'ttScoring'			=> array('Scoring','Logged on to scoring'),
-	'ttSetup'			=> array('SM:Setup','Edit setups'),
+	'StartDate'			=> array('Start date','Der erste Tag der Rallye. Rallye-Reittag im Gegensatz zu muss am Tag ankommen'),
+	'StartDateE'		=> array('Start date','Der erste Tag der Rallye. Rallye-Reittag im Gegensatz zu muss am Tag ankommen'),
+	'StartTime'			=> array('Start zeit/time','Offizielle Startzeit. Die Rallye-Uhr beginnt um diese Zeit.'),
+	'StartTimeE'		=> array('Start zeit/time','Offizielle Startzeit. Die Rallye-Uhr beginnt um diese Zeit.'),
 	
 	'TeamID'			=> array('Team #','The team number this Entrant is a member of'),
 	'TeamRankingH'		=> array('Highest ranked member','Rank team as highest member'),
 	'TeamRankingI'		=> array('Individual placing','Rank each team member separately'),
 	'TeamRankingL'		=> array('Lowest ranked member','Rank team as lowest member'),
 	'TeamRankingText'	=> array('Teams are ranked according to',''),
+	'TeamWatch'			=> array('Team watch','Inspect claims history looking for potential teams/missed claims'),
 	
 	'TiedPointsRanking'	=> array('Split ties by distance','In the event of a tie entrants will be ranked by kilometres'),	// Miles/Kms
 	
@@ -460,6 +448,22 @@ $TAGS = array(
 	
 	'TotalMults'		=> array('Total multipliers','The number of multipliers applied compiling the total score'),
 	'TotalPoints'		=> array('Total points','Final rally score'),
+	
+	// Titles for browser tabs
+	'ttWelcome'			=> array('ScoreMaster','Welcome page for anyone'),
+	'ttAdminMenu'		=> array('ScoreMaster','Showing main admin menu'),
+	'ttAbout'			=> array('SM:About',''),
+	'ttEntrants'		=> array('SM:Entrants',''),
+	'ttFinishers'		=> array('SM:Finishers','Quicklists'),
+	'ttCertificates'	=> array('Certificates',''),
+	'ttScoreX'			=> array('ScoreX',''),
+	'ttTeams'			=> array('SM:Teams','Potential team matches'),
+	'ttUpload'			=> array('SM:Upload','File pick screen'),
+	'ttImport'			=> array('SM:Import','Importing'),
+	'ttScoring'			=> array('Scoring','Logged on to scoring'),
+	'ttSetup'			=> array('SM:Setup','Edit setups'),
+	
+	
 	'unset'				=> array('unset, empty, null',''),
 	'unused'			=> array('unused',''),
 	'UpdateAxis'		=> array('Update these records',''),
@@ -486,12 +490,12 @@ $TAGS = array(
 	'WizFinish'			=> array('Finish','Save and finish the wizard'),
 	
 	// This one's different; both entries are pure text blobs, each presented as an HTML paragraph
-	'WizFinishText'		=> array('You have now completed the basic setup of the rally. <span style="font-size: 2em;">&#9786;</span>',
-									'When you click [Finish] the main rally setup menu is presented and you can<ul><li>enter the details ' .
-									'of ordinary and special bonuses</li><li>alter the text and layout of finisher certificates</li><li>load or enter details ' .
-									'of rally entrants</li></ul> and maintain all other aspects of the rally configuration.'),
+	'WizFinishText'		=> array('Sie haben nun die Grundeinstellung der Rallye abgeschlossen. <span style="font-size: 2em;">&#9786;</span>',
+									'Wenn Sie auf [Finish] klicken, wird das Hauptmenü für die Rallye-Einrichtung angezeigt und Sie können<ul><li>Geben Sie die Details der normalen und speziellen Boni ein ' .
+									'</li><li>Ändern Sie den Text und das Layout der Finisher-Zertifikate</li><li>Laden oder geben Sie Details der Rallye-Teilnehmer ein' .
+									'</li></ul> und pflegen Sie alle anderen Aspekte der Rallye-Konfiguration.'),
 
-	'WizTitle'			=> array('This rally needs to be configured, please fill in the blanks',''),
+	'WizTitle'			=> array('Diese Rallye muss konfiguriert werden, bitte füllen Sie die Lücken aus',''),
 	
 	'xlsImporting'		=> array('Importing','Importing entrants data from spreadsheet'),
 	'xlsNoSpecfile'		=> array('!specfile','No "specfile" parameter supplied'),
