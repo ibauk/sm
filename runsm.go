@@ -105,7 +105,7 @@ func main() {
 	}
 	
 	if *debug {
-		fmt.Printf("%s Quitting\n\n",timestamp())
+		fmt.Printf("%s quitting\n\n",timestamp())
 		os.Exit(0)
 	}
 	
@@ -151,7 +151,7 @@ func execPHP() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*spawnInterval)*time.Minute)
 	defer cancel()
 	if err := exec.CommandContext(ctx, phpcgi,"-b",cgiport).Run(); err != nil {
-		fmt.Println(phpcgi+" <=== ")
+		//fmt.Println(phpcgi+" <=== ")
 		log.Println(err)
 	}
 }

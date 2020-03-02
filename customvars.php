@@ -90,7 +90,8 @@ $TAGS = array(
 	'AdmCatTable'		=> array('Categories','View/edit axis categories'),
 	'AdmCombosTable'	=> array('Combinations','View/edit combination bonuses'),
 	'AdmCompoundCalcs'	=> array('Compound calculations','Maintain table of calculation records'),
-	'AdmDoBlank'		=> array('Blank score sheet','Show blank score sheet ready for printing'),
+	'AdmDoBlank'		=> array('Post score ticksheet','Show blank score with reject reasons sheet ready for printing'),
+	'AdmDoBlankB4'		=> array('Scoring ticksheet','Show paper scoring log sheet ready for printing'),
 	'AdmDoScoring'		=> array('Scoring','Score individual entrants'),
 	'AdmEditCert'		=> array('Edit certificate content','Edit the HTML &amp; CSS of the master certificate'),
 	'AdmEntrants'		=> array('Entrants table','View/edit list of Entrants'),
@@ -169,7 +170,6 @@ $TAGS = array(
 	'CertExplainer'		=> array('Certificates are "web" documents comprising well-formed HTML and CSS parts.',
 									'Please carefully specify the certificate layout and content in the texts below.'),
 	'CertExplainerW'	=> array('Certificates are "web" documents. This editor allows you to define the content and layout in a user-friendly way.'),
-	'MaxHours'			=> array('Maximum hours','The duration of the rally in hours. Used to calculate DNF time, may show on certificates'),
 	'CertTitle'			=> array('Title','Description of this certificate class'),
 	'Class'				=> array('Class #','The certificate class applicable'),
 	'ChooseEntrant'		=> array('Choose entrant','Pick an entrant from this list'),
@@ -247,6 +247,7 @@ $TAGS = array(
 	'login'				=> array('login','Go on, log me in then!'),
 	'LogoutScorer'		=> array('Logout','Log the named scorer off this terminal'),
 	
+	'MaxHours'			=> array('Maximum hours','The duration of the rally in hours. Used to calculate DNF time, may show on certificates'),
 	'MaxMilesFixedM'	=> array('Multiplier','Excess mileage incurs deduction of multipliers'),							// Miles/Kms
 	'MaxMilesFixedP'	=> array('Fixed points','Excess mileage incurs fixed points deduction'),							// Miles/Kms
 	'MaxMilesPerMile'	=> array('Points per mile','Excess mileage incurs points deduction per excess mile'),				// Miles/Kms
@@ -420,25 +421,12 @@ $TAGS = array(
 	'StartTime'			=> array('Start time','Official start time. Rally clock starts at this time.'),
 	'StartTimeE'		=> array('Start time','Official start time. Rally clock starts at this time.'),
 	
-	// Titles for browser tabs
-	'ttWelcome'			=> array('ScoreMaster','Welcome page for anyone'),
-	'ttAdminMenu'		=> array('ScoreMaster','Showing main admin menu'),
-	'ttAbout'			=> array('SM:About',''),
-	'ttEntrants'		=> array('SM:Entrants',''),
-	'ttFinishers'		=> array('SM:Finishers','Quicklists'),
-	'ttCertificates'	=> array('Certificates',''),
-	'ttScoreX'			=> array('ScoreX',''),
-	'ttTeams'			=> array('SM:Teams','Potential team matches'),
-	'ttUpload'			=> array('SM:Upload','File pick screen'),
-	'ttImport'			=> array('SM:Import','Importing'),
-	'ttScoring'			=> array('Scoring','Logged on to scoring'),
-	'ttSetup'			=> array('SM:Setup','Edit setups'),
-	
 	'TeamID'			=> array('Team #','The team number this Entrant is a member of'),
 	'TeamRankingH'		=> array('Highest ranked member','Rank team as highest member'),
 	'TeamRankingI'		=> array('Individual placing','Rank each team member separately'),
 	'TeamRankingL'		=> array('Lowest ranked member','Rank team as lowest member'),
 	'TeamRankingText'	=> array('Teams are ranked according to',''),
+	'TeamWatch'			=> array('Team watch','Inspect claims history looking for potential teams/missed claims'),
 	
 	'TiedPointsRanking'	=> array('Split ties by mileage','In the event of a tie entrants will be ranked by mileage'),	// Miles/Kms
 	'TimePExplain'		=> array("Rally time runs from the start time to the finish time. Individual entrants may have less time available. Penalties other than DNF apply to specific periods within the overall or individual entrant's rally time. Periods are specified as date/time ranges or as minutes before DNF ranges.<br>Time penalties are triggered by entrant check-in time.",'Explanation of rally time penalties'),
@@ -463,6 +451,23 @@ $TAGS = array(
 
 	'TotalMults'		=> array('Total multipliers','The number of multipliers applied compiling the total score'),
 	'TotalPoints'		=> array('Total points','Final rally score'),
+
+	// Titles for browser tabs
+	'ttWelcome'			=> array('ScoreMaster','Welcome page for anyone'),
+	'ttAdminMenu'		=> array('ScoreMaster','Showing main admin menu'),
+	'ttAbout'			=> array('SM:About',''),
+	'ttEntrants'		=> array('SM:Entrants',''),
+	'ttFinishers'		=> array('SM:Finishers','Quicklists'),
+	'ttCertificates'	=> array('Certificates',''),
+	'ttScoreX'			=> array('ScoreX',''),
+	'ttTeams'			=> array('SM:Teams','Potential team matches'),
+	'ttUpload'			=> array('SM:Upload','File pick screen'),
+	'ttImport'			=> array('SM:Import','Importing'),
+	'ttScoring'			=> array('Scoring','Logged on to scoring'),
+	'ttSetup'			=> array('SM:Setup','Edit setups'),
+	
+
+
 	'unset'				=> array('unset, empty, null',''),
 	'unused'			=> array('unused',''),
 	'UpdateAxis'		=> array('Update these records',''),

@@ -138,7 +138,7 @@ The Iron Butt Association UK</p>
 
 INSERT INTO "certificates" ("EntrantID","css","html","options","image","Class","Title") VALUES (0,'','<div class="header"><!-- 5 BBG -->
 
-<img class="header_badge" src="images/bbg1500.png" alt="Iron Butt Association Ride Certificate" />
+<img class="header_badge" src="images/bbg1500.png" alt="Iron Butt Association Ride Certificate"  style="width: 345px; height: 345px;"/>
 
 <p>1,500 miles in less than 24 hours</p>
 

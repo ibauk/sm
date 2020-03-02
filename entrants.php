@@ -632,6 +632,9 @@ function showFinisherList()
 
 	$sql .= " WHERE EntrantStatus==".$KONSTANTS['EntrantFinisher'];
 	
+	if (isset($_REQUEST['ok']))
+		$sql .= " OR EntrantStatus==".$KONSTANTS['EntrantOK'];
+	
 	if (isset($_REQUEST['class']))
 		$sql .= ' AND Class In ('.$_REQUEST['class'].')';
 	$sql .= ' ORDER BY '.$sortspec;

@@ -911,12 +911,12 @@ function triggerNewRow(obj)
 	$myurl = "<a href='sm.php?c=combos'>".$TAGS['ComboMaintHead'][0].'</a>';
 	pushBreadcrumb($myurl);
 	$bcurldtl ='&amp;breadcrumbs='.urlencode($_REQUEST['breadcrumbs']);
-	echo('<form method="post" action="sm.php">');
-	echo('<input type="hidden" name="c" value="combo">');
-	echo('<input type="hidden" name="comboid" value="">');
-	echo('<input type="hidden" name="breadcrumbs" value="'.$_REQUEST['breadcrumbs'].'">');
-	echo('<input type="submit" value="'.$TAGS['InsertNewCombo'][0].'" title="'.$TAGS['InsertNewCombo'][1].'">');
-	echo('</form>');
+//	echo('<form method="post" action="sm.php">');
+//	echo('<input type="hidden" name="c" value="combo">');
+//	echo('<input type="hidden" name="comboid" value="">');
+//	echo('<input type="hidden" name="breadcrumbs" value="'.$_REQUEST['breadcrumbs'].'">');
+//	echo('<input type="submit" value="'.$TAGS['InsertNewCombo'][0].'" title="'.$TAGS['InsertNewCombo'][1].'">');
+//	echo('</form>');
 
 
 	echo('<form method="post" action="sm.php">');
@@ -1030,6 +1030,9 @@ function triggerNewRow(obj)
 	echo('<input type="submit" name="savedata" value="'.$TAGS['UpdateBonuses'][0].'"> ');
 	}
 	echo('</form>');
+	$url = "sm.php?c=combo&amp;comboid=".$bcurldtl;
+	echo('<button value="+" onclick="window.location='."'".$url."'".'">+</button><br>');
+
 	//showFooter();
 	
 }
@@ -1171,11 +1174,11 @@ function triggerNewRow(obj)
 
 	pushBreadcrumb($myurl);
 	$bcurldtl ='&amp;breadcrumbs='.urlencode($_REQUEST['breadcrumbs']);
-	echo('<form method="get" action="sm.php">');
-	echo('<input type="hidden" name="c" value="newcc">');
-	echo('<input type="hidden" name="breadcrumbs" value="'.$_REQUEST['breadcrumbs'].'">');
-	echo('<input type="submit" value="'.$TAGS['InsertNewCC'][0].'">');
-	echo('</form>');
+//	echo('<form method="get" action="sm.php">');
+//	echo('<input type="hidden" name="c" value="newcc">');
+//	echo('<input type="hidden" name="breadcrumbs" value="'.$_REQUEST['breadcrumbs'].'">');
+//	echo('<input type="submit" value="'.$TAGS['InsertNewCC'][0].'">');
+//	echo('</form>');
 	echo('<form method="post" action="sm.php">');
 	emitBreadcrumbs();
 	for ($i = 0; $i < $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $i++)
@@ -1342,6 +1345,8 @@ function triggerNewRow(obj)
 	}
 	
 	echo('</form>');
+	$url = "sm.php?c=newcc".$bcurldtl;
+	echo('<button value="+" onclick="window.location='."'".$url."'".'">+</button><br>');
 	
 	//showFooter();
 }
@@ -1572,7 +1577,7 @@ function showRallyConfig()
 	$R = $DB->query('SELECT * FROM rallyparams');
 	if (!$rd = $R->fetchArray())
 		$rd = [];
-	echo('<br><form method="post" action="sm.php">');
+	echo('<form method="post" action="sm.php">');
 	pushBreadcrumb('#');
 	emitBreadcrumbs();
 	echo('<input type="hidden" name="c" value="rallyparams">');

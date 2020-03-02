@@ -32,6 +32,7 @@ body, input, select		{
 
 input,select			{ color: #000; font-weight: bold; }
 input[type="number"], .number	{ width:4em; }
+select.fldsel			{ font-size: .8em !important; }
 
 .center					{ text-align: center; }
 .hoverlite :hover				{ background-color: lightgray; }
