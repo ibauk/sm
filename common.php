@@ -48,6 +48,7 @@ $KONSTANTS['TiedPointsSplit'] = 1;
 $KONSTANTS['RankTeamsAsIndividuals'] = 0;	
 $KONSTANTS['RankTeamsHighest'] = 1;
 $KONSTANTS['RankTeamsLowest'] = 2;
+$KONSTANTS['RankTeamsCloning'] = 3;
 $KONSTANTS['EntrantDNS'] = 0;
 $KONSTANTS['EntrantOK'] = 1;
 $KONSTANTS['EntrantFinisher'] = 8;
@@ -169,6 +170,12 @@ function splitDatetime($dt)
 	$dtx = explode($S,$dt);
 	return $dtx;
 		
+}
+
+function getThemeCSS($theme)
+{
+	
+	return getValueFromDB("SELECT css FROM themes WHERE Theme='$theme'","css","");
 }
 
 function getValueFromDB($sql,$col,$defaultvalue)
@@ -405,6 +412,9 @@ function startHtml($pagetitle,$otherInfo = '',$showNav=true)
 	$R = $DB->query('SELECT * FROM rallyparams');
 	$rd = $R->fetchArray();
 	
+//header("Cache-Control: no-cache, no-store, must-revalidate"); // HTTP 1.1.
+//header("Pragma: no-cache"); // HTTP 1.0.
+//header("Expires: 0"); // Proxies.	
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -416,6 +426,7 @@ echo('<title>'.$pagetitle.'</title>');
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="stylesheet" type="text/css" href="reboot.css?ver=<?= filemtime('reboot.css')?>">
 <link rel="stylesheet" type="text/css" href="score.css?ver=<?= filemtime('score.css')?>">
+<?php if ($DBVERSION>=4) echo('<style>:root {'.getThemeCSS($rd['Theme']).'}</style>');?>
 <script src="custom.js?ver=<?= filemtime('custom.js')?>" defer></script>
 <script src="score.js?ver=<?= filemtime('score.js')?>" defer></script>
 </head>

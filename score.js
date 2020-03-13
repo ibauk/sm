@@ -260,10 +260,10 @@ function bodyLoaded()
 	if (hasTabs)
 		tabsSetupTabs();
 	
+	trapDirtyPage();
 	if (!isScoresheetpage)
 		return;
 	
-	trapDirtyPage();
 	calcScore(false);	
 		
 }

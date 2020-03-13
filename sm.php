@@ -814,7 +814,7 @@ function triggerNewRow(obj)
 		return;
 	}
 	$CatLabel = $rd['CatLabel'];
-	echo('<p class="explain">'.$TAGS['CatExplainer'][1].'</p>');
+	echo('<h4 class="explain">'.$TAGS['CatExplainer'][1].'</h4>');
 	echo('<form method="post" action="sm.php">');
 	$bcurldtl ='&amp;breadcrumbs='.urlencode($_REQUEST['breadcrumbs']);
 
@@ -1651,7 +1651,7 @@ function showRallyConfig()
 	echo('<fieldset id="tab_scoring" class="tabContent"><legend>'.$TAGS['LegendScoring'][0].'</legend>');
 	
 	echo('<span class="vlabel">');
-	echo('<span>'.$TAGS['ScoringMethod'][0].': </span> ');
+	echo('<label for="ScoringMethod">'.$TAGS['ScoringMethod'][0].': </label> ');
 	echo('<select name="ScoringMethod">');
 	$chk = ($rd['ScoringMethod']==$KONSTANTS['ManualScoring']) ? ' selected ' : '';
 	echo('<option '.$chk.' value="'.$KONSTANTS['ManualScoring'].'">'.$TAGS['ScoringMethodM'][0].'</option>');
@@ -1665,7 +1665,7 @@ function showRallyConfig()
 	echo('</span>');
 
 	echo('<span class="vlabel">');
-	echo('<span>'.$TAGS['ShowMultipliers'][0].': </span> ');
+	echo('<label for="ShowMultipliers">'.$TAGS['ShowMultipliers'][0].': </label> ');
 	echo('<select name="ShowMultipliers">');
 	$chk = ($rd['ShowMultipliers']==$KONSTANTS['SuppressMults']) ? ' selected ' : '';
 	echo('<option '.$chk.' value="'.$KONSTANTS['SuppressMults'].'">'.$TAGS['ShowMultipliersN'][0].'</option>');
@@ -1686,7 +1686,7 @@ function showRallyConfig()
 
 
 	echo('<span class="vlabel">');
-	echo('<span>'.$TAGS['TeamRankingText'][0].': </span>');
+	echo('<label for="TeamRanking">'.$TAGS['TeamRankingText'][0].': </label>');
 	echo('<select name="TeamRanking">');
 	$chk = ($rd['TeamRanking']==$KONSTANTS['RankTeamsAsIndividuals']) ? ' selected ' : '';
 	echo('<option '.$chk.' value="'.$KONSTANTS['RankTeamsAsIndividuals'].'">'.$TAGS['TeamRankingI'][0].'</option>');
@@ -1694,6 +1694,8 @@ function showRallyConfig()
 	echo('<option '.$chk.' value="'.$KONSTANTS['RankTeamsHighest'].'">'.$TAGS['TeamRankingH'][0].'</option>');
 	$chk = ($rd['TeamRanking']==$KONSTANTS['RankTeamsLowest']) ? ' selected ' : '';
 	echo('<option '.$chk.' value="'.$KONSTANTS['RankTeamsLowest'].'">'.$TAGS['TeamRankingL'][0].'</option>');
+	$chk = ($rd['TeamRanking']==$KONSTANTS['RankTeamsCloning']) ? ' selected ' : '';
+	echo('<option '.$chk.' value="'.$KONSTANTS['RankTeamsCloning'].'">'.$TAGS['TeamRankingC'][0].'</option>');
 	echo('</select>');
 	echo('</span>');
 
@@ -1730,8 +1732,8 @@ function showRallyConfig()
 	echo('</span>');
 
 	echo('<span class="vlabel">');
-	echo('<span>'.$TAGS['MilesPenaltyText'][0].': </span> ');
-	echo('<select name="MaxMilesMethod">');
+	echo('<label for="MaxMilesMethod">'.$TAGS['MilesPenaltyText'][0].': </label> ');
+	echo('<select name="MaxMilesMethod" id="MaxMilesMethod">');
 	//echo('<label for="MaxMilesFixedP"  class="vlabel" title="'.$TAGS['MaxMilesFixedP'][1].'">'.$TAGS['MaxMilesFixedP'][0].' </label> ');
 	$chk = ($rd['MaxMilesMethod']==$KONSTANTS['MaxMilesFixedP']) ? ' selected ' : '';
 	echo('<option '.$chk.' value="'.$KONSTANTS['MaxMilesFixedP'].'">'.$TAGS['MaxMilesFixedP'][0].'</option>');
@@ -2218,7 +2220,7 @@ function changeTimeSpec(obj)
 	echo('<input type="hidden" name="menu" value="setup">');
 	if ($DBVERSION >= 3)
 	{
-		echo('<p class="explain">'.$TAGS['TimePExplain'][0].'</p>');
+		echo('<h4 class="explain">'.$TAGS['TimePExplain'][0].'</h4>');
 	}
 	echo('<table id="timepenalties">');
 	echo('<caption title="'.htmlentities($TAGS['TimepMaintHead'][1]).'">'.htmlentities($TAGS['TimepMaintHead'][0]).'</caption>');
@@ -2312,6 +2314,77 @@ function changeTimeSpec(obj)
 }
 
 
+if (isset($_REQUEST['c']))
+	switch($_REQUEST['c']) {
+		case 'rallyparams':
+			if (isset($_REQUEST['savedata']))
+				saveRallyConfig();
+			break;
+			
+		case 'showcat':
+			if (isset($_REQUEST['savedata']))
+				saveCategories();
+			break;
+			
+		case 'bonuses':
+			if (isset($_REQUEST['savedata']))
+				saveBonuses();
+			break;
+
+		case 'special':
+			//print_r($_REQUEST);
+			if (isset($_REQUEST['delete']) && isset($_REQUEST['BonusID']))
+			{
+				deleteSpecial($_REQUEST['BonusID']);
+				break;
+			}
+			if (isset($_REQUEST['savedata']))
+				saveSpecial();
+			
+		case 'specials':
+			break;
+
+		case 'combo':
+			if (isset($_REQUEST['comboid']))
+			{
+				if (isset($_REQUEST['savedata']))
+				{
+					saveSingleCombo();
+					if (!retraceBreadcrumb())
+						;
+					exit;
+				}
+				break;
+			}
+		case 'combos':
+			if (isset($_REQUEST['savedata']))
+				saveCombinations();
+			break;
+		case 'savecalc':
+			saveCompoundCalc();
+		case 'catcalcs':
+			if (isset($_REQUEST['savedata']))
+			{
+				saveCompoundCalcs();
+				if (retraceBreadcrumb())
+					exit;
+			}
+			break;
+		case 'newcc':
+			break;
+		case 'showcc':
+			break;
+			
+		case 'timep':
+			if (isset($_REQUEST['savedata']))
+				saveTimePenalties();
+			break;
+		case 'sgroups':
+			if (isset($_REQUEST['savedata']))
+				saveSGroups();
+			break;
+
+	}
 
 
 
@@ -2324,14 +2397,10 @@ if (isset($_REQUEST['c']))
 	switch($_REQUEST['c'])
 	{
 		case 'rallyparams':
-			if (isset($_REQUEST['savedata']))
-				saveRallyConfig();
 			showRallyConfig();
 			break;
 			
 		case 'showcat':
-			if (isset($_REQUEST['savedata']))
-				saveCategories();
 			// Terminology change from cat to axis
 			if (isset($_REQUEST['axis']))
 				$axis = $_REQUEST['axis'];
@@ -2341,8 +2410,6 @@ if (isset($_REQUEST['c']))
 			break;
 			
 		case 'bonuses':
-			if (isset($_REQUEST['savedata']))
-				saveBonuses();
 			showBonuses();
 			break;
 
@@ -2350,12 +2417,9 @@ if (isset($_REQUEST['c']))
 			//print_r($_REQUEST);
 			if (isset($_REQUEST['delete']) && isset($_REQUEST['BonusID']))
 			{
-				deleteSpecial($_REQUEST['BonusID']);
 				showSpecials();
 				break;
 			}
-			if (isset($_REQUEST['savedata']))
-				saveSpecial();
 			if (isset($_REQUEST['bonus']))
 			{
 				showSpecial($_REQUEST['bonus']);
@@ -2371,30 +2435,14 @@ if (isset($_REQUEST['c']))
 		case 'combo':
 			if (isset($_REQUEST['comboid']))
 			{
-				if (isset($_REQUEST['savedata']))
-				{
-					saveSingleCombo();
-					if (!retraceBreadcrumb())
-						showCombinations();
-					exit;
-				}
 				showSingleCombo($_REQUEST['comboid']);
 				break;
 			}
 		case 'combos':
-			if (isset($_REQUEST['savedata']))
-				saveCombinations();
 			showCombinations();
 			break;
 		case 'savecalc':
-			saveCompoundCalc();
 		case 'catcalcs':
-			if (isset($_REQUEST['savedata']))
-			{
-				saveCompoundCalcs();
-				if (retraceBreadcrumb())
-					exit;
-			}
 			showCompoundCalcs();
 			break;
 		case 'newcc':
@@ -2405,13 +2453,9 @@ if (isset($_REQUEST['c']))
 			break;
 			
 		case 'timep':
-			if (isset($_REQUEST['savedata']))
-				saveTimePenalties();
 			showTimePenalties();
 			break;
 		case 'sgroups':
-			if (isset($_REQUEST['savedata']))
-				saveSGroups();
 			showSGroups();
 			break;
 

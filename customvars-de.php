@@ -113,6 +113,7 @@ $TAGS = array(
 	'AdmShowTagMatches'	=> array('Items matching ','Showing functions matching tag '),
 	'AdmSpecialTable'	=> array('Special bonuses','View/edit special bonuses'),
 	'AdmSpeedPenalties'	=> array('Speed penalties','Maintain table of speed penalties'),
+	'AdmThemes'			=> array('Display themes','Change the colourways used'),
 	'AdmTimePenalties'	=> array('Time penalties','Maintain table of time penalties'),
 	'AdmUtilHeader'		=> array('Utility functions',',,'),
 	
@@ -166,7 +167,7 @@ $TAGS = array(
 	
 	'CertExplainer'		=> array('Certificates are "web" documents comprising well-formed HTML and CSS parts.',
 									'Please carefully specify the certificate layout and content in the texts below.'),
-	'CertExplainerW'	=> array('Certificates are "web" documents. This editor allows you to define the content and layout in a user-friendly way.'),
+	'CertExplainerW'	=> array('Certificates are "web" documents. This editor allows you to define the content and layout in a user-friendly way.',''),
 	
 	'CertTitle'			=> array('Title','Description of this certificate class'),
 	'Class'				=> array('Class #','The certificate class applicable'),
@@ -194,7 +195,7 @@ $TAGS = array(
 	'EntrantDNS'		=> array('DNS','Entrant failed to start the rally'),
 	'EntrantEmail'		=> array('Entrant email','Email for this entrant'),
 	'EntrantFinisher'	=> array('Finisher','Rally finisher'),
-	'EntrantID'			=> array('Motorrad/Rider #','The unique reference for this Entrant'),
+	'EntrantID'			=> array('Motorrad #','The unique reference for this Entrant'),
 	'EntrantListBonus'	=> array('Entrants claiming bonus','List of entrants claiming a particular bonus'),
 	'EntrantListCheck'	=> array('Entrant check-ins/outs','Choose an entrant for checkin-in or checking-out'),
 	'EntrantListCombo'	=> array('Entrants claiming combo','List of entrants claiming a particular combination'),
@@ -216,8 +217,8 @@ $TAGS = array(
 	'FinishDateE'		=> array('Finish date','Der letzte Reittag der Rallye.'),
 	'FinishersExported'	=> array('Finishers exported!','Finisher details exported to CSV'),
 	'FinishPosition'	=> array('Final place','Finisher ranking position',''),
-	'FinishTime'		=> array('Ziel zeit/End time','Offizielle Zielzeit. Teilnehmer, die später fertig werden, sind DNF'),
-	'FinishTimeE'		=> array('Ziel zeit/End time','Official finish time. The check-in time'),
+	'FinishTime'		=> array('Ziel zeit','Offizielle Zielzeit. Teilnehmer, die später fertig werden, sind DNF'),
+	'FinishTimeE'		=> array('Ziel zeit','Official finish time. The check-in time'),
 
 	'FullDetails'		=> array('Full details','Show the complete record'),
 
@@ -419,12 +420,16 @@ $TAGS = array(
 	'StartTimeE'		=> array('Start zeit/time','Offizielle Startzeit. Die Rallye-Uhr beginnt um diese Zeit.'),
 	
 	'TeamID'			=> array('Team #','The team number this Entrant is a member of'),
+	'TeamRankingC'		=> array('Team cloning','Team scores are cloned to all members'),
 	'TeamRankingH'		=> array('Highest ranked member','Rank team as highest member'),
 	'TeamRankingI'		=> array('Individual placing','Rank each team member separately'),
 	'TeamRankingL'		=> array('Lowest ranked member','Rank team as lowest member'),
 	'TeamRankingText'	=> array('Teams are ranked according to',''),
 	'TeamWatch'			=> array('Team watch','Inspect claims history looking for potential teams/missed claims'),
 	
+	'ThemeApplyLit'		=> array('Yes, apply this theme','Yes, apply this theme'),
+	'ThemeLit'			=> array('Theme','The name of the theme to apply'),
+
 	'TiedPointsRanking'	=> array('Split ties by distance','In the event of a tie entrants will be ranked by kilometres'),	// Miles/Kms
 	
 	'TimepMaintHead'	=> array('Time Penalties','List of time penalty entries'),

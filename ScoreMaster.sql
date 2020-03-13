@@ -67,7 +67,8 @@ CREATE TABLE IF NOT EXISTS `rallyparams` (
 9=Rallymaster!",
 	`DBState` INTEGER NOT NULL DEFAULT 0,
 	`DBVersion` INTEGER NOT NULL DEFAULT 4, 		/* DBVERSION */
-	`AutoRank` INTEGER NOT NULL DEFAULT 1
+	`AutoRank` INTEGER NOT NULL DEFAULT 1,
+	`Theme` TEXT NOT NULL DEFAULT "default"
 );
 
 
@@ -247,7 +248,11 @@ CREATE TABLE IF NOT EXISTS `importspecs` (
 	PRIMARY KEY("specid")
 );
 
-
+CREATE TABLE IF NOT EXISTS `themes` (
+	"Theme"	TEXT NOT NULL,
+	"css"	TEXT NOT NULL,
+	PRIMARY KEY("Theme")
+);
 
 DELETE FROM `rallyparams`;
 DELETE FROM `functions`;
@@ -303,12 +308,13 @@ INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (31,'UtlFin
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (32,'AdmDoBlankB4','score.php?c=blank&prf=0',NULL,'score,blank score sheet');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (33,'ttTeams','teams.php?m=3&g=2',NULL,'teams,integrity');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (34,'AdmSpeedPenalties','speeding.php',NULL,'speeding,penalties');
+INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (35,'AdmThemes','admin.php?c=themes',NULL,'colour,colours,theme,themes');
 
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('admin','AdmMenuHeader','25,5,2,4,24,6');
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('setup','AdmSetupHeader','16,17,18,19,20,34,21,22,23,30');
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('entrant','AdmEntrantsHeader','1,11,12,2,15,24,31');
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('bonus','AdmBonusHeader','7,8,9,10');
-INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('util','AdmUtilHeader','29,28,27,26,32,13,33');
+INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('util','AdmUtilHeader','29,28,27,26,32,13,33,35');
 
 
 
@@ -356,26 +362,34 @@ INSERT INTO `importspecs` (specid,specTitle,importType,fieldSpecs) VALUES('BBR',
 $IMPORTSPEC[''cols''][''EntrantID'']	= 0;
 $IMPORTSPEC[''cols''][''RiderLast'']	= 9;
 $IMPORTSPEC[''cols''][''RiderFirst'']	= 8;
-$IMPORTSPEC[''cols''][''PillionLast'']	= 11;
-$IMPORTSPEC[''cols''][''PillionFirst'']	= 10;
-$IMPORTSPEC[''cols''][''Bike''] 		= 20;
-$IMPORTSPEC[''cols''][''BikeReg'']		= 21;
-$IMPORTSPEC[''cols''][''Email'']		= 19;
-$IMPORTSPEC[''cols''][''Phone'']		= 18;
-$IMPORTSPEC[''cols''][''Country'']		= 17;
-$IMPORTSPEC[''cols''][''NoKFirst'']		= 27;
-$IMPORTSPEC[''cols''][''NoKLast'']		= 28;
-$IMPORTSPEC[''cols''][''NoKPhone'']		= 35;
-$IMPORTSPEC[''cols''][''NoKRelation'']	= 36;
+$IMPORTSPEC[''cols''][''PillionLast'']	= 12;
+$IMPORTSPEC[''cols''][''PillionFirst'']	= 11;
+$IMPORTSPEC[''cols''][''Bike''] 		= 21;
+$IMPORTSPEC[''cols''][''BikeReg'']		= 22;
+$IMPORTSPEC[''cols''][''Email'']		= 20;
+$IMPORTSPEC[''cols''][''Phone'']		= 19;
+$IMPORTSPEC[''cols''][''Country'']		= 18;
+$IMPORTSPEC[''cols''][''NoKName'']		= 30;
+$IMPORTSPEC[''cols''][''NoKPhone'']		= 31;
+$IMPORTSPEC[''cols''][''NoKRelation'']	= 32;
 
+$IMPORTSPEC[''default''][''BCMethod'']	= 1;
+$IMPORTSPEC[''default''][''OdoKms'']	= 0;
+$IMPORTSPEC[''setif''][''OdoKms''][1]	= [23,''/Kilometres/''];
 
 // data collects lines to be stored as ExtraData
-$IMPORTSPEC[''data''][''Postcode'']		= 16;
-$IMPORTSPEC[''data''][''Country'']		= 17;
-$IMPORTSPEC[''data''][''Postal_Address'']		= ''12:13:14:15'';
+$IMPORTSPEC[''data''][''Postal_Address'']		= ''13:14:15:16'';
+$IMPORTSPEC[''data''][''Postcode'']		= 17;
+$IMPORTSPEC[''data''][''Country'']		= 18;
+$IMPORTSPEC[''data''][''Rally veteran'']	= 24;
+$IMPORTSPEC[''data''][''Rider T-shirt'']	= 26;
+$IMPORTSPEC[''data''][''Pillion T-shirt'']	= 27;
+$IMPORTSPEC[''data''][''Extra T-shirt'']	= 28;
+$IMPORTSPEC[''data''][''Extra T-shirt size'']	= 29;
 
 // If the content of the indexed column matches the RE, reject (don''t load) the entry
-$IMPORTSPEC[''reject''][32]	= ''/1Unpaid|1Refunded/'';
+
+
 
 ');
 
@@ -418,12 +432,15 @@ $IMPORTSPEC[''setif''][''Class''][7]	= array(28,''/500 Anti Clock Wise/'');
 
 
 // Copy extra fields to be passed through to any further data transfer
-$IMPORTSPEC[''data''][''email'']		= 26;
-$IMPORTSPEC[''data''][''address'']		= ''17:18:19:20'';
-$IMPORTSPEC[''data''][''postcode'']		= 20;
-$IMPORTSPEC[''data''][''country'']		= 21;
-$IMPORTSPEC[''data''][''phone'']		= 22;
-$IMPORTSPEC[''data''][''mobile'']		= 24;
+$IMPORTSPEC[''data''][''Postal_Address'']		= ''17:18:19:20'';
+$IMPORTSPEC[''data''][''Postcode'']		= 20;
+$IMPORTSPEC[''data''][''Distance2Squires'']		= 22;
+$IMPORTSPEC[''data''][''FreeCamping'']		= 29;
+$IMPORTSPEC[''data''][''AltPhone'']		= 23;
+$IMPORTSPEC[''data''][''NokPostalAddress''] = ''32:33:34:35:36'';
+$IMPORTSPEC[''data''][''T-shirt'']		= 40;
+$IMPORTSPEC[''data''][''T-shirt2'']		= 41;
+
 
 
 ');
@@ -453,10 +470,141 @@ $IMPORTSPEC[''data''][''Postal_Address'']		= ''12:13:14:15:16:17'';
 //$IMPORTSPEC[''reject''][18]	= ''/Unpaid/'';
 
 $IMPORTSPEC[''default''][''BCMethod'']       = 0;
-$IMPORTSPEC[''setif''][''BCMethod''][1]	= [25,''/Electronic/''];
-$IMPORTSPEC[''setif''][''BCMethod''][2]	= [25,''/Paper/''];
+$IMPORTSPEC[''setif''][''BCMethod''][1]	= [26,''/Electronic/''];
+$IMPORTSPEC[''setif''][''BCMethod''][2]	= [26,''/Paper/''];
 
 
+');
+
+INSERT INTO `themes` (Theme,css) VALUES('default','
+--button-text : white;
+--button-background : #006600;
+--button-text-disabled : darkgray;
+--button-back-disabled : #339966;
+--bright-text : red;
+--bright-background : #ffff00;
+--regular-background : #ccffcc;
+--input-text : #000;
+--hover-background : lightgray;
+--hover-text : black;
+--tabs-background : #dedbde;
+--tabs-text : #42454a;
+--via-background : white;
+--via-text : black;
+--solid-border : #c9c3ba;
+--header-background : lightgray;
+--scorex-background : #66D2FF;
+--rejected-background : red;
+--rejected-text : white;
+--checked-background : #31ad16;
+--checked-text : white;
+');
+
+INSERT INTO `themes` (Theme,css) VALUES('Brown sugar','
+/* Brown sugar */
+--button-text : 042037;
+--button-background : #718EA4;
+--button-text-disabled : 29506D;
+--button-back-disabled : #496D89;
+--bright-text : red;
+--bright-background : #ffff00;
+--regular-background : #FFDBAA;
+--regular-text : #553100;
+--form-background : #D4A76A;
+--input-text : #553100;
+--hover-background : lightgray;
+--hover-text : black;
+--tabs-background : #dedbde;
+--tabs-text : #42454a;
+--via-background : white;
+--via-text : black;
+--solid-border : #c9c3ba;
+--header-background : #D4A76A;
+--scorex-background : white;
+--rejected-background : red;
+--rejected-text : white;
+--checked-background : #31ad16;
+--checked-text : white;
+');
+
+INSERT INTO `themes` (Theme,css) VALUES('Purple haze','
+/* Purple haze */
+--button-text : #553F00;
+--button-background : #FFE9AA;
+--button-text-disabled : darkgray;
+--button-back-disabled : #339966;
+--bright-text : red;
+--bright-background : #ffff00;
+--regular-background : #7F81B2;
+--regular-text : #090A3B;
+--form-background : #555794;
+--input-text : #000;
+--hover-background : lightgray;
+--hover-text : black;
+--tabs-background : #dedbde;
+--tabs-text : #42454a;
+--via-background : white;
+--via-text : black;
+--solid-border : #c9c3ba;
+--header-background : lightgray;
+--scorex-background : #66D2FF;
+--rejected-background : red;
+--rejected-text : white;
+--checked-background : #31ad16;
+--checked-text : white;
+');
+
+INSERT INTO `themes` (Theme,css) VALUES('Mulligatawny soup','
+/* Mulligatawny soup */
+--button-text : white;
+--button-background : #006600;
+--button-text-disabled : darkgray;
+--button-back-disabled : #339966;
+--bright-text : red;
+--bright-background : #ffff00;
+--regular-background : #4d4c05;
+--form-background : #4d4c05;
+--input-text : #ffffc8;
+--regular-text : #ffffc8;
+--hover-background : lightgray;
+--hover-text : black;
+--tabs-background : #dedbde;
+--tabs-text : #42454a;
+--via-background : white;
+--via-text : black;
+--solid-border : #c9c3ba;
+--header-background : darkgray;
+--scorex-background : #66D2FF;
+--rejected-background : red;
+--rejected-text : white;
+--checked-background : #31ad16;
+--checked-text : white;
+');
+
+INSERT INTO `themes` (Theme,css) VALUES('Mellow yellow','
+/* Mellow yellow */
+--button-text : black;
+--button-background : #f1fa41;
+--button-text-disabled : darkgray;
+--button-back-disabled : #339966;
+--bright-text : red;
+--bright-background : #ffff00;
+--regular-background : #ffe699;
+--input-text : black;
+--hover-background : #ce99ff;
+--hover-text : black;
+--tabs-background : #cade11;
+--tabs-text : #42454a;
+--form-background : #ffe673;
+--via-background : white;
+--via-text : black;
+--solid-border : #c9c3ba;
+--header-background : lightgray;
+--scorex-background : #66D2FF;
+--rejected-background : red;
+--rejected-text : white;
+--checked-background : #31ad16;
+--checked-text : white;
 ');
 
 

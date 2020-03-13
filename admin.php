@@ -300,8 +300,85 @@ function show_tagmenu($tag)
 	
 }
 
+function show_theme_chooser()
+{
+	global $TAGS, $DB;
+	
+	$theme = getValueFromDB("SELECT Theme FROM rallyparams","Theme","default");
+	$themes = [];
+	$R = $DB->query("SELECT Theme,css FROM themes");
+	while ($rd = $R->fetchArray())
+		$themes[$rd['Theme']] = $rd['css'];
+	echo('<div style="display:none;" id="themes">'.json_encode($themes).'</div>');
+?>
+<script>
+function applyTheme() {
+	let themes = JSON.parse(document.querySelector('#themes').innerText);
+	let theme = document.querySelector('#theme').value;
+	
+	for (let sheeti= 0; sheeti<document.styleSheets.length; sheeti++) {
+		let sheet= document.styleSheets[sheeti];
+		let rules= ('cssRules' in sheet)? sheet.cssRules : sheet.rules;
+		for (let rulei= 0; rulei<rules.length; rulei++) {
+			let rule= rules[rulei];
+			if (rule.selectorText==':root') 
+				document.styleSheets[sheeti].rules[rulei].style.cssText=themes[theme];
+		}
+    }
+	
+}
+</script>
+<?php
+	
+	echo('<form method="post" action="admin.php">');
+	echo('<input type="hidden" name="c" value="applytheme">'."\n");
+	echo('<span class="vlabel"><label for="theme">'.$TAGS['ThemeLit'][0].'</label> ');
+	echo('<select id="theme" name="theme" onchange="applyTheme();">');
+	foreach ($themes as $t => $v) {
+		echo("\n".'<option value="'.$t.'"');
+		if ($t==$theme)
+			echo(" selected");
+		echo('>');
+		echo($t.'</option>');
+	}
+	echo('</select> ');
+	echo('<input type="submit" value="'.$TAGS['ThemeApplyLit'][0].'">');
+	echo('</form>');
+?>
+<hr>
+<h4>Lorem ipsum dolor sit amet, consectetur adipiscing elit,</h4>
+<div id="adminMM">
+<ul>
+<li><a href="#">aaaaa</a></li>
+<li><a href="#">bbbbb</a></li>
+<li><a href="#">ccccc</a></li>
+</ul>
+</div>
+<ul  id="tabs">
+<li><a href="#">aaa</a></li>
+<li><a href="#">bbb</a></li>
+</ul>
+<fieldset class="tabContent">
+<label>Lorem ipsum</label> <input type="text" value="123"><br>
+<label>dolor sit amet</label> <select><option selected>aaaa</option><option>bbbb</option></select><br>
+<label>date stamp</label> <input type="date"><br>
+</fieldset>
+<div>
+</div>
+<?php	
+}
 
+function applyTheme()
+{
+	global $TAGS, $DB;
 
+	if (!isset($_REQUEST['theme']))
+		return;
+	
+	$sql = "UPDATE rallyparams SET Theme='".$DB->escapeString($_REQUEST['theme'])."'";
+	$DB->exec($sql);
+	
+}
 
 function showInitialisationOffer()
 {
@@ -391,11 +468,16 @@ if (isset($_REQUEST['c']) && $_REQUEST['c']=='editcert')
 
 
 
-global $TAGS;
+global $TAGS, $DBVERSION;
+
+if (isset($_REQUEST['c']) && $_REQUEST['c']=='applytheme' && isset($_REQUEST['theme'])) 
+	applyTheme();
 
 startHtml($TAGS['ttAdminMenu'][0],'<a href="about.php" class="techie" title="'.$TAGS['HelpAbout'][1].'">'.$TAGS['HelpAbout'][0].'</a>',dbInitialized());
 //var_dump($_REQUEST);
-if (isset($_REQUEST['c']) && $_REQUEST['c']=='entrants')
+if (isset($_REQUEST['c']) && $_REQUEST['c']=='applytheme' && isset($_REQUEST['theme'])) 
+	show_menu('admin');
+else if (isset($_REQUEST['c']) && $_REQUEST['c']=='entrants')
 	show_menu('entrant');
 else if (isset($_REQUEST['c']) && $_REQUEST['c']=='bonus')
 	show_menu('bonus');
@@ -409,6 +491,8 @@ else if (isset($_REQUEST['tag']))
 	show_tagmenu($_REQUEST['tag']);
 else if (isset($_REQUEST['c']) && $_REQUEST['c']=='testmenu')
 	show_tagmenu('score');
+else if (isset($_REQUEST['c']) && $_REQUEST['c']=='themes' && $DBVERSION>=4)
+	show_theme_chooser();
 else if (dbInitialized())
 	show_menu('admin');
 else

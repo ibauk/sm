@@ -116,6 +116,7 @@ $TAGS = array(
 	'AdmShowTagMatches'	=> array('Items matching ','Showing functions matching tag '),
 	'AdmSpecialTable'	=> array('Special bonuses','View/edit special bonuses'),
 	'AdmSpeedPenalties'	=> array('Speed penalties','Maintain table of speed penalties'),
+	'AdmThemes'			=> array('Display themes','Change the colourways used'),
 	'AdmTimePenalties'	=> array('Time penalties','Maintain table of time penalties'),
 	'AdmUtilHeader'		=> array('Utility functions',',,'),
 	
@@ -169,7 +170,7 @@ $TAGS = array(
 	
 	'CertExplainer'		=> array('Certificates are "web" documents comprising well-formed HTML and CSS parts.',
 									'Please carefully specify the certificate layout and content in the texts below.'),
-	'CertExplainerW'	=> array('Certificates are "web" documents. This editor allows you to define the content and layout in a user-friendly way.'),
+	'CertExplainerW'	=> array('Certificates are "web" documents. This editor allows you to define the content and layout in a user-friendly way.',''),
 	'CertTitle'			=> array('Title','Description of this certificate class'),
 	'Class'				=> array('Class #','The certificate class applicable'),
 	'ChooseEntrant'		=> array('Choose entrant','Pick an entrant from this list'),
@@ -422,11 +423,15 @@ $TAGS = array(
 	'StartTimeE'		=> array('Start time','Official start time. Rally clock starts at this time.'),
 	
 	'TeamID'			=> array('Team #','The team number this Entrant is a member of'),
+	'TeamRankingC'		=> array('Team cloning','Team scores are cloned to all members'),
 	'TeamRankingH'		=> array('Highest ranked member','Rank team as highest member'),
 	'TeamRankingI'		=> array('Individual placing','Rank each team member separately'),
 	'TeamRankingL'		=> array('Lowest ranked member','Rank team as lowest member'),
 	'TeamRankingText'	=> array('Teams are ranked according to',''),
 	'TeamWatch'			=> array('Team watch','Inspect claims history looking for potential teams/missed claims'),
+
+	'ThemeApplyLit'		=> array('Yes, apply this theme','Yes, apply this theme'),
+	'ThemeLit'			=> array('Theme','The name of the theme to apply'),
 	
 	'TiedPointsRanking'	=> array('Split ties by mileage','In the event of a tie entrants will be ranked by mileage'),	// Miles/Kms
 	'TimePExplain'		=> array("Rally time runs from the start time to the finish time. Individual entrants may have less time available. Penalties other than DNF apply to specific periods within the overall or individual entrant's rally time. Periods are specified as date/time ranges or as minutes before DNF ranges.<br>Time penalties are triggered by entrant check-in time.",'Explanation of rally time penalties'),

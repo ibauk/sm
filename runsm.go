@@ -62,7 +62,20 @@ const cgiport 			= "127.0.0.1:9000"
 const sm_caddyFolder	= "caddy"
 const starturl 			= "http://localhost"
 
+
+
+type logWriter struct {
+}
+
+func (writer logWriter) Write(bytes []byte) (int, error) {
+    return fmt.Print(time.Now().UTC().Format("2006-01-02 15:04:05") + " " + string(bytes))
+}
+
 func init() {
+	
+	log.SetFlags(0)
+    log.SetOutput(new(logWriter))
+
 	os := runtime.GOOS;
 	switch os {
 	case "darwin":  // Apple
@@ -174,7 +187,7 @@ func getOutboundIP() net.IP {
 func timestamp() string {
 
 		var t = time.Now()
-		return t.Format(time.Stamp)
+		return t.Format("2006-01-02 15:04:05")
 
 }
 

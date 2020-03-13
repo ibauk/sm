@@ -192,10 +192,13 @@ function listEntrants($ord = "EntrantID")
 		echo('<th class="CorrectedMiles"><a href="entrants.php?c=entrants&amp;ord=CorrectedMiles&amp;mode='.$_REQUEST['mode'].$bcurl.'">'.$TAGS['CorrectedMiles'][0].'</a></th>');
 	}
 	echo('</tr>');
-	echo('</thead><tbody>');
-	
+	echo('</thead><tbody id="entrantrows">');
+	$fldsrch = ($_REQUEST['x'] &&  strpos($_REQUEST['x'],'=') != FALSE);
+	if ($fldsrch)
+		$fv = explode('=',$_REQUEST['x']);
 	while ($rd = $R->fetchArray(SQLITE3_ASSOC))
 	{
+		//print_r($rd); echo('<hr>');
 		$show_row = true;
 		$found_field = '';
 		$found_value = '';
@@ -203,7 +206,7 @@ function listEntrants($ord = "EntrantID")
 		{
 			$show_row = false;
 			foreach ($rd as $rdf=>$rdv)
-				if (stripos($rdv,$_REQUEST['x'])!==FALSE)
+				if (stripos($rdv,$_REQUEST['x'])!==FALSE || ($fldsrch && strcasecmp($fv[0],$rdf)==0 && strcasecmp($fv[1],$rdv)==0))
 				{
 					$found_field = $rdf;
 					$found_value = $rdv;
@@ -405,7 +408,7 @@ function showEntrantBonuses($bonuses,$rejections)
 	global $DB, $TAGS, $KONSTANTS;
 
 	$ro = ' onclick="return false;" ';
-	echo('<p>'.$TAGS['ROUseScore'][1].'</p>');
+	echo('<h4>'.$TAGS['ROUseScore'][1].'</h4>');
 	$REJ = parseStringArray($rejections,',','=');
 	$BA = explode(',',','.$bonuses); // The leading comma means that the first element is index 1 not 0
 	$R = $DB->query('SELECT * FROM bonuses ORDER BY BonusID');
@@ -916,7 +919,7 @@ function showEntrantChecks($rd)
 	echo('<input type="hidden" name="updaterecord" value="'.$rd['EntrantID'].'">');
 	
 	echo('<span class="vlabel"  style="font-weight: bold;" title="'.$TAGS['EntrantID'][1].'"><label for="EntrantID">'.$TAGS['EntrantID'][0].' </label> ');
-	echo('<input type="text" class="number"  readonly name="EntrantID" id="EntrantID" value="'.$rd['EntrantID'].'">'.' '.htmlspecialchars($rd['RiderName']));
+	echo('<input type="text" class="number"  readonly name="EntrantID" id="EntrantID" value="'.$rd['EntrantID'].'">'.' <label>'.htmlspecialchars($rd['RiderName']).'</label>');
 	
 	popBreadcrumb();
 	echo('<input title="'.$TAGS['FullDetails'][1].'" id="FullDetailsButton" type="button" value="'.$TAGS['FullDetails'][0].'"');
@@ -945,8 +948,8 @@ function showEntrantChecks($rd)
 	else
 		$hideOdoCheck = false;
 	
-	echo('<span   title="'.$TAGS['OdoKms'][1].' "> '.$TAGS['OdoKms'][0].' ');
-	echo('<label for="OdoKmsM">'.$TAGS['OdoKmsM'][0].': </label> ');
+	echo('<span   title="'.$TAGS['OdoKms'][1].' "> ');
+	echo('<label for="OdoKmsM">'.$TAGS['OdoKms'][0].' '.$TAGS['OdoKmsM'][0].': </label> ');
 	$chk = $rd['OdoKms'] <> $KONSTANTS['OdoCountsKilometres'] ? ' checked="checked" ' : '';
 	echo('<input onchange="odoAdjust();" type="radio" name="OdoKms" id="OdoKmsM" value="'.$KONSTANTS['OdoCountsMiles'].'"'.$chk.'></span>');
 	echo('&nbsp;&nbsp;&nbsp;<span><label for="OdoKmsK">'.$TAGS['OdoKmsK'][0].' </label> ');
@@ -1050,7 +1053,7 @@ function showEntrantSpecials($specials,$rejections)
 	global $DB, $TAGS, $KONSTANTS;
 
 	$ro = ' onclick="return false;" ';
-	echo('<p>'.$TAGS['ROUseScore'][1].'</p>');
+	echo('<h4>'.$TAGS['ROUseScore'][1].'</h4>');
 	$REJ = parseStringArray($rejections,',','=');
 	$BA = explode(',',','.$specials); // The leading comma means that the first element is index 1 not 0
 
@@ -1079,7 +1082,7 @@ function showEntrantCombinations($Combos,$rejections)
 	global $DB, $TAGS, $KONSTANTS;
 	
 	$ro = ' onclick="return false;" ';
-	echo('<p>'.$TAGS['ROUseScore'][1].'</p>');
+	echo('<h4>'.$TAGS['ROUseScore'][1].'</h4>');
 
 	$REJ = parseStringArray($rejections,',','=');
 	$BAB = explode(',',','.$Combos); // The leading comma means that the first element is index 1 not 0
@@ -1110,7 +1113,7 @@ function showEntrantExtraData($xd)
 	global $DB, $TAGS, $KONSTANTS;
 
 	$rows = substr_count($xd,"\n") + 1;
-	echo('<p>'.$TAGS['ExtraData'][1].'</p>');
+	echo('<h4>'.$TAGS['ExtraData'][1].'</h4>');
 	echo('<textarea onchange="enableSaveButton();" name="ExtraData" style="width:100%;" rows="'.$rows.'">'.$xd.'</textarea>');
 }
 
@@ -1135,7 +1138,7 @@ function showEntrantRecord($rd)
 	else
 		$ro = ' readonly ';
 	echo('<input type="text" onchange="enableSaveButton();"  class="number"  '.$ro.' name="EntrantID" id="EntrantID" value="'.$rd['EntrantID'].'">');
-	echo(' '.htmlspecialchars($rd['RiderName']).' ');
+	echo(' <label>'.htmlspecialchars($rd['RiderName']).'</label> ');
 	if (!$is_new_record)
 	{
 		echo('<input type="hidden" name="updaterecord" value="'.$rd['EntrantID'].'">');
@@ -1147,7 +1150,7 @@ function showEntrantRecord($rd)
 	else
 		;
 		$dis = ' disabled ';
-	echo('<input type="submit"'.$dis.' id="savedata" name="savedata" value="'.$TAGS['RecordSaved'][0].'" data-altvalue="'.$TAGS['SaveEntrantRecord'][0].'">');
+	echo('<input type="submit"'.$dis.' data-triggered="0" onclick="'."this.setAttribute('data-triggered','1')".'" id="savedata" name="savedata" value="'.$TAGS['RecordSaved'][0].'" data-altvalue="'.$TAGS['SaveEntrantRecord'][0].'">');
 	echo('</span> ');
 	
 	echo('<div class="tabs_area" style="display:inherit"><ul id="tabs">');
@@ -1251,8 +1254,8 @@ function showEntrantRecord($rd)
 	
 	echo('<input type="hidden" name="OdoCheckMiles" id="OdoCheckMiles" value="'.$odoC['OdoCheckMiles'].'">');
 
-	echo('<span  class="xlabel" title="'.$TAGS['OdoKms'][1].' "> '.$TAGS['OdoKms'][0].' ');
-	echo('<label for="OdoKmsM">'.$TAGS['OdoKmsM'][0].': </label> ');
+	echo('<span  class="xlabel" title="'.$TAGS['OdoKms'][1].' "> ');
+	echo('<label for="OdoKmsM">'.$TAGS['OdoKms'][0].' '.$TAGS['OdoKmsM'][0].': </label> ');
 	$chk = $rd['OdoKms'] <> $KONSTANTS['OdoCountsKilometres'] ? ' checked="checked" ' : '';
 	echo('<input onchange="odoAdjust();enableSaveButton();" type="radio" name="OdoKms" id="OdoKmsM" value="'.$KONSTANTS['OdoCountsMiles'].'"'.$chk.'></span>');
 	echo('&nbsp;&nbsp;&nbsp;<span><label for="OdoKmsK">'.$TAGS['OdoKmsK'][0].' </label> ');
@@ -1412,9 +1415,6 @@ function showNewEntrant()
 	}
 
 
-startHtml($TAGS['ttEntrants'][0]);
-//echo(htmlspecialchars($_REQUEST['breadcrumbs']));
-
 if (isset($_REQUEST['savedata']))
 {
 	saveEntrantRecord();
@@ -1422,6 +1422,9 @@ if (isset($_REQUEST['savedata']))
 		;//exit;
 	
 }
+startHtml($TAGS['ttEntrants'][0]);
+//echo(htmlspecialchars($_REQUEST['breadcrumbs']));
+
 
 
 if (isset($_POST['c']) && $_POST['c']=='kill')

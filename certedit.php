@@ -59,8 +59,8 @@ function editCertificateW() {
 	
 	startHtmlW($rd['css']);
 	
-	echo('<p style="font-size:.8em;">'.$TAGS['CertExplainerW'][0].'<br>');
-	echo($TAGS['CertExplainerW'][1].'</p>');
+	echo('<h4 style="font-size:.8em;">'.$TAGS['CertExplainerW'][0].'<br>');
+	echo($TAGS['CertExplainerW'][1].'</h4>');
 
 	$bc = $_REQUEST['breadcrumbs'];
 	

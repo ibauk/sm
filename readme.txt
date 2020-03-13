@@ -12,6 +12,7 @@
 
 Portable rally scoring system runs on any host webserver serving PHP & SQLite
 
+about.php		Live information about ScoreMaster
 admin.php		Entry page for administrators
 certificate.php	Certificate printing
 common.php		Literals + page header + footer
@@ -23,6 +24,7 @@ score.js		Score calculations
 score.php		Entry page for scorers
 ScoreMaster.db	SQLite database
 sm.php			Administration subroutines
+specfiles.php	List of import spec files
 readme.txt		This file.
 
 certificates	Certificate HTML templates

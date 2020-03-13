@@ -141,6 +141,11 @@ func copyDatabase() {
 		if !loadSql("ScoreMaster.sql") {
 			log.Fatal("Can't load ScoreMaster.sql")
 		}
+		if *lang2use != "en" {
+			if !loadSql("Reasons-"+*lang2use+".sql") {
+				log.Fatal("Can't load foreign reasons")
+			}
+		}
 		if *db2Use == "r" {
 			log.Print("Loading RBLR certificates")
 			if !loadSql("rblrcerts.sql") {

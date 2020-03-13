@@ -8,7 +8,7 @@
  * I am written for readability rather than efficiency, please keep me that way.
  *
  *
- * Copyright (c) 2019 Bob Stammers
+ * Copyright (c) 2020 Bob Stammers
  *
  *
  * This file is part of IBAUK-SCOREMASTER.
@@ -24,7 +24,7 @@
  */
 
 
-$PROGRAM = array("version" => "2.5",	"title"	=> "ScoreMaster");
+$PROGRAM = array("version" => "2.5rc3",	"title"	=> "ScoreMaster");
 /*
  *	2.0	25May18	Used live at BBR18
  *
@@ -61,7 +61,8 @@ $PROGRAM = array("version" => "2.5",	"title"	=> "ScoreMaster");
  *				Trap unsaved scorecard
  *				Average speed
  *
- *	2.5			Average speeds, Team detection, wysiwyg editing, specials maintenance
+ *	2.5			Average speeds, Team, cloning, Team detection, wysiwyg editing, specials maintenance
+ *				Themes, adhoc Entrant import
  *
  */
 $HOME_URL = "admin.php";

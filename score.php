@@ -139,7 +139,7 @@ function inviteScorer()
 	$rally = getValueFromDB('SELECT RallyTitle FROM rallyparams','RallyTitle','');
 	
 	startHtml($TAGS['ttWelcome'][0],'',false);
-	echo('<div id="frontpage"><p>'.$TAGS['OfferScore'][1].'</p>');
+	echo('<div id="frontpage"><h4>'.$TAGS['OfferScore'][1].'</h4>');
 	echo('<form method="post" action="score.php">');
 	echo('<input type="text" autofocus name="ScorerName" value="'.$KONSTANTS['DefaultScorer'].'" onfocus="this.select();">');
 	echo('<input type="submit" name="login" value="'.$TAGS['login'][1].'">');
@@ -215,8 +215,71 @@ function putScore()
 	if (($res = $DB->lastErrorCode()) <> 0)
 		echo('ERROR: '.$DB->lastErrorMsg().'<br />'.$sql.'<hr>');
 	
+	putScoreTeam();
+	
 	if ($AUTORANK)
 		rankEntrants();
+	
+}
+
+function putScoreTeam()
+/*
+ * I am called to apply the current entrant score to all other members of his team
+ * if the CloneTeamMembers flag is set.
+ *
+ * $_REQUEST['EntrantID'] is the scoring member.
+ *
+ */
+{
+	global $DB, $TAGS, $KONSTANTS, $AUTORANK;
+	
+	$sql = "SELECT TeamRanking FROM rallyparams";
+	if (getValueFromDB($sql,"TeamRanking",$KONSTANTS['RankTeamsAsIndividuals'])!=$KONSTANTS['RankTeamsCloning'])
+		return;
+	$sql = "SELECT TeamID FROM entrants WHERE EntrantID=".$_REQUEST['EntrantID'];
+	$team = getValueFromDB($sql,"TeamID","0");
+	if ($team==0)
+		return;
+	
+	
+	$sql = "UPDATE entrants SET ScoredBy='".$DB->escapeString($_REQUEST['ScorerName'])."'";
+	
+	$sql .= ",ScoringNow=0";	// Score's being saved so probably not continuing to be scored
+	
+		$sql .= ",CorrectedMiles=".intval($_REQUEST['CorrectedMiles']);
+	if (isset($_REQUEST['FinishTime']))
+			$sql .= ",FinishTime='".$DB->escapeString($_REQUEST['FinishDate']).'T'.$DB->escapeString($_REQUEST['FinishTime'])."'";
+		
+	if (isset($_REQUEST['BonusesVisited'])) 
+		$sql .= ",BonusesVisited='".$_REQUEST['BonusesVisited']."'";	
+	elseif (isset($_REQUEST['BonusID']) || isset($_REQUEST['update_bonuses'])) 
+		$sql .= ",BonusesVisited='".implode(',',$_REQUEST['BonusID'])."'";
+	
+	if (isset($_REQUEST['SpecialID']) || isset($_REQUEST['update_specials']))
+		//$sql .= ",SpecialsTicked='".implode(',',$_REQUEST['SpecialID'])."'";
+		$sql .= saveSpecials();
+	if (isset($_REQUEST['ComboID']) || isset($_REQUEST['update_combos']))
+		$sql .= ",CombosTicked='".implode(',',$_REQUEST['ComboID'])."'";
+	if (isset($_REQUEST['TotalPoints']))
+		$sql .= ",TotalPoints=".intval(str_replace(',','',$_REQUEST['TotalPoints']));
+	if (isset($_REQUEST['StartTime']))
+		$sql .= ",StartTime='".$DB->escapeString($_REQUEST['StartDate']).'T'.$DB->escapeString($_REQUEST['StartTime'])."'";
+	if (isset($_REQUEST['FinishPosition']))
+		$sql .= ",FinishPosition=".intval($_REQUEST['FinishPosition']);
+	if (isset($_REQUEST['EntrantStatus']))
+		$sql .= ",EntrantStatus=".intval($_REQUEST['EntrantStatus']);
+	if (isset($_REQUEST['ScoreX']))
+		$sql .= ",ScoreX='".$DB->escapeString($_REQUEST['ScoreX'])."'";
+	if (isset($_REQUEST['RejectedClaims']))
+		$sql .= ",RejectedClaims='".$DB->escapeString($_REQUEST['RejectedClaims'])."'";
+	if (isset($_REQUEST['RestMinutes']))
+		$sql .= ",RestMinutes=".intval($_REQUEST['RestMinutes']);
+	$sql .= " WHERE TeamID=$team AND EntrantID<>".$_REQUEST['EntrantID'];
+
+//	echo('<hr>'.$sql.'<hr>');
+	$DB->exec($sql);
+	if (($res = $DB->lastErrorCode()) <> 0)
+		echo('ERROR: '.$DB->lastErrorMsg().'<br />'.$sql.'<hr>');
 	
 }
 
@@ -429,10 +492,10 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 		echo(' class="manualscoring" ');
 	echo('>');
 	echo("\r\n");
-	echo('<span style="font-weight: bold;" id="RiderID">'.$TAGS['EntrantID'][0].' '.$_REQUEST['EntrantID'].' - '.htmlspecialchars($rd['RiderName']));
+	echo('<label style="font-weight: bold;" id="RiderID">'.$TAGS['EntrantID'][0].' '.$_REQUEST['EntrantID'].' - '.htmlspecialchars($rd['RiderName']));
 	if ($rd['PillionName'] <> '')
 		echo(' &amp; '.htmlspecialchars($rd['PillionName']));
-	echo('</span> ');
+	echo('</label> ');
 	$dt1 = splitDatetime($rd['StartTime']);
 	if ($dt1[0] == '')
 		$dt1 = $RallyStartTime;
@@ -516,7 +579,7 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 		echo('<input '.$sbfro.' type="'.$numbertype.'"  name="CorrectedMiles" id="CorrectedMiles" value="'.$cmiles.'" onchange="calcScore(true)" /> ');
 		echo('</span> ');
 		
-		echo('<span class="explain" title="'.$TAGS['CalculatedAvgSpeed'][1].'"><label for="CalculatedAvgSpeed" '.$TAGS['CalculatedAvgSpeed'][0].' </label> ');
+		echo('<span class="explain" title="'.$TAGS['CalculatedAvgSpeed'][1].'"><label for="CalculatedAvgSpeed" >'.$TAGS['CalculatedAvgSpeed'][0].' </label> ');
 		echo('<input readonly type="text" name="CalculatedAvgSpeed" id="CalculatedAvgSpeed" value="">');
 		echo('</span>');
 	}
@@ -801,7 +864,7 @@ function filterByName(x)
 </script>
 <?php	
 	echo('<div id="pickentrant">');
-	echo('<p>'.$TAGS['PickAnEntrant'][1].'</p>');
+	echo('<h4>'.$TAGS['PickAnEntrant'][1].'</h4>');
 	echo('<form id="entrantpick" method="get" action="score.php">');
 	echo('<label for="EntrantID">'.$TAGS['EntrantID'][0].'</label> ');
 	echo('<input oninput="showPickedName();" type="number" autofocus id="EntrantID" name="EntrantID" min="'.$minEntrant.'" max="'.$maxEntrant.'"> '); 
