@@ -167,6 +167,7 @@ CREATE TABLE IF NOT EXISTS `entrants` (
 	`NoKPhone` TEXT,
 	`BCMethod` INTEGER NOT NULL DEFAULT 0,
 	`RestMinutes` INTEGER NOT NULL DEFAULT 0,
+	`Confirmed` INTEGER NOT NULL DEFAULT 0,
 	PRIMARY KEY(`EntrantID`)
 );
 CREATE TABLE IF NOT EXISTS `combinations` (
@@ -308,9 +309,10 @@ INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (31,'UtlFin
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (32,'AdmDoBlankB4','score.php?c=blank&prf=0',NULL,'score,blank score sheet');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (33,'ttTeams','teams.php?m=3&g=2',NULL,'teams,integrity');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (34,'AdmSpeedPenalties','speeding.php',NULL,'speeding,penalties');
-INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (35,'AdmThemes','admin.php?c=themes',NULL,'colour,colours,theme,themes');
+INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (35,'AdmThemes','admin.php?c=themes',NULL,'colours,themes');
+INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (36,'AdmConfirm','score.php?mc=mc',NULL,'confirm,reconcile');
 
-INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('admin','AdmMenuHeader','25,5,2,4,24,6');
+INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('admin','AdmMenuHeader','25,5,2,36,4,24,6');
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('setup','AdmSetupHeader','16,17,18,19,20,34,21,22,23,30');
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('entrant','AdmEntrantsHeader','1,11,12,2,15,24,31');
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('bonus','AdmBonusHeader','7,8,9,10');

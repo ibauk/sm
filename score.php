@@ -10,7 +10,7 @@
  * I am written for readability rather than efficiency, please keep me that way.
  *
  *
- * Copyright (c) 2019 Bob Stammers
+ * Copyright (c) 2020 Bob Stammers
  *
  *
  * This file is part of IBAUK-SCOREMASTER.
@@ -34,7 +34,8 @@ $HOME_URL = "score.php";
  *	2.1	Use '-' instead of space between label and bonus checkbox
  *	2.1	Multiple radio groups of specials
  *	2.1 RejectedClaims handling
-  *	2.1 Odo check trip reading - used though not stored
+ *	2.1 Odo check trip reading - used though not stored
+ *	2.5	MarkConfirmed
  *
  */
 
@@ -134,13 +135,15 @@ function defaultFinishTime()
 
 function inviteScorer()
 {
-	global $DB, $TAGS, $KONSTANTS;
+	global $DB, $TAGS, $KONSTANTS, $DBVERSION;
 	
 	$rally = getValueFromDB('SELECT RallyTitle FROM rallyparams','RallyTitle','');
 	
 	startHtml($TAGS['ttWelcome'][0],'',false);
 	echo('<div id="frontpage"><h4>'.$TAGS['OfferScore'][1].'</h4>');
 	echo('<form method="post" action="score.php">');
+	if (isset($_REQUEST['mc']) && $DBVERSION >= 4)
+		echo('<input type="hidden" name="mc" value="mc">');
 	echo('<input type="text" autofocus name="ScorerName" value="'.$KONSTANTS['DefaultScorer'].'" onfocus="this.select();">');
 	echo('<input type="submit" name="login" value="'.$TAGS['login'][1].'">');
 	echo('</form></div>');
@@ -159,7 +162,7 @@ function loginNewScorer()
 
 function putScore()
 {
-	global $DB, $TAGS, $KONSTANTS, $AUTORANK;
+	global $DB, $TAGS, $KONSTANTS, $AUTORANK, $DBVERSION;
 
 	//var_dump($_REQUEST);
 	
@@ -184,8 +187,15 @@ function putScore()
 	if (isset($_REQUEST['FinishTime']))
 			$sql .= ",FinishTime='".$DB->escapeString($_REQUEST['FinishDate']).'T'.$DB->escapeString($_REQUEST['FinishTime'])."'";
 		
-	if (isset($_REQUEST['BonusesVisited'])) 
+	if (isset($_REQUEST['BonusesVisited'])) {
 		$sql .= ",BonusesVisited='".$_REQUEST['BonusesVisited']."'";	
+		$confirmed = true;
+		$bv = explode(',',$_REQUEST['BonusesVisited']);
+		foreach($bv as $ba)
+			$confirmed = $confirmed && ($ba == '' || startsWith($ba,$KONSTANTS['ConfirmedBonusMarker']));
+		if ($DBVERSION >= 4)
+			$sql .= ",Confirmed=".($confirmed ? 1 : 0);
+	}
 	elseif (isset($_REQUEST['BonusID']) || isset($_REQUEST['update_bonuses'])) 
 		$sql .= ",BonusesVisited='".implode(',',$_REQUEST['BonusID'])."'";
 	
@@ -215,14 +225,14 @@ function putScore()
 	if (($res = $DB->lastErrorCode()) <> 0)
 		echo('ERROR: '.$DB->lastErrorMsg().'<br />'.$sql.'<hr>');
 	
-	putScoreTeam();
+	putScoreTeam($confirmed);
 	
 	if ($AUTORANK)
 		rankEntrants();
 	
 }
 
-function putScoreTeam()
+function putScoreTeam($confirmed)
 /*
  * I am called to apply the current entrant score to all other members of his team
  * if the CloneTeamMembers flag is set.
@@ -231,7 +241,7 @@ function putScoreTeam()
  *
  */
 {
-	global $DB, $TAGS, $KONSTANTS, $AUTORANK;
+	global $DB, $TAGS, $KONSTANTS, $AUTORANK, $DBVERSION;
 	
 	$sql = "SELECT TeamRanking FROM rallyparams";
 	if (getValueFromDB($sql,"TeamRanking",$KONSTANTS['RankTeamsAsIndividuals'])!=$KONSTANTS['RankTeamsCloning'])
@@ -250,8 +260,11 @@ function putScoreTeam()
 	if (isset($_REQUEST['FinishTime']))
 			$sql .= ",FinishTime='".$DB->escapeString($_REQUEST['FinishDate']).'T'.$DB->escapeString($_REQUEST['FinishTime'])."'";
 		
-	if (isset($_REQUEST['BonusesVisited'])) 
+	if (isset($_REQUEST['BonusesVisited'])) {
 		$sql .= ",BonusesVisited='".$_REQUEST['BonusesVisited']."'";	
+		if ($DBVERSION >= 4)
+			$$sql .= ",Confirmed=".($confirmed ? 1 : 0);
+	}
 	elseif (isset($_REQUEST['BonusID']) || isset($_REQUEST['update_bonuses'])) 
 		$sql .= ",BonusesVisited='".implode(',',$_REQUEST['BonusID'])."'";
 	
@@ -274,6 +287,8 @@ function putScoreTeam()
 		$sql .= ",RejectedClaims='".$DB->escapeString($_REQUEST['RejectedClaims'])."'";
 	if (isset($_REQUEST['RestMinutes']))
 		$sql .= ",RestMinutes=".intval($_REQUEST['RestMinutes']);
+	if (isset($_REQUEST['Confirmed']))
+		$sql .= ",Confirmed=".intval($_REQUEST['Confirmed']);
 	$sql .= " WHERE TeamID=$team AND EntrantID<>".$_REQUEST['EntrantID'];
 
 //	echo('<hr>'.$sql.'<hr>');
@@ -416,6 +431,8 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 	echo('<input type="hidden" id="ScoringMethod" value="'.$ScoringMethod.'">');
 	echo('<input type="hidden" id="ShowMults" value="'.$ShowMults.'">');
 	echo('<input type="hidden" name="ScoreX" id="scorexstore" value=""/>');
+	if (isset($_REQUEST['mc']) && $DBVERSION >= 4)
+		echo('<input type="hidden" name="mc" value="mc">');
 	//echo(" 1 ");
 	$TimePenaltyTime =($DBVERSION < 3 ? '0 as TimeSpec' : 'TimeSpec');
 		
@@ -485,6 +502,8 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 	echo('<input type="hidden" name="RejectedClaims" id="RejectedClaims" value="'.$rd['RejectedClaims'].'">');
 	$rm = ($DBVERSION >= 4 ? $rd['RestMinutes'] : 0);
 	echo('<input type="hidden" name="RestMinutes" id="RestMinutes" value="'.$rm.'">');
+	$rm = ($DBVERSION >= 4 ? $rd['Confirmed'] : 0);
+	echo('<input type="hidden" name="Confirmed" id="Confirmed" value="'.$rm.'">');
 	
 	echo("\r\n");
 	echo('<div id="ScoreHeader"');
@@ -601,7 +620,7 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 		$tp_id = 'TotalPoints';
 	}
 	// call to sxtoggle removed
-	echo('<input  class="clickme"  ondblclick="sxprint();"  title="'.$TAGS['TotalPoints'][1].'" type="'.($ro != ''? 'text' : 'number').'" '.$ro.' name="TotalPoints" id="'.$tp_id.'" value="'.$ctotal.'" onchange="calcScore(true)" /> ');
+	echo('<input  class="clickme"  title="'.$TAGS['TotalPoints'][1].'" type="'.($ro != ''? 'text' : 'number').'" '.$ro.' name="TotalPoints" id="'.$tp_id.'" value="'.$ctotal.'" onchange="calcScore(true)" /> ');
 	echo('</span> ');
 	
 	if (!$showBlankForm)
@@ -630,6 +649,15 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 	echo('</span> ');
 	echo('<input type="submit" class="noprint" title="'.$TAGS['SaveScore'][1].'" id="savescorebutton" data-triggered="0" onclick="'."this.setAttribute('data-triggered','1')".'" disabled accesskey="S" name="savescore" data-altvalue="'.$TAGS['SaveScore'][0].'" value="'.$TAGS['ScoreSaved'][0].'" /> ');
 	//echo('<input type="submit" id="backtolistbutton" name="showpicklist" data-altvalue="'.$TAGS['ShowEntrants'][0].'" value="'.$TAGS['ShowEntrants'][0].'"> ');
+	
+	if (isset($_REQUEST['mc']) && $DBVERSION >= 4){
+		echo('<span title="'.$TAGS['MarkConfirmed'][1].'"><label for="MarkConfirmed">'.$TAGS['MarkConfirmed'][0].'</label> ');
+		echo('<input type="checkbox" name="MarkConfirmed" id="MarkConfirmed" value="1" ');
+		echo(' onchange="if (this.checked) markAsConfirmed();"');
+		if ($rd['Confirmed'] != 0)
+			echo(' checked');
+		echo('> </span>');
+	}
 	
 	
 	} // End !$showBlank Form
@@ -704,8 +732,12 @@ function showBonuses($bonusesTicked,$showBlankForm,$postRallyForm)
 	{
 		$bk = $rd['BonusID'];
 		$bd = $rd['BriefDesc'];
-		
+		$tick = '';
 		$chk = array_search($rd['BonusID'], $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
+		if ($chk=='') {
+			$chk = array_search($KONSTANTS['ConfirmedBonusMarker'].$rd['BonusID'], $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
+			$tick = $chk=='' ? '' :  $KONSTANTS['ConfirmedBonusTick'];
+		}
 		$spncls = ($chk <> '') ? ' checked' : ' unchecked';
 		echo('<span class="showbonus'.$spncls.'"');
 		if (!$showBlankForm)
@@ -723,7 +755,7 @@ function showBonuses($bonusesTicked,$showBlankForm,$postRallyForm)
 		{
 			echo(' ____ ____ ');
 		}
-		echo('</span>');
+		echo('</span>'.$tick);
 		echo("\r\n");
 		
 		
@@ -768,6 +800,8 @@ function showCombinations($Combos)
 		$bk = $rd['ComboID'];
 		$bd = $rd['BriefDesc'];
 		$chk = array_search($rd['ComboID'], $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
+		if ($chk=='')
+			$chk = array_search($KONSTANTS['ConfirmedBonusMarker'].$rd['ComboID'], $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
 		$spncls = ($chk <> '') ? ' checked' : ' unchecked';
 		echo('<span class="combo '.$spncls.'" title="'.htmlspecialchars($bk).' [ ');
 		if ($rd['ScoreMethod']==$KONSTANTS['ComboScoreMethodMults'])
@@ -796,7 +830,7 @@ function showCombinations($Combos)
 
 function showPicklist($ord)
 {
-	global $DB, $TAGS, $KONSTANTS, $HOME_URL;
+	global $DB, $TAGS, $KONSTANTS, $HOME_URL, $DBVERSION;
 	
 
 	$minEntrant = getValueFromDB("SELECT min(EntrantID) as MaxID FROM entrants","MaxID",1);
@@ -869,6 +903,8 @@ function filterByName(x)
 	echo('<label for="EntrantID">'.$TAGS['EntrantID'][0].'</label> ');
 	echo('<input oninput="showPickedName();" type="number" autofocus id="EntrantID" name="EntrantID" min="'.$minEntrant.'" max="'.$maxEntrant.'"> '); 
 	echo('<input type="hidden" name="c" value="score">');
+	if (isset($_REQUEST['mc']) && $DBVERSION >= 4)
+		echo('<input type="hidden" name="mc" value="mc">');
 	echo('<input type="hidden" name="ScorerName" value="'.htmlspecialchars($_REQUEST['ScorerName']).'">');
 	echo('<label for="NameFilter">'.$TAGS['NameFilter'][0].' </label>');
 	echo(' <input onchange="enableSaveButton();" type="text" id="NameFilter" title="'.$TAGS['NameFilter'][1].'" onkeyup="filterByName(this.value)">');
@@ -892,6 +928,9 @@ function filterByName(x)
 		$es = $evs[''.$rd['EntrantStatus']];
 		if ($es=='')
 			$es = '[[ '.$rd['EntrantStatus'].']]';
+		if ($DBVERSION >= 4)
+			if ($rd['Confirmed'] !=0)
+				$es .= ' '.$KONSTANTS['ConfirmedBonusTick'];
 		echo('<td class="EntrantStatus">'.$es.'</td>');
 		echo('<td class="ScoredBy">');
 		if ($rd['ScoringNow']<>0)
@@ -951,6 +990,8 @@ function showSpecials($specials)
 	{
 		if ($bk <> '') {
 			$chk = array_search($bk, $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
+			if ($chk=='')	
+				$chk = array_search($KONSTANTS['ConfirmedBonusMarker'].$bk, $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
 			if ($b[4] <> $lastSpecialGroup)
 			{
 				if ($lastSpecialGroup <> '')
@@ -995,6 +1036,8 @@ function showSpecials($specials)
 			echo('>');
 			echo('<label for="S'.str_replace(' ','_',$bk).'">'.htmlspecialchars($b[0]).' </label>');
 			$chk = array_search($bk, $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
+			if ($chk=='')	
+				$chk = array_search($KONSTANTS['ConfirmedBonusMarker'].$bk, $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
 			if ($chk=='' && $firstRadio <> '' && $b[5]=='R')
 				$chk = $firstRadio;
 			$firstRadio = '';

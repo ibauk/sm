@@ -411,6 +411,7 @@ function showEntrantBonuses($bonuses,$rejections)
 	echo('<h4>'.$TAGS['ROUseScore'][1].'</h4>');
 	$REJ = parseStringArray($rejections,',','=');
 	$BA = explode(',',','.$bonuses); // The leading comma means that the first element is index 1 not 0
+	//print_r($BA);
 	$R = $DB->query('SELECT * FROM bonuses ORDER BY BonusID');
 	$BP = array();
 	while ($rd = $R->fetchArray())
@@ -420,12 +421,17 @@ function showEntrantBonuses($bonuses,$rejections)
 	foreach($BP as $bk => $b)
 	{
 		if ($bk <> '') {
+			$tick = '';
 			$chk = array_search($bk, $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
+			if ($chk=='') {
+				$chk = array_search($KONSTANTS['ConfirmedBonusMarker'].$bk,$BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
+				$tick = $chk==''? '' : $KONSTANTS['ConfirmedBonusTick'];
+			}
 			echo('<span title="'.htmlspecialchars($b).'"');
 			if ($chk) echo(' class="keep checked"'); else if (isset($REJ['B'.$bk]) && $REJ['B'.$bk] != '') echo(' class="rejected"'); else echo(' class="keep"');
 			echo('><label for="B'.$bk.'">'.$bk.' </label>');
 			echo('<input '.$ro.' type="checkbox"'.$chk.' name="BonusID[]" id="B'.$bk.'" value="'.$bk.'"> ');
-			echo('</span>'."\r\n");
+			echo('</span>'.$tick."\r\n");
 		}
 	}
 }
@@ -1067,15 +1073,21 @@ function showEntrantSpecials($specials,$rejections)
 		foreach($BP as $bk => $b)
 		{
 			if ($bk <> '') {
+				$tick = '';
 				$chk = array_search($bk, $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
+				if ($chk=='') {
+					$chk = array_search($KONSTANTS['ConfirmedBonusMarker'].$bk,$BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
+					$tick = $chk==''? '' : '&#10004;';
+				}
 				echo('<span title="'.htmlspecialchars($bk).'"');
 				if ($chk) echo(' class="keep checked"'); else if (isset($REJ['S'.$bk]) && $REJ['S'.$bk] != '') echo(' class="rejected"'); else echo(' class="keep"');
 				echo('><label for="S'.$bk.'">'.htmlspecialchars($b).' </label>');
 				echo('<input '.$ro.' type="checkbox"'.$chk.' name="SpecialID[]" id="S'.$bk.'" value="'.$bk.'"> ');
-				echo(' &nbsp;&nbsp;</span>');
+				echo(' &nbsp;&nbsp;</span>'.$tick."\r\n");
 			}
 		}
 }
+
 
 function showEntrantCombinations($Combos,$rejections)
 {
@@ -1098,12 +1110,17 @@ function showEntrantCombinations($Combos,$rejections)
 	foreach($BA as $bk => $b)
 	{
 		if ($bk <> '') {
+			$tick = '';
 			$chk = array_search($bk, $BAB) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
+			if ($chk=='') {
+				$chk = array_search($KONSTANTS['ConfirmedBonusMarker'].$bk,$BAB) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
+				$tick = $chk==''? '' : $KONSTANTS['ConfirmedBonusTick'];
+			}
 			echo('<span title="'.htmlspecialchars($bk).'"');
 			if ($chk) echo(' class="keep checked"'); else if (isset($REJ['C'.$bk]) && $REJ['C'.$bk] != '') echo(' class="rejected"'); else echo(' class="keep"');
 			echo('><label for="C'.$bk.'">'.htmlspecialchars($b).' </label>');
 			echo('<input '.$ro.' type="checkbox"'.$chk.' name="ComboID[]" id="C'.$bk.'" value="'.$bk.'"> ');
-			echo(' &nbsp;&nbsp;</span>');
+			echo(' &nbsp;&nbsp;</span>'.$tick."\r\n");
 		}
 	}
 }

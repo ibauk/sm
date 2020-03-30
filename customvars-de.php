@@ -87,6 +87,7 @@ $TAGS = array(
 	'AdmCatTable'		=> array('Categories','View/edit axis categories'),
 	'AdmCombosTable'	=> array('Combinations','View/edit combination bonuses'),
 	'AdmCompoundCalcs'	=> array('Compound calculations','Maintain table of calculation records'),
+	'AdmConfirm'		=> array('Reconcile scores','Confirm bonus claims as accurate'),
 	'AdmDoBlank'		=> array('Post score ticksheet','Show blank score with reject reasons sheet ready for printing'),
 	'AdmDoBlankB4'		=> array('Scoring ticksheet','Show paper scoring log sheet ready for printing'),
 	'AdmDoScoring'		=> array('Scoring','Score individual entrants'),
@@ -181,6 +182,7 @@ $TAGS = array(
 	'CompulsoryBonus0'	=> array('Optional',''),
 	'CompulsoryBonus1'	=> array('Compulsory',''),
 	'ConfirmDelEntrant'	=> array('Delete this entrant?','Confirm deletion of this entrant'),
+	'ConfirmedBonusTick'=> array('&#10004;','This bonus has been confirmed/reconciled'),
 	
 	'ContactDetails'	=> array('Contacts',''),
 	
@@ -245,6 +247,8 @@ $TAGS = array(
 	'LegendTeams'		=> array('Teams'),
 	'login'				=> array('login','Go on, log me in then!'),
 	'LogoutScorer'		=> array('Logout','Log the named scorer off this terminal'),
+
+	'MarkConfirmed'		=> array('Mark as confirmed','Mark all bonus claim decisions as having been confirmed'),
 	
 	'MaxHours'			=> array('Max hours','Die Dauer der Rallye in Stunden. Wird zur Berechnung der DNF-Zeit verwendet und kann auf Zertifikaten angezeigt werden'),
 	'MaxMilesFixedM'	=> array('Multiplier','Excess distance incurs deduction of multipliers'),							// Miles/Kms

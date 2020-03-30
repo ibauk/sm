@@ -90,6 +90,7 @@ $TAGS = array(
 	'AdmCatTable'		=> array('Categories','View/edit axis categories'),
 	'AdmCombosTable'	=> array('Combinations','View/edit combination bonuses'),
 	'AdmCompoundCalcs'	=> array('Compound calculations','Maintain table of calculation records'),
+	'AdmConfirm'		=> array('Reconcile scores','Confirm bonus claims as accurate'),
 	'AdmDoBlank'		=> array('Post score ticksheet','Show blank score with reject reasons sheet ready for printing'),
 	'AdmDoBlankB4'		=> array('Scoring ticksheet','Show paper scoring log sheet ready for printing'),
 	'AdmDoScoring'		=> array('Scoring','Score individual entrants'),
@@ -184,6 +185,7 @@ $TAGS = array(
 	'CompulsoryBonus0'	=> array('Optional',''),
 	'CompulsoryBonus1'	=> array('Compulsory',''),
 	'ConfirmDelEntrant'	=> array('Delete this entrant?','Confirm deletion of this entrant'),
+	'ConfirmedBonusTick'=> array('&#10004;','This bonus has been confirmed/reconciled'),
 	
 	'ContactDetails'	=> array('Contacts',''),
 	
@@ -247,6 +249,8 @@ $TAGS = array(
 	'LegendTeams'		=> array('Teams'),
 	'login'				=> array('login','Go on, log me in then!'),
 	'LogoutScorer'		=> array('Logout','Log the named scorer off this terminal'),
+	
+	'MarkConfirmed'		=> array('Mark as confirmed','Mark all bonus claim decisions as having been confirmed'),
 	
 	'MaxHours'			=> array('Maximum hours','The duration of the rally in hours. Used to calculate DNF time, may show on certificates'),
 	'MaxMilesFixedM'	=> array('Multiplier','Excess mileage incurs deduction of multipliers'),							// Miles/Kms
@@ -377,6 +381,7 @@ $TAGS = array(
 	'Scorer'			=> array('Scorer','Person doing the scoring'),
 	'ScoreSaved'		=> array('Scorecard saved','This screen matches the database, no changes yet'),
 	'ScoreThis'			=> array('Score this rider',''),
+	'ScoreValue'		=> array('Value(s)','The number of points or multipliers; use commas for variable values starting with MinTicks'),
 	'ScorexHints'		=> array('Right-click to reorder; double-click to print',''),
 	'ScorexLit'			=> array('ScoreX','Score explanation'),
 	'ScoringMethod'		=> array('Scoring method',''),
