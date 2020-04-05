@@ -75,8 +75,8 @@ $KONSTANTS['ComboScoreMethodMults'] = 1;
 $KONSTANTS['DefaultOdoScaleFactor'] = 1;
 $KONSTANTS['DefaultEntrantStatus'] = $KONSTANTS['EntrantOK'];
 
-
-
+$KONSTANTS['ConfirmedBonusMarker'] = '++';
+$KONSTANTS['ConfirmedBonusTick'] = '<span class="ConfirmedBonusTick" title="'.$TAGS['ConfirmedBonusTick'][1].'">'.$TAGS['ConfirmedBonusTick'][0].'</span>';
 
 // Common subroutines below here; nothing translateable below
 	
@@ -467,6 +467,11 @@ function rally_params_established()
 	$rd = $R->fetchArray();
 	return ($rd['DBState'] > 0);
 }
+
+function startsWith($string, $startString) { 
+  $len = strlen($startString); 
+  return (substr($string, 0, $len) === $startString); 
+} 
 
 ?>
 

@@ -32,6 +32,7 @@ $HOME_URL = 'admin.php?menu=setup';
 $EXCLUDE_FIELDS = array(
 	"AutoRank","BCMethod","BonusesVisited","CombosTicked","DBState","DBVersion",
 	"Cat1Label","Cat2Label","Cat3Label","Cat4Label","Cat5Label","Cat6Label","Cat7Label","Cat8Label","Cat9Label",
+	"Confirmed",
 	"ExtraData","MaxMilesMethod","NoKName","NoKRelation","NoKPhone","OdoCheckMiles","OdoCheckStart","OdoCheckFinish",
 	"OdoKms","RejectReasons","RejectedClaims","ScoreX","ScoredBy","ScoringMethod","ScoringNow","ShowMultipliers",
 	"SpecialsTicked","TeamRanking","TiedPointsRanking","EntrantStatus"
@@ -39,6 +40,8 @@ $EXCLUDE_FIELDS = array(
 
 // These non-database fields should be included in the dropdown picklist`
 $CERT_FIELDS = array(
+	"CrewFirst"				=> "CrewFirst",
+	"CrewName"				=> "CrewName",
 	"DateRallyRange"		=> "DateRallyRange",
 	"RallyTitleSplit"		=> "RallyTitleSplit",
 	"RallyTitleShort"		=> "RallyTitleShort"

@@ -61,4 +61,6 @@ const FINISHERS_EXPORTED = "Finishers Exported!";
 const OBSORTAZ = "Sort into Bonus id order";
 const APPLYCLOSE = "Apply changes/close";
 
+const UPDATE_FAILED = "UPDATE FAILED!";
+
 const MY_LOCALE = "de-DE";

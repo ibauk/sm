@@ -117,11 +117,12 @@ const class_checked		= ' checked ';
 const class_unchecked	= ' unchecked ';
 
 /* Don't create any elements with this id */
-const NON_EXISTENT_BONUSID = 'zz'; 
+const NON_EXISTENT_BONUSID = 'zzyy23'; 
 
 const DDAREA_id	= "ddarea";
 const ORDINARY_BONUS_PREFIX = 'B';
 const ORDINARY_BONUSES_VISITED = 'BonusesVisited';
+const CONFIRMED_BONUS_MARKER	= '++';
 
 // Nice flexible string formatting
 if (!String.format) {
@@ -289,7 +290,7 @@ function calcAvgSpeed()
 		restMins.value = 0;
 		for (let i = 0; i < specials.length; i++)
 			if (specials[i].checked)
-				restMins.value += specials[i].getAttribute('data-mins');
+				restMins.value = parseInt(restMins.value) + parseInt(specials[i].getAttribute('data-mins'));
 		minsDuration -= restMins.value;
 		console.log('cas: '+restMins.value+' ('+specials.length+')');
 		document.querySelector('#RestMinutes').value = restMins.value;
@@ -990,7 +991,9 @@ function calcSimpleScore(res)
 				{
 					bps = parseInt(bp[i].getAttribute('data-points'));
 					TS += bps;
-					sxappend(bp[i].getAttribute('id'),bp[i].parentNode.firstChild.innerHTML,bp[i].getAttribute('data-points'),0,TS);
+					let rm = bp[i].getAttribute('data-mins');
+					let x = (rm > 0 ? ' ['+formatMinutes(rm)+']' : '');
+					sxappend(bp[i].getAttribute('id'),bp[i].parentNode.firstChild.innerHTML+x,bp[i].getAttribute('data-points'),0,TS);
 				}
 		
 		}
@@ -1233,12 +1236,14 @@ function explainOrdinaryBonuses(totalSoFar)
 		var bva = bv.value.split(',');
 		for (var i = 0; i < bva.length; i++ )
 		{
-			var bp = document.getElementById('B'+bva[i]);
+			var bp = document.getElementById('B'+bva[i].replace(CONFIRMED_BONUS_MARKER,''));
 			if (bp && bp.checked)
 				if (bp.getAttribute('data-rejected') < 1)
 					showB(bp);
 				else
 					reportRejectedClaim(bp.id,bp.getAttribute('data-rejected'));
+			else if (!bp)
+				console.log("Can't find "+bva[i]);
 		}
 	}
 }
@@ -1259,7 +1264,7 @@ function formatMinutes(mins)
 	let hh = Math.floor(mins/60);
 	let mm = mins % 60;
 	if (hh>0)
-		return hh+'h '+mm+'m';
+		return hh+'h'+(mm>0?' '+mm+'m':'');
 	else
 		return mm+'m';
 }
@@ -1407,6 +1412,28 @@ function clearUnrejectedClaims()
 	oks.checked = (val != 0);
 	calcMiles();
  }
+
+
+function markAsConfirmed()
+/*
+ * I mark the scorecard as having been confirmed then save
+ * it back to the database
+ *
+ */
+{
+	console.log('mac called');
+	let bv = document.querySelector('#'+ORDINARY_BONUSES_VISITED);
+	if (!bv)
+		return;
+	let bva = bv.value.split(',');
+	
+	for (let i = 0; i < bva.length; i++ )
+		bva[i] = CONFIRMED_BONUS_MARKER+bva[i].replace(CONFIRMED_BONUS_MARKER,'');
+	bv.value = bva.join(',');
+	
+	enableSaveButton();
+	document.querySelector('#savescorebutton').click();
+}
 
 
 function reflectBonusCheckedState(B)
@@ -1722,13 +1749,14 @@ function showBonusOrder()
 	html += '<ol class="ddlist">';
 	for (var i = 0; i < obs.length; i++)
 	{
-		var bon = document.getElementById(ORDINARY_BONUS_PREFIX+obs[i]);
+		var bon = document.getElementById(ORDINARY_BONUS_PREFIX+obs[i].replace(CONFIRMED_BONUS_MARKER,''));
+		console.log("sbo: "+JSON.stringify(bon));
 		html += '<li draggable="true" ondragstart="dragStart(event)" ondragover="dragOver(event)" >';
 		var tit = bon.parentNode.getAttribute('title');
 		var p = tit.indexOf('[');
 		if (p >= 0)
 			tit = tit.substr(0,p);
-		html += obs[i] + ' ' + tit;
+		html += obs[i].replace(CONFIRMED_BONUS_MARKER,'') + ' ' + tit;
 		html += '</li>';
 	}
 	html += '</ol>';
@@ -2077,12 +2105,16 @@ function tickBonus(B)
 		if (bv.value.length > 0)
 			bva = bv.value.split(',');
 		if (B.checked)
-			if (bva.indexOf(B.value) < 0)
+			if (bva.indexOf(B.value) < 0 && bva.indexOf(CONFIRMED_BONUS_MARKER+B.value) < 0)
 				bva.push(B.value);
 			else
 				;
-		else
-			bva.splice(bva.indexOf(B.value),1);
+		else {
+			let ix = bva.indexOf(B.value);
+			if (ix < 0)
+				ix = bva.indexOf(CONFIRMED_BONUS_MARKER+B.value);
+			bva.splice(ix,1);
+		}
 		bv.value = bva.join(',');			
 	}
 	calcScore(true);	

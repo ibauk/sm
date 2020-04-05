@@ -108,6 +108,7 @@ select[name="EntrantStatus"]	{ margin-bottom: 1em; }
 fieldset				{ margin-bottom: 1em; }
 input[name="FinishPosition"]	{ width: 3em; }
 input[name="BonusID[]"],
+input[name="bonusid"],
 input[name="BonusID"]	{ width: 3em; }
 input[name="OdoCheckMiles"]	{ width:3em; }
 input.bignumber			{ width: 5em;}

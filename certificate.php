@@ -227,6 +227,8 @@ function formattedField($fldname,$fldval)
 		return formattedDate($fldval);
 	} else if (preg_match("/CorrectedMiles|TotalPoints/",$fldname)) {
 		return number_format(floatval($fldval),0,$dp,$cm);
+	} else if ($fldname=='') {
+		return '#';
 	} else
 		return $fldval;
 }
@@ -281,7 +283,7 @@ function fetchCertificateText($EntrantID)
 		$rd = $R->fetchArray();
 
 		$mt = [];
-		preg_match_all("/(#[\\w]+#)/",$res,$mt,PREG_SET_ORDER);
+		preg_match_all("/(#[\\w]*#)/",$res,$mt,PREG_SET_ORDER);
 		foreach ($mt as $fld)
 		{
 			$fldname = substr($fld[0],1,strlen($fld[0])-2);

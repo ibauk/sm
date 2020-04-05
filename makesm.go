@@ -68,7 +68,7 @@ var caddy string = "../caddy.exe"
 
 var SMFILES = [...] string {
 			"about.php","admin.php",
-			"certedit.php","certificate.css","certificate.php","common.php",
+			"certedit.php","certificate.css","certificate.php","claims.php","common.php",
 			"entrants.php","exportxls.php",
 			"favicon.ico","importxls.php","index.php",
 			"licence.txt","readme.txt","reboot.css",

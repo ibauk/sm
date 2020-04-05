@@ -169,7 +169,7 @@ function listEntrants($ord = "EntrantID")
 		echo('<caption title="'.htmlentities($TAGS['EntrantListCheck'][1]).'">'.htmlentities($TAGS['EntrantListCheck'][0]).'</caption>');
 	**/
 	
-	echo('<thead class="listhead"><tr><th class="EntrantID"><a href="entrants.php?c=entrants&amp;ord=EntrantID&amp;mode='.$_REQUEST['mode'].$bcurl.'">'.$TAGS['EntrantID'][0].'</a></th>');
+	echo('<thead><tr><th class="EntrantID"><a href="entrants.php?c=entrants&amp;ord=EntrantID&amp;mode='.$_REQUEST['mode'].$bcurl.'">'.$TAGS['EntrantID'][0].'</a></th>');
 	if ($ord == 'RiderName' || $ord == 'RiderFirst')
 		$riderord = 'RiderLast';
 	else

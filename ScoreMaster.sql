@@ -311,8 +311,9 @@ INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (33,'ttTeam
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (34,'AdmSpeedPenalties','speeding.php',NULL,'speeding,penalties');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (35,'AdmThemes','admin.php?c=themes',NULL,'colours,themes');
 INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (36,'AdmConfirm','score.php?mc=mc',NULL,'confirm,reconcile');
+INSERT INTO `functions` (functionid,menulbl,url,onclick,Tags) VALUES (37,'AdmClaims','claims.php',NULL,'claims,reconcile');
 
-INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('admin','AdmMenuHeader','25,5,2,36,4,24,6');
+INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('admin','AdmMenuHeader','25,5,2,37,36,4,24,6');
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('setup','AdmSetupHeader','16,17,18,19,20,34,21,22,23,30');
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('entrant','AdmEntrantsHeader','1,11,12,2,15,24,31');
 INSERT INTO `menus` (menuid,menulbl,menufuncs) VALUES ('bonus','AdmBonusHeader','7,8,9,10');
