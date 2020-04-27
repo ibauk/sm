@@ -26,9 +26,6 @@
  *
  */
 
-$VIRTUAL_RALLY = true;
-$VIRTUAL_STOP_MINS = 10;
-
 $HOME_URL = "admin.php";
 require_once('common.php');
 
@@ -111,6 +108,8 @@ function listclaims()
 {
 	global $DB,$TAGS,$KONSTANTS;
 	
+	$virtualrally = getValueFromDB("SELECT isvirtual FROM virtualrally","isvirtual",0) != 0;
+	
 	$showAll = 0;		// ignore Judged/applied status
 	$showOnly = 1;		// show only Judged/applied claims
 	$showNot = 2;		// show only undecided/unapplied claims
@@ -189,7 +188,12 @@ function listclaims()
 	echo('</form>');
 	echo('</div>');
 	echo('<table><thead class="listhead">');
-	echo('<tr><th>'.$TAGS['cl_EntrantHdr'][0].'</th><th>'.$TAGS['cl_BonusHdr'][0].'</th><th>'.$TAGS['cl_OdoHdr'][0].'<th>'.$TAGS['cl_ClaimedHdr'][0].'</th><th>'.$TAGS['cl_DecisionHdr'][0].'</th><th>'.$TAGS['cl_AppliedHdr'][0].'</th><th>'.$TAGS['cl_LoggedHdr'][0].'</th></tr>');
+	echo('<tr><th>'.$TAGS['cl_EntrantHdr'][0].'</th><th>'.$TAGS['cl_BonusHdr'][0].'</th><th>'.$TAGS['cl_OdoHdr'][0].'<th>'.$TAGS['cl_ClaimedHdr'][0].'</th>');
+	echo('<th>'.$TAGS['cl_DecisionHdr'][0].'</th>');
+	if ($virtualrally) {
+		echo('<th>F</th><th>S</th><th>M</th>');
+	}
+	echo('<th>'.$TAGS['cl_AppliedHdr'][0].'</th><th>'.$TAGS['cl_LoggedHdr'][0].'</th></tr>');
 	echo('<tbody>');
 	while ($rd = $R->fetchArray()) {
 		echo('<tr data-rowid="'.$rd['rowid'].'">');
@@ -210,8 +214,13 @@ function listclaims()
 		} else
 			$status = ($rd['Judged'] != 0 ? $decisions[$rd['Decision']] : $TAGS['BonusClaimUndecided'][0]);
 		echo('<td> '.$status.' </td>');	
+		if ($virtualrally) {
+			echo('<td>'.($rd['FuelPenalty'] != 0 ? '*' : '').'</td>');
+			echo('<td>'.($rd['SpeedPenalty'] != 0 ? '*' : '').'</td>');
+			echo('<td>'.($rd['MagicPenalty'] != 0 ? '*' : '').'</td>');
+		}
 		echo('<td title="'.$TAGS['cl_Applied'][1].'" style="text-align:center;">'.'<input type="checkbox" onchange="updateClaimApplied(this);" value="1"'.($rd['Applied']!=0? ' checked' :'').'>');
-		echo('<td> '.logtime($rd['LoggedAt']).' </td>');
+		echo('<td> '.logtime($rd['LoggedAt']).'z </td>');
 		echo('</tr>');
 	}
 	echo('</tbody></table>');
@@ -228,7 +237,7 @@ function logtime($stamp)
 /* We're really only interested in the time of day and which of a few days it's on */
 {
 	//echo($stamp);
-	return '<span title="'.$stamp.'">'.gmdate('D H:i',strtotime($stamp)).'</span>';
+	return '<span title="'.$stamp.'">'.date('D H:i',strtotime($stamp)).'</span>';
 }
 
 function parseTimeMins($tx)
@@ -253,7 +262,8 @@ function parseTimeMins($tx)
 function saveClaim()
 {
 	global $DB,$TAGS,$KONSTANTS;
-	global $VIRTUAL_RALLY;
+	
+	//print_r($_REQUEST);
 	
 	$claimid = isset($_REQUEST['claimid']) ? intval($_REQUEST['claimid']) : 0;
 	if ($claimid <= 0) {
@@ -261,6 +271,13 @@ function saveClaim()
 		return;
 	}
 	
+	$virtualrally = false;
+	$virtualstopmins = 0;
+	$R = $DB->query("SELECT * FROM virtualrally");
+	if ($rd = $R->fetchArray()) {
+		$virtualrally = ($rd['isvirtual'] != 0);
+		$virtualstopmins = $rd['stoptime'];
+	}
 	$sql = "UPDATE claims SET ";
 	$sql = '';
 	if (isset($_REQUEST['ClaimDate']) && isset($_REQUEST['ClaimTime']))
@@ -276,9 +293,28 @@ function saveClaim()
 	if (isset($_REQUEST['Decision']) && !isset($_REQUEST['Judged']))
 		$sql .= ($sql==''? '' : ',')."Judged=".(intval($_REQUEST['Decision'])<0? 0 : 1);
 	//echo("[[ $sql ]]");
+
+	if (isset($_REQUEST['MagicWord']))
+		$sql .= ($sql==''? '' : ',')."MagicWord='".$DB->escapeString($_REQUEST['MagicWord'])."'";
+	
+	$XF = ['FuelBalance','SpeedPenalty','FuelPenalty','MagicPenalty'];
+	if (isset($_REQUEST['NextTimeMins'])){
+		$mins = parseTimeMins($_REQUEST['NextTimeMins']);
+		if ($virtualrally)
+			$mins += $virtualstopmins;
+		$sql .= ($sql==''? '' : ',').'NextTimeMins='.$mins;
+	}
+	foreach($XF as $F)
+		if (isset($_REQUEST[$F]))
+			$sql .= ($sql==''? '' : ',').$F.'='.intval($_REQUEST[$F]);
+		else
+			$sql .= ($sql==''? '' : ',').$F.'=0';
 	if ($sql=='')
 		return;
 	$sql.= " WHERE rowid=".$claimid;
+	
+	//echo('<br>'.$sql.'<br>');
+	
 	$DB->exec("UPDATE claims SET ".$sql);
 	if ($DB->lastErrorCode()<>0) {
 		echo("SQL ERROR: ".$DB->lastErrorMsg().'<hr>'.$sql.'<hr>');
@@ -290,15 +326,28 @@ function saveClaim()
 function saveNewClaim()
 {
 	global $DB,$TAGS,$KONSTANTS;
-	global $VIRTUAL_RALLY, $VIRTUAL_STOP_MINS;
+	
+//	print_r($_REQUEST);
+	
+	$virtualrally = false;
+	$virtualstopmins = 0;
+	$R = $DB->query("SELECT * FROM virtualrally");
+	if ($rd = $R->fetchArray()) {
+		$virtualrally = ($rd['isvirtual'] != 0);
+		$virtualstopmins = $rd['stoptime'];
+	}
+	$XF = ['FuelBalance','SpeedPenalty','FuelPenalty','MagicPenalty'];
 	
 	$sql = "INSERT INTO claims (LoggedAt,ClaimTime,BCMethod,EntrantID,BonusID,OdoReading,Judged,Decision,Applied";
+	if (isset($_REQUEST['MagicWord'])) 
+		$sql .= ",MagicWord";
 	if (isset($_REQUEST['NextTimeMins'])) 
 		$sql .= ",NextTimeMins";
-	if (isset($_REQUEST['FuelBalance']))
-		$sql .= ",FuelBalance";
+	foreach ($XF as $F)
+		if (isset($_REQUEST[$F]))
+			$sql .= ",$F";
 	$sql .= ") VALUES(";
-	$la = (isset($_REQUEST['LoggedAt']) && $_REQUEST['LoggedAt'] != '' ? $_REQUEST['LoggedAt'] : date('Y-m-d H:i:s'));
+	$la = (isset($_REQUEST['LoggedAt']) && $_REQUEST['LoggedAt'] != '' ? $_REQUEST['LoggedAt'] : date('c'));
 	$sql .= "'".$la."'";
 	$cd = (isset($_REQUEST['ClaimDate']) && $_REQUEST['ClaimDate'] != '' ? $_REQUEST['ClaimDate'] : date('Y-m-d'));
 	$ct = (isset($_REQUEST['ClaimTime']) && $_REQUEST['ClaimTime'] != '' ? $cd.' '.$_REQUEST['ClaimTime'] : $la);
@@ -314,17 +363,21 @@ function saveNewClaim()
 	$sql .= ",".(isset($_REQUEST['Decision']) ? $_REQUEST['Decision'] : 0);
 	$sql .= ",".(isset($_REQUEST['Applied']) ? $_REQUEST['Applied'] : 0);
 	
+	if (isset($_REQUEST['MagicWord']))
+		$sql .= ",'".$DB->escapeString($_REQUEST['MagicWord'])."'";
 	
 	if (isset($_REQUEST['NextTimeMins'])){
 		$mins = parseTimeMins($_REQUEST['NextTimeMins']);
-		if ($VIRTUAL_RALLY)
-			$mins += $VIRTUAL_STOP_MINS;
+		if ($virtualrally)
+			$mins += $virtualstopmins;
 		$sql .= ",".$mins;
 	}
-	if (isset($_REQUEST['FuelBalance']))
-		$sql .= ",".intval($_REQUEST['FuelBalance']);
+	foreach($XF as $F)
+		if (isset($_REQUEST[$F]))
+			$sql .= ",".intval($_REQUEST[$F]);
 	
 	$sql .= ")";
+	//echo('<br>'.$sql.'<br>');
 	$DB->exec($sql);
 	
 }
@@ -332,7 +385,6 @@ function saveNewClaim()
 function showClaim($claimid = 0)
 {
 	global $DB,$TAGS,$KONSTANTS;
-	global $VIRTUAL_RALLY;
 
 	startHtml('sm: new claim');
 
@@ -391,7 +443,7 @@ function checkMagicWord() {
 					return true;		// all good
 				}
 				if (n == 2) {
-					mwok.innerHTML = ' &checkmark; &nbsp;&nbsp;\''+lmw+ '\' >= '+lmwtime+' '+'<input type="checkbox" name="MagicPenalty">';
+					mwok.innerHTML = ' &checkmark; &nbsp;&nbsp;\''+lmw+ '\' >= '+lmwtime+' '+'<input type="checkbox" value="1" name="MagicPenalty">';
 					mwok.className = 'yellow';
 					return false;
 				}
@@ -401,7 +453,7 @@ function checkMagicWord() {
 		lmw = wms[i].value;
 		lmwtime = wms[i].getAttribute('data-asfrom');
 	}
-	mwok.innerHTML = ' &cross;  <input type="checkbox" name="MagicPenalty" checked>';
+	mwok.innerHTML = ' &cross;  <input type="checkbox" value="1" name="MagicPenalty" checked>';
 	mwok.className = 'red';
 	return false;
 }
@@ -468,7 +520,7 @@ function checkSpeeding() {
 	console.log(edate);
 	if (speedok && ct < edate) {
 		console.log('OMG!');
-		let tickspeed = ' <input type="checkbox" name="SpeedPenalty" checked>';
+		let tickspeed = ' <input type="checkbox" value="1" name="SpeedPenalty" checked>';
 		speedok.innerHTML = ' < ' + edate + tickspeed;
 		speedok.style.display = 'inline';
 	}
@@ -598,8 +650,13 @@ function validateClaim() {
 	echo('<input type="hidden" name="showa" value="'.(isset($_REQUEST['showa']) ? $_REQUEST['showa'] : '-1').'">');
 	echo('<input type="hidden" name="showd" value="'.(isset($_REQUEST['showd']) ? $_REQUEST['showd'] : '-1').'">');
 	echo('<input type="hidden" name="ddate" value="'.(isset($_REQUEST['ddate'])?$_REQUEST['ddate']:date('Y-m-d')).'">');
+	if (isset($_REQUEST['entrantid']))
+		echo('<input type="hidden" name="entrantid" value="'.$_REQUEST['entrantid'].'">');
+	if (isset($_REQUEST['bonusid']))
+		echo('<input type="hidden" name="bonusid" value="'.$_REQUEST['bonusid'].'">');
 	echo('<input type="hidden" name="FuelBalance" id="saveFuelBalance" value="'.($claimid > 0 ? $rd['FuelBalance'] : 0 ).'">');
-	echo('<input type="hidden" id="legLength" value="0">');  // used to calculate adjustments during this edit
+	
+	
 	echo('<span class="vlabel" title="'.$TAGS['EntrantID'][1].'"><label for="EntrantID">'.$TAGS['EntrantID'][0].'</label> ');
 	echo('<input autofocus type="number" name="EntrantID" id="EntrantID" tabindex="1" onchange="showEntrant(this.value);"');
 	echo(' value="'.($claimid > 0 ? $rd['EntrantID'] : '').'"> ');
@@ -619,19 +676,27 @@ function validateClaim() {
 	echo('</span>');
 	
 	echo('<span class="vlabel" title="'.$TAGS['OdoReadingLit'][1].'"><label for="OdoReading">'.$TAGS['OdoReadingLit'][0].'</label> ');
-	echo('<input type="number" class="bignumber" name="OdoReading" id="OdoReading" onchange="odoChanged(this.value,false);" tabindex="3"');
+	echo('<input type="number" class="bignumber" name="OdoReading" id="OdoReading"');
+	if ($claimid==0)
+		echo(' onchange="odoChanged(this.value,false);"');
+	echo(' tabindex="3"');
 	echo(' value="'.($claimid > 0 ? $rd['OdoReading'] : '').'"> ');
-	echo('<span id="FuelWarning" style="display:none;" title="'.$TAGS['FuelWarning'][1].'"> ');
-	$fw = $TAGS['FuelWarning'][0].' <input type="checkbox" name="FuelWarning" id="TickFW" >';
+	$ck = ($claimid > 0 && $rd['FuelPenalty'] != 0 ? ' checked ' : '');
+	$ds = ($claimid > 0 && $rd['FuelPenalty'] != 0 ? 'inline' : 'none');
+	echo('<span id="FuelWarning" style="display:'.$ds.';" title="'.$TAGS['FuelWarning'][1].'"> ');
+	$fw = $TAGS['FuelWarning'][0].' <input type="checkbox" name="FuelPenalty" value="1" id="TickFW" '.$ck.'>';
 	echo($fw);
 	echo(' </span>');
 	echo('</span> ');
 
 	$ct = splitDatetime($claimid > 0 ? $rd['ClaimTime'] : (isset($_REQUEST['ddate'])?$_REQUEST['ddate']:date('Y-m-d')).'T ');
 	echo('<span class="vlabel" title="'.$TAGS['BonusClaimTime'][1].'"><label for="ClaimTime">'.$TAGS['BonusClaimTime'][0].'</label> ');
-	echo('<input type="date" name="ClaimDate" id="ClaimDate" value="'.$ct[0].'" tabindex="8" onchange="checkSpeeding();"> ');
-	echo('<input type="time" name="ClaimTime" id="ClaimTime" value="'.$ct[1].'" tabindex="4" onchange="checkSpeeding();"> ');
-	echo('<span id="SpeedWarning" style="display:none;"></span>');
+	$oc = ($claimid == 0 ? ' onchange="checkSpeeding();"' : '');
+	echo('<input type="date" name="ClaimDate" id="ClaimDate" value="'.$ct[0].'" tabindex="8"'.$oc.'> ');
+	echo('<input type="time" name="ClaimTime" id="ClaimTime" value="'.$ct[1].'" tabindex="4"'.$oc.'> ');
+	$ds = ($claimid > 0 && $rd['SpeedPenalty'] != 0 ? 'inline' : 'none');
+	$oc = ($claimid == 0 && $rd['SpeedPenalty'] != 0 ? '' : '&dzigrarr; <input type="checkbox" value="1" name="SpeedPenalty" checked>');
+	echo('<span id="SpeedWarning" style="display:'.$ds.';">'.$oc.'</span>');
 	echo('</span>');
 	
 	if ($virtualrally) {
@@ -641,8 +706,11 @@ function validateClaim() {
 		
 		echo('<span class="vlabel" id="magicspan" title="'.$TAGS['magicword'][1].'">');
 		echo('<label for="magicword">'.$TAGS['magicword'][0].'</label> ');
-		echo('<input type="text" id="magicword" oninput="checkMagicWord();" tabindex="5"> ');
-		echo('<span id="mwok"></span>');
+		$oc =  ($claimid == 0 ? 'oninput="checkMagicWord();"' : '');
+		echo('<input type="text" id="magicword" name="MagicWord"'.$oc.' value="'.($claimid > 0 ? $rd['MagicWord'] : '').'" tabindex="5"> ');
+		$oc = ($claimid > 0 && $rd['MagicPenalty'] != 0 ? ' &cross;  <input type="checkbox" value="1" name="MagicPenalty" checked>' : '');
+		$cl = ($oc != '' ? ' class="yellow"' : '');
+		echo('<span id="mwok"'.$cl.'>'.$oc.'</span>');
 		echo('</span>');
 	}
 	echo('<span class="vlabel" title="'.$TAGS['BonusClaimDecision'][1].'"><label for="Decision">'.$TAGS['BonusClaimDecision'][0].'</label> ');
@@ -742,7 +810,6 @@ function updateClaimDecision()
 function fetchEntrantDetail($e)
 {
 	global $DB,$TAGS,$KONSTANTS;
-	global $VIRTUAL_RALLY;
 	
 	if ($e=='') {
 		echo('');
