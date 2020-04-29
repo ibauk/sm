@@ -78,6 +78,9 @@ $KONSTANTS['DefaultEntrantStatus'] = $KONSTANTS['EntrantOK'];
 $KONSTANTS['ConfirmedBonusMarker'] = '++';
 $KONSTANTS['ConfirmedBonusTick'] = '<span class="ConfirmedBonusTick" title="'.$TAGS['ConfirmedBonusTick'][1].'">'.$TAGS['ConfirmedBonusTick'][0].'</span>';
 
+//entrants.confirmed value
+$KONSTANTS['ScorecardIsDirty'] = 2;
+
 // Common subroutines below here; nothing translateable below
 	
 	
@@ -189,7 +192,7 @@ function getValueFromDB($sql,$col,$defaultvalue)
 		else
 			return $defaultvalue;
 	} catch (Exception $ex) {
-		return $defaultvalue;
+		return $defaultvalue.$ex;
 	}
 }
 

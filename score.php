@@ -164,7 +164,7 @@ function putScore()
 {
 	global $DB, $TAGS, $KONSTANTS, $AUTORANK, $DBVERSION;
 
-	//var_dump($_REQUEST);
+//	var_dump($_REQUEST);
 	
 	$sql = "UPDATE entrants SET ScoredBy='".$DB->escapeString($_REQUEST['ScorerName'])."'";
 	
@@ -223,7 +223,7 @@ function putScore()
 	//echo('<hr>'.$sql.'<hr>');
 	$DB->exec($sql);
 	if (($res = $DB->lastErrorCode()) <> 0)
-		echo('ERROR: '.$DB->lastErrorMsg().'<br />'.$sql.'<hr>');
+		echo('<div id="dberror" title="'.$TAGS['dberroragain'][1].'">!!!!! '.$DB->lastErrorMsg().' - '.$TAGS['dberroragain'][0].'</div>');
 	
 	putScoreTeam($confirmed);
 	
@@ -638,7 +638,7 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 		echo('</span>'."\r\n");
 	}
 	echo('<br /><span title="'.$TAGS['EntrantStatus'][1].'"><label for="EntrantStatus">'.$TAGS['EntrantStatus'][0].' </label> ');
-	echo('<select name="EntrantStatus" id="EntrantStatus" onchange="enableSaveButton()">'); // Don't recalculate if status changed manually
+	echo('<select name="EntrantStatus" id="EntrantStatus" onchange="sfs(this.value,\'\');enableSaveButton()">'); // Don't recalculate if status changed manually
 	if ($rd['EntrantStatus']=='')
 		$rd['EntrantStatus'] = $KONSTANTS['DefaultEntrantStatus'];
 	echo('<option value="'.$KONSTANTS['EntrantDNS'].'" '.($rd['EntrantStatus']==$KONSTANTS['EntrantDNS'] ? ' selected="selected" ' : '').'>'.$TAGS['EntrantDNS'][0].'</option>');
@@ -647,7 +647,15 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 	echo('<option value="'.$KONSTANTS['EntrantDNF'].'" '.($rd['EntrantStatus']==$KONSTANTS['EntrantDNF'] ? ' selected="selected" ' : '').'>'.$TAGS['EntrantDNF'][0].'</option>');
 	echo('</select>');
 	echo('</span> ');
-	echo('<input type="submit" class="noprint" title="'.$TAGS['SaveScore'][1].'" id="savescorebutton" data-triggered="0" onclick="'."this.setAttribute('data-triggered','1')".'" disabled accesskey="S" name="savescore" data-altvalue="'.$TAGS['SaveScore'][0].'" value="'.$TAGS['ScoreSaved'][0].'" /> ');
+	
+	echo('<input type="submit" class="noprint" title="'.$TAGS['SaveScore'][1].'" id="savescorebutton" data-triggered="0" ');
+	echo('onclick="'."this.setAttribute('data-triggered','1');".'"');
+	if ($rd['Confirmed'] == $KONSTANTS['ScorecardIsDirty'])
+		echo(' value="'.$TAGS['SaveScore'][0].'"');
+	else
+		echo(' disabled value="'.$TAGS['ScoreSaved'][0].'"');
+	echo(' accesskey="S" name="savescore" data-altvalue="'.$TAGS['SaveScore'][0].'"  /> ');
+	
 	//echo('<input type="submit" id="backtolistbutton" name="showpicklist" data-altvalue="'.$TAGS['ShowEntrants'][0].'" value="'.$TAGS['ShowEntrants'][0].'"> ');
 	
 	if (isset($_REQUEST['mc']) && $DBVERSION >= 4){
@@ -658,7 +666,7 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 			echo(' checked');
 		echo('> </span>');
 	}
-	
+	echo('</form>');
 	
 	} // End !$showBlank Form
 	
@@ -929,7 +937,9 @@ function filterByName(x)
 		if ($es=='')
 			$es = '[[ '.$rd['EntrantStatus'].']]';
 		if ($DBVERSION >= 4)
-			if ($rd['Confirmed'] !=0)
+			if ($rd['Confirmed'] == $KONSTANTS['ScorecardIsDirty'])
+				$es .= ' <span class="red" style="padding:0;" title="'.$TAGS['ScorecardIsDirty'][1].'">'.$TAGS['ScorecardIsDirty'][0].'</span>';
+			else if ($rd['Confirmed'] != 0)
 				$es .= ' '.$KONSTANTS['ConfirmedBonusTick'];
 		echo('<td class="EntrantStatus">'.$es.'</td>');
 		echo('<td class="ScoredBy">');

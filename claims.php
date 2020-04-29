@@ -255,6 +255,7 @@ function parseTimeMins($tx)
 		$hh = 0;
 		$mm = intval($tx);
 	}
+//	echo('hh='.$hh.' mm='.$mm.'<br>');
 	return $hh * 60 + $mm;
 	
 }
@@ -300,8 +301,6 @@ function saveClaim()
 	$XF = ['FuelBalance','SpeedPenalty','FuelPenalty','MagicPenalty'];
 	if (isset($_REQUEST['NextTimeMins'])){
 		$mins = parseTimeMins($_REQUEST['NextTimeMins']);
-		if ($virtualrally)
-			$mins += $virtualstopmins;
 		$sql .= ($sql==''? '' : ',').'NextTimeMins='.$mins;
 	}
 	foreach($XF as $F)
@@ -873,27 +872,52 @@ function extractClaims()
 	echo('done');
 
 }
+function applyClaimsForm()
+{
+		startHtml('Process claims');
+		echo('<h2>Process Claims log</h2>');
+		echo('<form action="claims.php" method="post">');
+		echo('<input type="hidden" name="c" value="applyclaims">');
+		echo('<span class="vlabel"><label for="lodate">From date</label> <input type="date" id="lodate" name="lodate" value="'.date("Y-m-d").'"></span>');
+		echo('<span class="vlabel"><label for="hidate">To date</label> <input type="date" id="hidate" name="hidate" value="'.date("Y-m-d").'"></span>');
+		echo('<span class="vlabel"><label for="lotime">From time</label> <input type="time" id="lotime" name="lotime" value="00:00"></span>');
+		echo('<span class="vlabel"><label for="hitime">To time</label> <input type="time" id="hitime" name="hitime" value="23:59"></span>');
+		echo('<input type="hidden" name="decisions" value="0">');
+		echo('<input type="submit" value="Process!">');
+		echo('</form>');
+}
 
 function applyClaims()
 // One-off for no ride rally April 2020
 {
 	global $DB,$TAGS,$KONSTANTS;
 
-	echo('Applying claims... <br>');
 	if (!isset($_REQUEST['lodate']) || !isset($_REQUEST['hidate']) ||
 		!isset($_REQUEST['lotime']) || !isset($_REQUEST['hitime']) ||
-		!isset($_REQUEST['decisions']) ) {
-		echo('<hr>NOT ENOUGH PARAMETERS<hr>');
+		!isset($_REQUEST['decisions']) ) {								// Should only be used for Decision=0=Good Claim
+		applyClaimsForm();
+		//echo('<hr>NOT ENOUGH PARAMETERS<hr>');
 		exit;
 	}
 	
-	$sql = "SELECT * FROM claims WHERE ";
+	startHtml('Processing claims');
+	echo('<h3>Applying selected claims</h3>');
+	$sql = "SELECT claims.*,bonuses.BriefDesc FROM claims JOIN bonuses ON claims.BonusID=bonuses.BonusID WHERE ";
+	
+	// Because of the link to bonuses, only ordinary bonus claims will be processed here.
+	// Claims for specials, combos or non-existent bonuses must be handled by hand.
+	
 	$loclaimtime = $_REQUEST['lodate'].' '.$_REQUEST['lotime'];
 	$hiclaimtime = $_REQUEST['hidate'].' '.$_REQUEST['hitime'];
-	//$sqlW = "Applied=0 AND ";
+	
+	$sqlW = "Applied=0 AND Judged<>0  AND ";		// Not already applied
+	
 	$sqlW .= "ClaimTime>='".$loclaimtime."' AND ";
 	$sqlW .= "ClaimTime<='".$hiclaimtime."' AND ";
 	$sqlW .= "Decision IN (".$_REQUEST['decisions'].") ";
+	
+	$sqlW .= " AND SpeedPenalty=0 AND FuelPenalty=0 AND MagicPenalty=0"; // Penalties applied by hand
+	
 	if (isset($_REQUEST['entrants']))
 		$sqlW .= " AND EntrantID IN (".$_REQUEST['entrants'].")";
 	if (isset($_REQUEST['bonuses']))
@@ -902,8 +926,10 @@ function applyClaims()
 		$sqlW .= " AND BonusID NOT IN (".$_REQUEST['exclude'].")";
 	$sql .= $sqlW;
 	$sql .= " ORDER BY ClaimTime";
-	echo($sql.'<hr>');
-	// Load all claims records into memory_get_peak_usage
+	
+	echo('<div style="font-size: small;">');
+	echo($sql.'<hr><br></div>');
+	// Load all claims records into memory
 	// organised as EntrantID, BonusID
 	$claims = [];
 	$R = $DB->query($sql);
@@ -911,39 +937,42 @@ function applyClaims()
 		if (!isset($claims[$rd['EntrantID']])) 
 			$claims[$rd['EntrantID']] = [];
 		if (!isset($claims[$rd['BonusID']]))
-			$claims[$rd['EntrantID']][$rd['BonusID']] = 1;
+			$claims[$rd['EntrantID']][$rd['BonusID']] = $rd['Decision'];
 	}
 	//print_r($claims);
 	//return;
 	
 	$DB->exec('BEGIN TRANSACTION');
 	foreach($claims as $entrant => $bonuses) {
-		echo('Update claims for '.$entrant.' ');
-		//print_r($entrant); print_r($bonuses);
+		
+		
+		//echo('Update claims for '.$entrant.' ');
 		$sql = "SELECT BonusesVisited FROM entrants WHERE EntrantID=".$entrant;
-		//echo($sql.'<hr>');
 		$bv = explode(',',getValueFromDB($sql,"BonusesVisited",""));
-		//print_r($bv);
-		foreach(array_keys($bonuses) as $bonus)  {
+		foreach($bonuses as $bonus => $decision)  {
+						
 			if (!in_array($bonus,$bv)) {
 				array_push($bv,$bonus);
 			}
 		}
 		//print_r($bv);
-		$sql = "UPDATE entrants SET BonusesVisited='".implode(',',$bv)."' WHERE EntrantID=$entrant";
-		echo($sql.'<hr>');
+		$sql = "UPDATE entrants SET BonusesVisited='".implode(',',$bv)."', Confirmed=".$KONSTANTS['ScorecardIsDirty']." WHERE EntrantID=$entrant";
+		echo('<div style="font-size: small;">');
+		echo($sql.'<br>');
 		$DB->exec($sql);
 		if ($DB->lastErrorCode()<>0) {
 			echo("SQL ERROR: ".$DB->lastErrorMsg().'<hr>'.$sql.'<hr>');
+			$DB->exec('ROLLBACK');
 			exit;
 		}
-		$sql = "UPDATE claims SET Applied=1, Judged=1, Decision=0 WHERE ";    ////////////////////////////////////////
+		$sql = "UPDATE claims SET Applied=1 WHERE ";
 		$sql .= "EntrantID=$entrant AND ";
 		$sql .= $sqlW;
-		echo($sql.'<hr>');
+		echo($sql.'<hr><br></div>');
 		$DB->exec($sql);
 		if ($DB->lastErrorCode()<>0) {
 			echo("SQL ERROR: ".$DB->lastErrorMsg().'<hr>'.$sql.'<hr>');
+			$DB->exec('ROLLBACK');
 			exit;
 		}
 
@@ -958,7 +987,7 @@ if (isset($_REQUEST['deleteclaim']) && isset($_REQUEST['claimid']) && $_REQUEST[
 	listclaims();
 	exit;
 }
-
+//print_r($_REQUEST);
 if (isset($_REQUEST['saveclaim']))
 	saveClaim();
 if (isset($_REQUEST['c'])) {

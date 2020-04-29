@@ -339,7 +339,7 @@ table.qdfinishers th {
 
 .red		{ padding: 1em; background-color: var(--rejected-background); color: var(--rejected-text); }
 .yellow		{ padding: 1em; background-color: var(--bright-background); color: var(--bright-text); }
-.green		{ padding: 1em; background-color: var(--regular-background); color: var(--regular-text);
+.green		{ padding: 1em; background-color: var(--regular-background); color: var(--regular-text); }
 
 
 

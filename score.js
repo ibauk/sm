@@ -1229,7 +1229,7 @@ function explainOrdinaryBonuses(totalSoFar)
 				if (bp[i].getAttribute('data-rejected') < 1)
 					showB(bp[i]);
 				else
-					reportRejectedClaim(bp[i].id,bp[i].getAttribute('data-rejected'));
+;//					reportRejectedClaim(bp[i].id,bp[i].getAttribute('data-rejected'));
 	}
 	else if (bv.value.length > 0)
 	{
@@ -1241,7 +1241,7 @@ function explainOrdinaryBonuses(totalSoFar)
 				if (bp.getAttribute('data-rejected') < 1)
 					showB(bp);
 				else
-					reportRejectedClaim(bp.id,bp.getAttribute('data-rejected'));
+;//					reportRejectedClaim(bp.id,bp.getAttribute('data-rejected'));
 			else if (!bp)
 				console.log("Can't find "+bva[i]);
 		}
@@ -1465,7 +1465,7 @@ function repaintBonuses()
 
 function reportRejectedClaim(bonusid,reason)
 {
-//	console.log('rRC: '+bonusid+','+reason);
+	console.log('rRC: '+bonusid+','+reason);
 	if (bonusid=='')
 		return;
 	var B = document.getElementById(bonusid);
@@ -1507,28 +1507,24 @@ function reportRejectedClaims()
  */
 {
 	var RC = document.getElementById('RejectedClaims');
-//	console.log('rca ['+RC.value+']');
+	console.log('rca ['+RC.value+']');
 	var rca = RC.value.split(',');
-//	console.log(rca.length);
+	console.log(rca.length);
 	for (var i = 0; i < rca.length; i++ )
 	{
 		var cr = rca[i].split('=');
-		if (cr[0].substr(0,1) != ORDINARY_BONUS_PREFIX)
+//		if (cr[0].substr(0,1) != ORDINARY_BONUS_PREFIX)
 			reportRejectedClaim(cr[0],cr[1]);
 	}
 }
 
-
-function setFinisherStatus()
-/*
- *
- *							s e t F i n i s h e r S t a t u s
- *
- * This determines status depending on score, mileage, speed and timings.
- *
- */
-{
-	
+	function sfs(status)
+	{
+		var es = document.getElementById('EntrantStatus');
+		var sxsfs = document.getElementById('sxsfs');
+		if (sxsfs)
+			sxsfs.innerHTML = es.options[es.selectedIndex].text;
+	}
 	function SFS(status,x)
 	{
 		var es = document.getElementById('EntrantStatus');
@@ -1540,6 +1536,18 @@ function setFinisherStatus()
 		if (sxsfs)
 			sxsfs.innerHTML = es.options[es.selectedIndex].text;
 	}
+
+function setFinisherStatus()
+/*
+ *
+ *							s e t F i n i s h e r S t a t u s
+ *
+ * This determines status depending on score, mileage, speed and timings.
+ *
+ */
+{
+	
+
 	var CS = parseInt(document.getElementById('EntrantStatus').value);
 	//if (CS != EntrantOK && CS != EntrantFinisher)
 		//return;
@@ -1895,12 +1903,15 @@ function showPopup(obj)
 /* Call when score submit button is clicked */
 function submitScore()
 {
+	//alert('submitting score');
 	/* Enable any combos so they'll be saved */
 	var cmbs = document.getElementsByName('ComboID[]');
 	for (var i = 0; i < cmbs.length; i++ )
 	{
 		cmbs[i].disabled = false;
 	}
+	
+	//alert('Combos enabled for saving');
 	
 	/* Save the score explanation as part of the form
 	 * so that it can be saved to the entrant record

@@ -219,6 +219,7 @@ $TAGS = array(
 	'CorrectedMiles'	=> array('Miles ridden','Official rally mileage'),	// Miles/Kms
 	
 	'Country'			=> array('Country',"Entrant's home country"),
+	'dberroragain'		=> array('Please resubmit. If problem persists tell Bob','The database save failed, probably temporary lock issue'),
 	'dblclickprint'		=> array('Double-click to print',''),
 	'DeleteBonus'		=> array('Delete this bonus',''),
 	'DeleteClaim'		=> array('Delete this claim',''),
@@ -253,6 +254,9 @@ $TAGS = array(
 	'FinishTime'		=> array('Finish time','Official finish time. Entrants finishing later are DNF'),
 	'FinishTimeE'		=> array('Finish time','Official finish time. Check-in time.'),
 
+	'FuelBalance'		=> array('Fuel','Fuel distance remaining'),
+	'FuelWarning'		=> array('OUT OF FUEL!','This leg exceeded the remaining fuel capacity'),
+	
 	'FullDetails'		=> array('Full details','Show the complete record'),
 
 	'gblMainMenu'		=> array('Main menu','Return to main menu'),
@@ -277,7 +281,8 @@ $TAGS = array(
 	'LegendTeams'		=> array('Teams'),
 	'login'				=> array('login','Go on, log me in then!'),
 	'LogoutScorer'		=> array('Logout','Log the named scorer off this terminal'),
-	
+
+	'magicword'			=> array('Magic','The \'magic\' word associated with this claim'),
 	'MarkConfirmed'		=> array('Mark as confirmed','Mark all bonus claim decisions as having been confirmed'),
 	
 	'MaxHours'			=> array('Maximum hours','The duration of the rally in hours. Used to calculate DNF time, may show on certificates'),
@@ -299,6 +304,7 @@ $TAGS = array(
 	'NameFilter'		=> array('Rider name','Use this to filter the list of riders shown below'),
 	'NewEntrantNum'		=> array('New number','What\'s the number number for this entrant'),
 	'NewPlaceholder'	=> array('start new entry','Placeholder for new table entries'),
+	'NextTimeMins'		=> array('Time next leg','Enter estimated time of the next leg eg: 1h 35m; 1.35,1:35'),
 	'NMethod-1'			=> array('Unused','Not used'),
 	'NMethod0'			=> array('Bonuses/cat','No of bonuses per cat'),
 	'NMethod1'			=> array('Cats/axis','No of NZ cats per axis'),
@@ -404,6 +410,7 @@ $TAGS = array(
 	'SaveRecord'		=> array('Save record','Save record to the database'),
 	'SaveScore'			=> array('Save scorecard','Save the updated score/status of this entrant'),
 	'SaveSettings'		=> array('Save settings','Save these details to the database'),
+	'ScorecardIsDirty'	=> array('!!!','Scorecard is dirty'),
 	'ScoredBy'			=> array('Scored by','Who is (or did) scoring this entrant?'),
 	'ScoreNow'			=> array('Score now','Switch to live scoring this entrant(new tab)'),
 	'ScoreMethodLit'	=> array('Score method',''),

@@ -198,7 +198,13 @@ CREATE TABLE IF NOT EXISTS `claims` (
 	`OdoReading`	INTEGER,
 	`Judged`	INTEGER NOT NULL DEFAULT 0,
 	`Decision`	INTEGER NOT NULL DEFAULT 0,
-	`Applied`	INTEGER NOT NULL DEFAULT 0
+	`Applied`	INTEGER NOT NULL DEFAULT 0,
+	`NextTimeMins`	INTEGER NOT NULL DEFAULT 0,
+	`FuelBalance`	INTEGER NOT NULL DEFAULT 0,
+	`SpeedPenalty`	INTEGER NOT NULL DEFAULT 0,
+	`FuelPenalty`	INTEGER NOT NULL DEFAULT 0,
+	`MagicPenalty`	INTEGER NOT NULL DEFAULT 0,
+	`MagicWord`		TEXT
 );
 CREATE TABLE IF NOT EXISTS `categories` (
 	`Axis`	INTEGER NOT NULL DEFAULT 1,
@@ -233,27 +239,45 @@ CREATE TABLE IF NOT EXISTS `bonuses` (
 	PRIMARY KEY(`BonusID`)
 );
 
+CREATE TABLE IF NOT EXISTS `magicwords` (
+	`asfrom`	TEXT NOT NULL,
+	`magic`	TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS `speedpenalties` (
-	"Basis"	INTEGER NOT NULL DEFAULT 0,
-	"MinSpeed"	INTEGER NOT NULL,
-	"PenaltyType"	INTEGER NOT NULL DEFAULT 0,
-	"PenaltyPoints"	INTEGER DEFAULT 0
+	`Basis`	INTEGER NOT NULL DEFAULT 0,
+	`MinSpeed`	INTEGER NOT NULL,
+	`PenaltyType`	INTEGER NOT NULL DEFAULT 0,
+	`PenaltyPoints`	INTEGER DEFAULT 0
 );
 
 
 CREATE TABLE IF NOT EXISTS `importspecs` (
-	"specid"	TEXT NOT NULL,
-	"specTitle"	TEXT,
-	"importType"	INTEGER NOT NULL DEFAULT 0,
-	"fieldSpecs"	TEXT,
-	PRIMARY KEY("specid")
+	`specid`	TEXT NOT NULL,
+	`specTitle`	TEXT,
+	`importType`	INTEGER NOT NULL DEFAULT 0,
+	`fieldSpecs`	TEXT,
+	PRIMARY KEY(`specid`)
 );
 
 CREATE TABLE IF NOT EXISTS `themes` (
-	"Theme"	TEXT NOT NULL,
-	"css"	TEXT NOT NULL,
-	PRIMARY KEY("Theme")
+	`Theme`	TEXT NOT NULL,
+	`css`	TEXT NOT NULL,
+	PRIMARY KEY(`Theme`)
 );
+
+
+CREATE TABLE IF NOT EXISTS `virtualrally` (
+	`isvirtual`	INTEGER NOT NULL DEFAULT 1,
+	`tankrange`	INTEGER NOT NULL DEFAULT 200,
+	`refuelstops`	TEXT,
+	`stoptime`	INTEGER NOT NULL DEFAULT 10,
+	`spbonus`	TEXT,
+	`fpbonus`	TEXT,
+	`mpbonus`	TEXT
+);
+
+
 
 DELETE FROM `rallyparams`;
 DELETE FROM `functions`;
@@ -271,7 +295,9 @@ DELETE FROM `categories`;
 DELETE FROM `catcompound`;
 DELETE FROM `bonuses`;
 DELETE FROM `importspecs`;
-
+DELETE FROM `themes`;
+DELETE FROM `virtualrally`;
+DELETE FROM `magicwords`;
 
 INSERT INTO `rallyparams` (RallyTitle,RallySlogan) VALUES ('IBA rally','Fun with motorcycles');
 
@@ -610,5 +636,6 @@ INSERT INTO `themes` (Theme,css) VALUES('Mellow yellow','
 --checked-text : white;
 ');
 
+INSERT INTO `virtualrally` (isvirtual) VALUES(0);
 
 COMMIT;
