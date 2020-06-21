@@ -225,7 +225,7 @@ function formattedField($fldname,$fldval)
 		return crewNames($fldval);
 	} else if (preg_match("/Date/",$fldname))	{
 		return formattedDate($fldval);
-	} else if (preg_match("/CorrectedMiles|TotalPoints/",$fldname)) {
+	} else if (preg_match("/CorrectedMiles|TotalPoints|FinishRank/",$fldname)) {
 		return number_format(floatval($fldval),0,$dp,$cm);
 	} else if ($fldname=='') {
 		return '#';
@@ -278,7 +278,7 @@ function fetchCertificateText($EntrantID)
 	
 	if ($EntrantID <> 0)
 	{
-		$sql = "SELECT *, rallyparams.StartTime || ';' || rallyparams.FinishTime AS DateRallyRange, RiderName || ';' || COALESCE(PillionName,'') AS CrewName,RiderFirst || ';' || COALESCE(PillionFirst,'') AS CrewFirst, RallyTitle AS RallyTitleSplit, RallyTitle AS RallyTitleShort FROM rallyparams JOIN entrants WHERE EntrantID=".$EntrantID;
+		$sql = "SELECT *, rallyparams.StartTime || ';' || rallyparams.FinishTime AS DateRallyRange, RiderName || ';' || COALESCE(PillionName,'') AS CrewName,RiderFirst || ';' || COALESCE(PillionFirst,'') AS CrewFirst, RallyTitle AS RallyTitleSplit, RallyTitle AS RallyTitleShort, FinishPosition AS FinishRank FROM rallyparams JOIN entrants WHERE EntrantID=".$EntrantID;
 		$R = $DB->query($sql);
 		$rd = $R->fetchArray();
 
@@ -288,12 +288,9 @@ function fetchCertificateText($EntrantID)
 		{
 			$fldname = substr($fld[0],1,strlen($fld[0])-2);
 			//echo (" [ $fldname ] ");
-			try
-			{
-				$res = str_replace($fld,formattedField($fldname,$rd[$fldname]),$res);
-			}
-			catch(Exception $e)
-			{
+			try {
+				$res = str_replace($fld,formattedField($fldname,(isset($rd[$fldname]) ? $rd[$fldname] : '')),$res);
+			} catch(Exception $e) {
 				echo(" Error: ".$e->getMessage()."; ");
 			}
 		}
@@ -303,12 +300,77 @@ function fetchCertificateText($EntrantID)
 	return ['html'=>$res,'css'=>$css];
 }
 
+
+function getStartCertificateHtml($css)
+{
+	global $TAGS;
+	
+	$nl = "\r\n";
+
+	
+$res = '<!DOCTYPE html>'.$nl;
+$res .= '<html lang="en">'.$nl;
+$res .= '<head>'.$nl;
+
+$res .= '<title>'.$TAGS['ttCertificates'][0].'</title>'.$nl;
+
+$res .= '<meta charset="UTF-8" />'.$nl;
+$res .= '<meta name="viewport" content="width=device-width, initial-scale=1" />'.$nl;
+
+$rebootcss = file_get_contents("reboot.css");
+$certcss = file_get_contents("certificate.css");
+
+$res .= '<style>'.$nl;
+$res .= '<!--	'.$nl;
+
+$res .= $rebootcss.$nl;
+$res .= $certcss.$nl;
+
+$res .= $css.$nl;
+
+
+$res .= '.main'.$nl;
+$res .= '{'.$nl;
+$res .= '	text-align: justify;'.$nl;
+$res .= '}'.$nl;
+$res .= '.popmenu'.$nl;
+$res .= '{'.$nl;
+$res .= 'width: 10em;'.$nl;
+$res .= 'height: 6em;'.$nl;
+$res .= 'background: lightgray;'.$nl;
+$res .= 'border: solid;'.$nl;
+$res .= '}'.$nl;
+$res .= '.popmenu ul'.$nl;
+$res .= '{'.$nl;
+$res .= '	list-style-type: none;'.$nl;
+$res .= '}'.$nl;
+$res .= '@media print {'.$nl;
+$res .= '.noprint		{ display: none; }'.$nl;
+$res .= '}'.$nl;
+
+$res .= '-->'.$nl;
+$res .= '</style>'.$nl;
+$res .= '</head>'.$nl;
+$res .= '<body>'.$nl;
+
+return $res;
+
+}
+
+
+
+
+
 function startCertificateHtml($css)
 {
 	global $TAGS;
 	
+	echo(getStartCertificateHtml($css));
+	return;
+	
+	
 ?><!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <?php
 echo('<title>'.$TAGS['ttCertificates'][0].'</title>');
@@ -359,6 +421,27 @@ function certificateMenuText($EntrantID,$CertName)
 	$mnu .= "</ul>";
 	$mnu .= "</div>";
 	return $mnu;
+}
+
+function getViewCertificate($EntrantID=0,$DontStart=false,$DontTail=false)
+{
+	global $DB, $TAGS, $KONSTANTS;
+	
+	//echo(' fetching certificate ... ');
+	$rd = fetchCertificateText($EntrantID);
+	//echo(' certificate fetched ... ');
+	$res = '';
+	if (!$DontStart)
+		$res .= getStartCertificateHtml($rd['css']);
+	$res .= '<div class="certframe">';
+	$res .= '<div class="certificate" contenteditable="true">';
+	//echo(certificateMenuText($EntrantID,'Crap'));
+	$res .= $rd['html'];
+	$res .= '</div>';
+	$res .= '</div>'; // certframe
+	if (!$DontTail)
+		$res .= '</body></html>';
+	return $res;
 }
 
 function viewCertificate($EntrantID=0,$DontStart=false,$DontTail=false)

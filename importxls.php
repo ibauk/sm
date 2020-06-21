@@ -28,8 +28,11 @@ $HOME_URL = "admin.php?c=entrants";
 
 require_once("common.php");
 
-$target_dir = './uploads/';
+$target_dir = $KONSTANTS['UPLOADS_FOLDER']; // './uploads/';
 $upload_state = '';
+
+$TYPE_ENTRANTS = 0;
+$TYPE_BONUSES = 1;
 
 //print_r($_REQUEST);
 
@@ -37,6 +40,7 @@ $upload_state = '';
 $IMPORTSPEC['xlsname']	= "import.xls";
 $IMPORTSPEC['whichsheet']	= 0;
 $IMPORTSPEC['FirstDataRow']	= 2;
+$IMPORTSPEC['type'] = (isset($_REQUEST['type']) ? $_REQUEST['type'] : $TYPE_ENTRANTS);
 
 // Declare psuedo fields here then load from database schema
 $IGNORE_COLUMN = 'zzzzzzz';
@@ -44,8 +48,8 @@ $ENTRANT_FIELDS = [$IGNORE_COLUMN=>'ignore','RiderLast'=>'RiderLast','PillionLas
 $BONUS_FIELDS = [$IGNORE_COLUMN=>'ignore'];
 
 // Load list of templates
-$SPECFILES = ['_unknown'=>'unknown'];
-$sql = "SELECT * FROM importspecs WHERE importType=0 ORDER BY specid";
+$SPECFILES = [];
+$sql = "SELECT * FROM importspecs WHERE importType=".$IMPORTSPEC['type']." ORDER BY specid";
 $R = $DB->query($sql);
 while ($rd = $R->fetchArray()) {
 	$SPECFILES[$rd['specid']] = $rd['specTitle'];
@@ -81,6 +85,16 @@ function cleanBikename($bike)
 			$words[$i] = properName(strtolower($words[$i]));
 	}
 	return implode(' ',$words);
+}
+
+function extendBonusFields() {
+
+	global $DB, $BONUS_FIELDS;
+
+	$R = $DB->query("PRAGMA table_info(bonuses)");
+	while($rd = $R->fetchArray())
+		$BONUS_FIELDS[$rd['name']] = $rd['name'];
+	asort($BONUS_FIELDS);
 }
 
 function extendEntrantFields() {
@@ -165,15 +179,18 @@ function loadSpecs()
 
 	try {
 		eval($rd['fieldSpecs']);
+		
+		if (isset($_REQUEST['hdrs']))
+			$IMPORTSPEC['FirstDataRow'] = intval($_REQUEST['hdrs']) + 1;
 	} catch (Exception $e) {
-		die($e->getMessage());
+		die("HELLO !!! ".$e->getMessage());
 	}
 	
 }
 
 function loadSpreadsheet()
 {
-	global $DB,$TAGS,$IMPORTSPEC,$KONSTANTS,$target_dir;
+	global $DB,$TAGS,$IMPORTSPEC,$KONSTANTS,$target_dir,$TYPE_BONUSES,$TYPE_ENTRANTS;
 
 	// Load the relevant specs
 
@@ -197,8 +214,9 @@ function loadSpreadsheet()
 
 	echo("<p>".$TAGS['xlsImporting'][1]."</p>");
 
+	$tablename = ($IMPORTSPEC['type']==$TYPE_BONUSES ? 'bonuses' : ' entrants');
 	// Check for overwriting
-	$sql = "SELECT Count(*) AS Rex FROM entrants";
+	$sql = "SELECT Count(*) AS Rex FROM $tablename";
 	$R = $DB->query($sql);
 	$rr = $R->fetchArray();
 	if ($rr['Rex'] > 0) {
@@ -210,7 +228,7 @@ function loadSpreadsheet()
 	
 	// All good now
 	
-	$R = $DB->query("PRAGMA table_info(entrants)");
+	$R = $DB->query("PRAGMA table_info($tablename)");
 	while($rd = $R->fetchArray()) {
 		$fldval[$rd['name']] = $rd['dflt_value']; // Text values will come with single quotes
 		$fldtyp[$rd['name']] = $rd['type'];
@@ -223,8 +241,8 @@ function loadSpreadsheet()
 						'Bike','Make','Model','BikeReg'
 					];
 	
-	$DB->query("BEGIN TRANSACTION");
-	$DB->query("DELETE FROM entrants");
+	$DB->exec("BEGIN TRANSACTION");
+	$DB->exec("DELETE FROM $tablename");
 
 	$SqlBuilt = FALSE;
 
@@ -261,13 +279,21 @@ function loadSpreadsheet()
 				continue;
 		}
 		
-		$ridernames = getNameFields($sheet,$row,array('RiderName','RiderFirst','RiderLast'));
-		//echo('[ ');print_r($ridernames);echo(' ]');
-		if (trim($ridernames[0])=='') 
-				break;						// Blank line, all done
+		if ($IMPORTSPEC['type']==$TYPE_ENTRANTS) {
+			$ridernames = getNameFields($sheet,$row,array('RiderName','RiderFirst','RiderLast'));
+			//echo('[ ');print_r($ridernames);echo(' ]');
+			if (trim($ridernames[0])=='') 
+					break;						// Blank line, all done
 
-		$fldval['RiderName'] = properName(trim($ridernames[0]));
-		$fldval['RiderFirst'] = properName(trim($ridernames[1]));
+			$fldval['RiderName'] = properName(trim($ridernames[0]));
+			$fldval['RiderFirst'] = properName(trim($ridernames[1]));
+		}
+		
+		if ($IMPORTSPEC['type']==$TYPE_BONUSES) {
+			$bonusid = getMergeCols($sheet,$row,$IMPORTSPEC['cols']['BonusID']);
+			if ($bonusid=='')
+				break;
+		}
 
 		if (isset($IMPORTSPEC['default']))
 			foreach($IMPORTSPEC['default'] as $fld => $defval) {
@@ -278,34 +304,38 @@ function loadSpreadsheet()
 							$fldval[$fld] = $val;
 			}
 
-		$pillionnames = getNameFields($sheet,$row,array('PillionName','PillionFirst','PillionLast'));
-		$fldval['PillionName'] = properName(trim($pillionnames[0]));
-		$fldval['PillionFirst'] = properName(trim($pillionnames[1]));
+		if ($IMPORTSPEC['type']==$TYPE_ENTRANTS) {
+			$pillionnames = getNameFields($sheet,$row,array('PillionName','PillionFirst','PillionLast'));
+			$fldval['PillionName'] = properName(trim($pillionnames[0]));
+			$fldval['PillionFirst'] = properName(trim($pillionnames[1]));
 
-		$noknames = getNameFields($sheet,$row,array('NoKName','NoKFirst','NoKLast'));
-		$fldval['NoKName'] = properName(trim($noknames[0]));
+			$noknames = getNameFields($sheet,$row,array('NoKName','NoKFirst','NoKLast'));
+			$fldval['NoKName'] = properName(trim($noknames[0]));
 
-		$bike = getNameFields($sheet,$row,array('Bike','Make','Model'));
-		if(preg_match($TAGS['ImportBikeTBC'][0],trim($bike[0])))
-			$bike[0] = $TAGS['ImportBikeTBC'][1];
+			$bike = getNameFields($sheet,$row,array('Bike','Make','Model'));
+			if(preg_match($TAGS['ImportBikeTBC'][0],trim($bike[0])))
+				$bike[0] = $TAGS['ImportBikeTBC'][1];
 
-		$fldval['Bike'] = cleanBikename(trim($bike[0]));
+			$fldval['Bike'] = cleanBikename(trim($bike[0]));
 			
-		if (isset($IMPORTSPEC['cols']['BikeReg']))
-			$fldval['BikeReg'] = strtoupper(trim(getMergeCols($sheet,$row,$IMPORTSPEC['cols']['BikeReg'])));
+			if (isset($IMPORTSPEC['cols']['BikeReg']))
+				$fldval['BikeReg'] = strtoupper(trim(getMergeCols($sheet,$row,$IMPORTSPEC['cols']['BikeReg'])));
+		}
 
 
 		foreach ($fldval as $col => $val)
 			if (isset($IMPORTSPEC['cols'][$col]) && !array_search($col,$specialfields))
 				$fldval[$col] = getMergeCols($sheet,$row,$IMPORTSPEC['cols'][$col]);
 		
-		$xtraData = '';
-		foreach($IMPORTSPEC['data'] as $k => $kcol)
-			$xtraData .= $k.'='.getMergeCols($sheet,$row,$IMPORTSPEC['data'][$k])."\n";
-		$fldval['ExtraData'] = $xtraData;
+		if ($IMPORTSPEC['type']==$TYPE_ENTRANTS) {
+			$xtraData = '';
+			foreach($IMPORTSPEC['data'] as $k => $kcol)
+				$xtraData .= $k.'='.getMergeCols($sheet,$row,$IMPORTSPEC['data'][$k])."\n";
+			$fldval['ExtraData'] = $xtraData;
+		}
 		
 		if (!$SqlBuilt) {
-			$sql = "INSERT INTO entrants (";
+			$sql = "INSERT INTO $tablename (";
 			$fl = '';
 			foreach ($fldval as $fld => $val) 
 				$fl = buildList($fl,$fld);
@@ -331,8 +361,13 @@ function loadSpreadsheet()
 				$typ = ($fldtyp[$fld] == 'INTEGER' ? SQLITE3_INTEGER : SQLITE3_TEXT);
 				$stmt->bindValue(":$fld",$val,$typ);
 			}
-		
-			echo($fldval["EntrantID"].' : '.$fldval["RiderName"].' - '.$fldval["Bike"]."<br>");
+			
+			if ($IMPORTSPEC['type']==$TYPE_ENTRANTS)
+				echo($fldval["EntrantID"].' : '.$fldval["RiderName"].' - '.$fldval["Bike"]."<br>");
+			
+			if ($IMPORTSPEC['type']==$TYPE_BONUSES)
+				echo($fldval["BonusID"].' : '.$fldval["BriefDesc"]."<br>");
+			
 			$stmt->execute();
 			$nrows++;
 			
@@ -341,7 +376,7 @@ function loadSpreadsheet()
 			break;
 		}
 	}
-	$DB->query("COMMIT TRANSACTION");
+	$DB->exec("COMMIT TRANSACTION");
 
 	echo("</p><p>All done - $nrows rows loaded </p>");
 	
@@ -371,17 +406,19 @@ function openWorksheet()
 
 function previewSpreadsheet()
 {
-	global $DB,$target_dir, $ENTRANT_FIELDS, $IMPORTSPEC, $IGNORE_COLUMN;
+	global $DB,$target_dir, $ENTRANT_FIELDS, $IMPORTSPEC, $IGNORE_COLUMN, $TYPE_BONUSES, $TYPE_ENTRANTS, $BONUS_FIELDS;
 	
-	loadSpecs();
+//	loadSpecs(); // already loaded now
 	
 	if (!isset($IMPORTSPEC['xlsname'])) 
 		return;
+
 
 	//echo('1 .. ');
 	$sheet = openWorksheet();
 	//echo('2 .. ');
 	$maxcol = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($sheet->getHighestColumn());
+	$maxrow = $sheet->getHighestRow();
 	//echo('3 .. ');
 	// Build column lookup by name table
 	for ($i=1; $i<=$maxcol;$i++)
@@ -393,16 +430,17 @@ function previewSpreadsheet()
 	
 	//echo('preview-4 ');
 
-	$row = $IMPORTSPEC['FirstDataRow'];  // Skip the column headers
+	$hdrs = $IMPORTSPEC['FirstDataRow'];  // Skip the column headers
 	$row = 0;
 	
+	$MYFIELDS = $IMPORTSPEC['type']==$TYPE_BONUSES ? $BONUS_FIELDS : $ENTRANT_FIELDS;
 	//print_r($IMPORTSPEC['cols']);
-	echo('<table>');
+	echo('<table id="previewrows" style="font-size:small;">');
 	echo('<tr>');
 	for ($col = 1; $col <= $maxcol; $col++) {
 		echo('<td><select name="colmaps[]" class="fldsel">');
 		$selfld = '';
-		foreach($ENTRANT_FIELDS as $k => $v) {
+		foreach($MYFIELDS as $k => $v) {
 			echo('<option value="'.$k.'"');
 			if (isset($IMPORTSPEC['cols']) && array_search($col - 1,$IMPORTSPEC['cols'])==$k){
 				$selfld = $k;
@@ -414,9 +452,12 @@ function previewSpreadsheet()
 		echo('</select></td>');
 	}
 	echo('</tr>');
-	while ($row++ < 10)
+	while ($row++ < $maxrow)
 	{
-		echo('<tr>');
+		if ($row < $hdrs)
+			echo('<tr class="xlshdr">');
+		else
+			echo('<tr>');
 		$col = 0;
 		while ($col++ <= $maxcol)
 			echo('<td>'.$sheet->getCellByColumnAndRow($col,$row)->getValue().'</td>');
@@ -456,78 +497,141 @@ function replaceColMaps()
 
 function showUpload()
 {
-	global $TAGS, $SPECFILES, $upload_state;
+	global $TAGS, $SPECFILES, $upload_state, $IMPORTSPEC, $TYPE_BONUSES, $TYPE_ENTRANTS;
 	
 	startHtml($TAGS['ttUpload'][0]);
-?>
-
-<form id="uploadxls" action="importxls.php" method="post" enctype="multipart/form-data">
-<?php
+	
+	$type = (isset($_REQUEST['type']) ? $_REQUEST['type'] : $TYPE_ENTRANTS);
+	
+	echo('<form id="uploadxls" action="importxls.php" method="get" enctype="multipart/form-data">');
+	echo('<input type="hidden" name="type" value="'.$type.'">');
 	pushBreadcrumb('#');
 	emitBreadcrumbs();
 
-	echo('<h2>'.$TAGS['UploadEntrantsH1'][1].'</h2>');
+	switch($IMPORTSPEC['type']) {
+		case $TYPE_BONUSES:
+			echo('<h3>'.$TAGS['UploadBonusesH1'][1].'</h3>');
+			break;
+		CASE $TYPE_ENTRANTS:
+		default:
+			echo('<h3>'.$TAGS['UploadEntrantsH1'][1].'</h3>');
+	}
 	$myfile = (isset($_REQUEST['filename']) ? htmlentities(basename($_REQUEST['filename']))	: '');
 ?>
+<script>
+function repainthdrs(nhdrs) {
+	let tab = document.getElementById('previewrows');
+	if (!tab)
+		return;
+	for (let i = 1, row; row = tab.rows[i]; i++) /* First row is my select, not data */
+		if (i <= nhdrs)
+			row.classList.add('xlshdr');
+		else
+			row.classList.remove('xlshdr');
+}
+function postForm(obj) {
+	console.log('Posting form');
+	let frm = obj.form;
+	if (!frm) return;
+	console.log('Posting form: '+frm.id);
+	frm.method = 'post';
+	//frm.submit();
+	//alert('Form posted');
+	return true;
+}
+function uploadFile(obj) {
+	console.log('Uploading file '+obj.value);
+	document.getElementById('fileuploaded').value=1;
+	document.getElementById('filename').value=obj.value;
+	obj.form.method = 'post';
+	obj.form.submit();
+}
+</script>
 
-
-<input type="hidden" id="fileuploaded" name="fileuploaded" value="<?php echo($upload_state);?>">
-<span class="vlabel" <?php echo(($myfile=='' ? ' style="display:none;">' : '>'));?>
-<label for="filename">File loaded</label> 
-<input type="text" readonly name="filename" id="filename" <?php echo(' value="'.$myfile.'" ');?>> 
-<button onclick="document.querySelector('#filepick').style.display='block';this.disabled=true;return false;">Choose another</button>
-</span>
-<span class="vlabel" id="filepick"<?php echo(($myfile!='' ? ' style="display:none;">' : '>'));?>
-<label for="fileid"><?php echo($TAGS['UploadPickFile'][1]);?> </label>
-<input type="file" name="fileid" id="fileid" onchange="document.querySelector('#fileuploaded').value=1;document.querySelector('#filename').value=this.value;document.querySelector('#uploadxls').submit();">
-</span>
 <?php
+	echo('<input type="hidden" id="fileuploaded" name="fileuploaded" value="'.$upload_state.'">');
+	echo('<span class="vlabel" '.($myfile=='' ? ' style="display:none;">' : '>'));
+	echo('<label for="filename">'.$TAGS['ix_FileLoaded'][0].' </label> ');
+	echo('<input type="text" readonly name="filename" id="filename"  value="'.$myfile.'" > '); 
+	echo('<button onclick="document.getElementById(\'filepick\').style.display=\'block\';this.disabled=true;return false;">'.$TAGS['ix_ChooseAgain'][1].'</button>');
+	echo('</span>');
+	echo('<span class="vlabel"  id="filepick" style="font-size:smaller; '.($myfile!='' ? 'display:none;">' : '">'));
+	echo('<label for="fileid">'.$TAGS['UploadPickFile'][1].'</label> ');
+	echo('<input type="file" name="fileid" id="fileid" onchange="uploadFile(this);">');
+	echo('</span>');
+
+
+	defaultSpecfile($type);
+	
+	loadSpecs();
+	
 	$chk = isset($_REQUEST['specfile']) ? $_REQUEST['specfile'] : '';
 	$i = 0;
-	if (!isset($_REQUEST['fileuploaded'])) 
+	if (!isset($_REQUEST['fileuploaded'])) {
+		echo('</form>');
 		return;
+	}
 	
-	echo('<span class="vlabel">');
-	echo('<label for="specfile1">File format</label> ');
-	echo('<select name="specfile" onchange="'."document.querySelector('#uploadxls').submit();".'">');
+	echo('<span class="vlabel" style="font-size:smaller;">');
+	echo('<label for="specfile">'.$TAGS['ix_Fileformat'][0].'</label> ');
+	echo('<select name="specfile" id="specfile" onchange="'."document.getElementById('uploadxls').submit();".'">');
+	//print_r($SPECFILES);
+	
 	foreach ($SPECFILES as $spc => $specs)
 	{
 		$i++;
 		echo('<option id="specfile'.$i.'"');
 		if ($chk==$spc) {
-			echo(' selected');
+			echo(' selected ');
 			$chk = FALSE;
 		}
 		echo(' value="'.$spc.'">'.$specs.'</option>');
 	}
 	echo('</select>');
+	echo(' <label title="'.$TAGS['xlsHeaders'][1].'" for="hdrs">'.$TAGS['xlsHeaders'][0].'</label> ');
+	echo('<input type="number" name="hdrs" id="hdrs" style="width:2em;" value="'.(intval($IMPORTSPEC['FirstDataRow'])-1).'" onchange="repainthdrs(this.value);"> ');
+	if ($IMPORTSPEC['type']==$TYPE_BONUSES) {
+		$xx = $TAGS['UploadForceBonuses'];
+		$tab = "bonuses";
+	} else {
+		$xx = $TAGS['UploadForceEntrants'];
+		$tab = "entrants";
+	}
+	$rex = getValueFromDB("SELECT count(*) As Rex FROM $tab","Rex",0);
+	if ($rex > 0) {
+		$dis = ' disabled ';
+		echo(' <label for="force">'.$xx[1].'</label> <input type="checkbox" name="force" id="force" onchange="document.getElementById(\'submitform\').disabled=!this.checked;">  ');
+	} else
+		$dis = '';
+	echo('<input '.$dis.' id="submitform" type="submit" name="load" value="'.$TAGS['Upload'][0].'" onclick="return postForm(this);">');
 	echo('</span>');
-	
+
 	previewSpreadsheet();
+	echo('</form>');
 		
 	
-?>
-
-<br><br>
-<label for="force"><?php echo($TAGS['UploadForce'][1]);?> </label>
-<input type="checkbox" name="force" id="force">
-
-<br><br>
-<input type="submit" name="load" value="<?php echo($TAGS['Upload'][0]);?>">
-</form>
-<?php
 }
 
-
+function defaultSpecfile($datatype)
+{
+	global $TAGS, $SPECFILES, $upload_state, $IMPORTSPEC, $TYPE_BONUSES, $TYPE_ENTRANTS;
+	
+	if (isset($_REQUEST['specfile']))
+		return;
+	
+	$_REQUEST['specfile'] = getValueFromDB("SELECT specid FROM importspecs WHERE importType=$datatype ORDER BY specid LIMIT 1","specid","");
+	
+}
 
 
 
 
 // Mainline here
 
+extendBonusFields();
 extendEntrantFields();
 
-//print_r($ENTRANT_FIELDS);
+//print_r($_REQUEST);
 
 
 if (isset($_REQUEST['fileuploaded']) && $_REQUEST['fileuploaded']=='1')

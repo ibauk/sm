@@ -8,7 +8,7 @@
  * I am written for readability rather than efficiency, please keep me that way.
  *
  *
- * Copyright (c) 2019 Bob Stammers
+ * Copyright (c) 2020 Bob Stammers
  *
  *
  * This file is part of IBAUK-SCOREMASTER.
@@ -33,9 +33,6 @@ require_once('common.php');
 
 // Alphabetic order below
 
-	$HITLEN = 3;
-	$MINHITS = 7; 
-	$MINLEN = $HITLEN * $MINHITS; 
 
 
 function alignHits($k1,$k2,$L1,$L2,$offset1,$offset2,$maxgap)
@@ -43,7 +40,7 @@ function alignHits($k1,$k2,$L1,$L2,$offset1,$offset2,$maxgap)
 	
 
 	$R = alignMatches($L1,$L2);
-	for ($i=0; $i < count($R[0]); $i++)
+	for ($i=0; $i < count($R[0]), $i < count($R[1]); $i++)
 		if ($R[0][$i]==$R[1][$i])
 		{
 			$R[0][$i] = '<strong>'.$R[0][$i].'</strong>';
@@ -58,12 +55,16 @@ function alignHits($k1,$k2,$L1,$L2,$offset1,$offset2,$maxgap)
 
 function alignMatches($L1,$L2)
 {
+	//echo("L1.length=".count($L1).'; L2.length='.count($L2).'<br>');
+	if (count($L1) < 1)
+		return [$L1,$L2];
 	$filler = str_repeat('&nbsp;',strlen($L1[0]));
-	for ($i = 0, $j = 0; $i < count($L1); $i++)
+	for ($i = 0, $j = 0; $i < count($L1), $j < count($L2); $i++)
+//	for ($i = 0, $j = 0; $i < count($L1); $i++)
 	{
 		$p = findMatch($L1[$i],$L2,$j);
 		$q = findMatch($L2[$j],$L1,$i);
-		//echo("p=$p, q=$q<br>");
+		//echo("p=$p, q=$q, j=$j<br>");
 		if ($p != $j)
 		{			
 			if ($p >= 0 && ($q < 0 || $p - $j <= $q - $i))
@@ -94,7 +95,7 @@ function alignMatches($L1,$L2)
 }
 
 
-function compareLists($L1,$L2,$minmatch,$maxgap,$matchix1,$matchix2)
+function compareLists($L1,$L2,$minmatch,$maxgap)
 /*
  * minmatch	= minimum number of sequential items matched in L1, L2
  * maxgap	= maximum mismatches finding minmatch run
@@ -104,59 +105,42 @@ function compareLists($L1,$L2,$minmatch,$maxgap,$matchix1,$matchix2)
 	$DEBUG = FALSE;
 	
 	if ($DEBUG) echo('Count($L1)='.count($L1).'; count($L2)='.count($L2).'; min='.$minmatch.'; max='.$maxgap.'<br>');
-	//$matchix1 = 0;
-	$matchlen = 0;
-	$matchgap = 0;
-	//$matchix2 = 0;
+	
+	$matchix1 = 0; 	$matchlen = 0; 	$matchgap = 0; 	$matchix2 = 0;
+	
 	// Skip to first match
-	while ($matchix1 + $matchlen + $matchgap < count($L1) && $matchlen < $minmatch) // Area of list1 to be matched
-	{
-		if ($DEBUG)
-		{
-			flush();
-			ob_flush();
-		}
+	while ( ($matchix1 + $matchlen  < count($L1)) && ($matchlen < $minmatch) && ($matchix2 + $matchgap < count($L2)) ) { // Area of list1 to be matched
+		if ($DEBUG)	{ flush(); ob_flush(); 	}
 		
-		if ($matchix2 >= count($L2))
-		{
-			// if ($DEBUG) echo('ix2 overflow<br>');
+		if ($matchix2 >= count($L2)) {
 			$matchix1++;
-			$matchlen = 0;
-			$matchgap = 0;
-			$matchix2 = 0;
+			$matchlen = 0; 	$matchgap = 0; 	$matchix2 = 0;
 			continue;
 		}
 
-		$x = $L1[$matchix1 + $matchlen + $matchgap]; // What to look for
-		$y = $L2[$matchix2];
-		if ($x == $y)
-		{
+		$x = $L1[$matchix1 + $matchlen]; // What to look for
+		$y = $L2[$matchix2 + $matchgap];
+		
+		if ($DEBUG) { echo("x[$matchix1+$matchlen]=$x == y[$matchix2+$matchgap]=$y; <br>"); }
+		if ($x == $y) {	// build match
 			$matchlen++;
-			$matchix2++;
-		}
-		else
-		{
-			if ($matchlen > 0)
-			{
+			$matchix2 += $matchgap;
+			$matchgap = 0;
+		} else {
+			if ($matchlen > 0) 	{ // match underway
 				$matchgap++;
-				if ($matchgap > $maxgap)
-				{
-					$matchgap = 0;
-					$matchlen = 0;
-					$matchix2 = 0;
+				if ($matchgap > $maxgap) {
+					$matchgap = 0; $matchlen = 0; $matchix2 = 0;
 					$matchix1++;
+					continue;
 				}
-			}
-			else
-			{
+			} else
 				$matchix2++;
-				//$matchix1++;
-			}
 		}
-		if ($DEBUG) if ($matchlen > 0) echo('ix: '.$matchix1.'('.$x.') len='.$matchlen.'; gap='.$matchgap.' @ '.$matchix2.'('.$y.')<br>');
+		//if ($DEBUG) if ($matchlen > 0) echo('ix: '.$matchix1.'('.$x.') len='.$matchlen.'; gap='.$matchgap.' @ '.$matchix2.'('.$y.')<br>');
 	}
 	$res = [$matchlen >= $minmatch,$matchix1,$matchix2 - $matchlen];
-	if ($DEBUG)
+	if ($DEBUG && false)
 	{
 		echo('MLb: '.$matchlen.': ');
 		while ($matchlen--)
@@ -188,7 +172,6 @@ function detectTeamMembers()
  */
 {
 	global $DB, $TAGS, $KONSTANTS;
-	global $HITLEN, $MINHITS, $MINLEN;
 
 	$lists = fetchLists();
 	
@@ -199,16 +182,17 @@ function detectTeamMembers()
 	pushBreadcrumb('#');
 	emitBreadcrumbs();
 	
+	echo('<h4>'.$TAGS['ttTeams'][1].' - <em>m</em>='.$minmatch.' <em>g</em>='.$maxgap.'</h4>');
+	echo('<p>'.$TAGS['TeamExplain'][1].'</p>');
 	echo('<table class="teamslist">');
 	
-	echo('<caption>'.$TAGS['ttTeams'][1].' <em>m</em>='.$minmatch.' <em>g</em>='.$maxgap.'</caption>');
 	
 	for ($i = 0; $i + 1 < count($lists); $i++)
 	{
 		$ishown = false;
 		for ($j = $i + 1; $j < count($lists); $j++)
 		{
-			$res = compareLists($lists[$keys[$i]],$lists[$keys[$j]],$minmatch,$maxgap,0,0);
+			$res = compareLists($lists[$keys[$i]],$lists[$keys[$j]],$minmatch,$maxgap + 1); // entered as gap but used as offset
 			
 			if ($res[0])
 				alignHits($keys[$i],$keys[$j],$lists[$keys[$i]],$lists[$keys[$j]],$res[1],$res[2],$maxgap);
@@ -253,8 +237,6 @@ function showFixedLine($k,$arr,$rowcls)
 
 
 
-
-//header( 'Content-type: text/html; charset=utf-8' );
 
 startHtml($TAGS['ttTeams'][0]);
 

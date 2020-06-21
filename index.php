@@ -9,7 +9,7 @@
  * I am written for readability rather than efficiency, please keep me that way.
  *
  *
- * Copyright (c) 2019 Bob Stammers
+ * Copyright (c) 2020 Bob Stammers
  *
  *
  * This file is part of IBAUK-SCOREMASTER.
@@ -24,10 +24,23 @@
  *
  */
 
+session_start();
+session_unset();
+session_destroy();
 
- $main = "score.php";
+require_once('common.php');
+
+if (!rally_params_established()) {
+	include "setup.php";
+	exit;
+}
+
+if (entrantsPresent() < 1) {
+	include "admin.php";
+	exit;
+}
  
-include "$main";
+include "score.php";
 ?>
 <!DOCTYPE html>
 <html>

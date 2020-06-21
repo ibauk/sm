@@ -9,7 +9,7 @@
  * I am written for readability rather than efficiency, please keep me that way.
  *
  *
- * Copyright (c) 2019 Bob Stammers
+ * Copyright (c) 2020 Bob Stammers
  *
  *
  * This file is part of IBAUK-SCOREMASTER.
@@ -38,26 +38,25 @@
  * Field labels affected are marked  // Miles/Kms
  *
  */
+
+// As from DBVERSION >= 5, these value is overridden from the database
  
-$KONSTANTS['BasicDistanceUnits'] = $KONSTANTS['DistanceIsMiles'];
-// $KONSTANTS['BasicDistanceUnits'] = $KONSTANTS['DistanceIsKilometres'];
-
-
-
+$KONSTANTS['BasicDistanceUnit'] = $KONSTANTS['DistanceIsMiles'];
+// $KONSTANTS['BasicDistanceUnit'] = $KONSTANTS['DistanceIsKilometres'];
 
 // Default settings
 
-// This setting should normally reflect BasicDistanceUnits above
-$KONSTANTS['DefaultKmsOdo'] = $KONSTANTS['OdoCountsMiles']; 
-// $KONSTANTS['DefaultKmsOdo'] = $KONSTANTS['OdoCountsKilometres'];
-$KONSTANTS['DecimalPointIsComma']  = false;
+$KONSTANTS['LocalTZ'] = '+0000'; // Default to GMT
 
-
+$KONSTANTS['DecimalPointIsComma']  = 0;
 
 // Used when setting up new entrants onscreen
 
 $KONSTANTS['DefaultCountry'] = 'UK';
 
+
+
+// Not this one though <haha>
 
 // Assume this value, which may be blank, if not overridden at run time
 $KONSTANTS['DefaultScorer'] = 'Bob';
@@ -85,35 +84,41 @@ $TAGS = array(
 	'abtWebserver'		=> array('Webserver','What webserver software is hosting this'),
 	'AddPoints'			=> array('Add points',''),
 	'AddMults'			=> array('Add multipliers',''),
+	'AdmAdvancedHeader'	=> array('Advanced','Advanced configuration options'),
+	'AdmApplyClaims'	=> array('Process good claims','Auto-post good claims only'),
 	'AdmBonusHeader'	=> array('Bonuses',''),
 	'AdmBonusTable'		=> array('Ordinary bonuses','View/edit schedule of ordinary bonuses'),
 	'AdmCatTable'		=> array('Categories','View/edit axis categories'),
-	'AdmClaims'			=> array('Claims','Access log of bonus claims'),
+	'AdmClaims'			=> array('Claims log','Access log of bonus claims'),
 	'AdmCombosTable'	=> array('Combinations','View/edit combination bonuses'),
 	'AdmCompoundCalcs'	=> array('Compound calculations','Maintain table of calculation records'),
-	'AdmConfirm'		=> array('Reconcile scores','Confirm scorecards as accurate'),
+	'AdmConfirm'		=> array('Reconcile scorecards','Confirm scorecards as accurate'),
 	'AdmDoBlank'		=> array('Post score ticksheet','Show blank score with reject reasons sheet ready for printing'),
 	'AdmDoBlankB4'		=> array('Scoring ticksheet','Show paper scoring log sheet ready for printing'),
-	'AdmDoScoring'		=> array('Scoring','Score individual entrants'),
+	'AdmDoScoring'		=> array('Scorecards','Score individual entrants'),
 	'AdmEditCert'		=> array('Edit certificate content','Edit the HTML &amp; CSS of the master certificate'),
-	'AdmEntrants'		=> array('Entrants table','View/edit list of Entrants'),
+	'AdmEntrants'		=> array('Full Entrant records','View/edit list of Entrants'),
 	'AdmEntrantChecks'	=> array('Check-out/in','Entrant checks @ start/end of rally'),
 	'AdmEntrantsHeader'	=> array('Entrants',''),
 	'AdmExportFinishers'=> array('Export finishers','Save CSV containing details of finishers'),
+	'AdmImportBonuses'	=> array('Import ordinary bonuses','Load ordinary bonuses from a spreadsheet'),
 	'AdmImportEntrants'	=> array('Import Entrants','Load entrant details from a spreadsheet'),
+	'AdmMagicWords'		=> array('Magic words','Magic words are used to control claims in virtual rallies. If this table is empty, no magic words are required to validate claims otherwise each claim must include the most recent applicable word listed here.'),
 	'AdminMenu'			=> array('Rally Administration','Logon to carry out administration (not scoring) of the rally'),
 	'AdmMenuHeader'		=> array('Rally administration',''),
 	'AdmNewBonus'		=> array('Setup new bonus','Add details of another bonus'),
 	'AdmNewEntrant'		=> array('Setup new entrant','Add details of another entrant'),
-	'AdmPrintCerts'		=> array('Print finisher certificates','Print certificates for finishers'),
+	'AdmPrintCerts'		=> array('Finisher certificates','Print certificates for finishers'),
 	'AdmPrintQlist'		=> array('Finisher quicklist','Print quick list of finishers'),
 	'AdmPrintScoreX'	=> array('Score explanations','Print score explanations for everyone not DNS'),
 	'AdmRallyParams'	=> array('Rally parameters','View/edit current rally parameters'),
 	'AdmRankEntries'	=> array('Rank finishers','Calculate and apply the rank of each finisher'),
 	'AdmSelectTag'		=> array('Search by keyword','Choose a tag to list relevant functions'),
+	'AdmSendEmail'		=> array('Email entrants','Send an email to some or all entrants'),
 	'AdmSetupHeader'	=> array('Setup',''),
 	'AdmSetupWiz'		=> array('Setup wizard','Basic rally setup wizard'),
 	'AdmSGroups'		=> array('Specials groups','Maintain groups of specials'),
+	'AdmShowAdvanced'	=> array('Advanced setup','Access advanced configuration options'),
 	'AdmShowSetup'		=> array('Rally setup &amp; config','View/maintain rally configuration records'),
 	'AdmShowTagMatches'	=> array('Items matching ','Showing functions matching tag '),
 	'AdmSpecialTable'	=> array('Special bonuses','View/edit special bonuses'),
@@ -129,6 +134,7 @@ $TAGS = array(
 	'AskPoints'			=> array('Variable?','Ask for points value during scoring'),
 	'AskPoints0'		=> array('Fixed','Points value is fixed'),
 	'AskPoints1'		=> array('Variable','Points value entered during scoring'),
+	'AxisCats'			=> array('Categories for axis','List of categories belonging to this axis'),
 	'AxisLit'			=> array('Axis','The set of categories this rule applies to'),
 	'AutoRank'			=> array('Automatic Ranking','Rank automatically recalculated when scorecard updated'),
 	'BasicDetails'		=> array('Basic',''),
@@ -145,12 +151,12 @@ $TAGS = array(
 	'BonusClaimUndecided'
 						=> array('undecided',''),
 	'BonusesLit'		=> array('Bonuses','Ordinary bonuses'),
-	'BonusIDLit'		=> array('BonusID',''),
-	'BonusListLit'		=> array('Combination bonuses','List of ordinary, special or bonus IDs'),
-	'BonusMaintHead'	=> array('Ordinary Bonuses','List of Ordinary (geographic) bonuses'),
+	'BonusIDLit'		=> array('BonusID','Unique identifier for this bonus'),
+	'BonusListLit'		=> array('Combination bonuses','Comma separated list of ordinary, special or combination bonuses'),
+	'BonusMaintHead'	=> array('Ordinary Bonuses','Ordinary bonuses generally represent physical locations that entrants must visit and complete some task, typically take a photo. They are presented on scorecards in <em>BonusID</em> order. Numeric only codes should all have the same number of digits (use leading \'0\' if necessary).'),
 	'BonusPoints'		=> array('Points','The basic points value of this bonus'),
 	'BriefDescLit'		=> array('Description',''),
-	'CalcMaintHead'		=> array('Compound Calculation Rules','List of rules for compound score calculations'),
+	'CalcMaintHead'		=> array('Compound Calculation Rules','Compound score calculations are used in conjunction with category records and bonus classifications to implement powerful scoring logic. Please refer to the Administrator\'s guide for a complete understanding of how these work.'),
 	'CalculatedAvgSpeed'=> array('','Calculated average speed'),
 	'Cat0Label'			=> array('Total','If summing across axes, use this label'),
 	'Cat1Label'			=> array('Axis 1 is','What do values on this axis represent?'),
@@ -163,68 +169,121 @@ $TAGS = array(
 	'Cat8Label'			=> array('Axis 8 is','What do values on this axis represent?'),
 	'Cat9Label'			=> array('Axis 9 is','What do values on this axis represent?'),
 	'CatBriefDesc'		=> array('Description',''),
+	'CategoryAxes'		=> array('Categories','Categories allow for more complex scoring mechanisms. If used, each ordinary or combination bonus can be marked as belonging to a particular category within each used axis. The axes can be used to represent entities such as county, country, activity, etc. Such memberships can be used to modify basic bonus scoring and/or apply a second level of scoring using compound calculation records.'),
+	
 	'CategoryLit'		=> array('Category',''),
 	'CatEntry'			=> array('Category','The number of this category within the axis'),
 	'CatEntryCC'		=> array('Which category','Which cat(s) does this rule apply to'),
-	'CatExplainer'		=> array('CatExplainer','You can amend the description of categories or delete them entirely. New entries must have an category number which is unique within the axis.'),
+	'CatExplainer'		=> array('CatExplainer','You can amend the description of categories or delete them entirely. New entries must have a category number which is unique within the axis.'),
 	'CatNotUsed'		=> array('(not used)',''),
 	'ccApplyToAll'		=> array('all cats','applies to all cats'),
-	'ccCompulsory'		=> array('Ruletype','1=DNF if not triggered;2=DNF if triggered; else 0'),
-	'ccCompulsory0'		=> array('Regular rule','Ordinary scoring rule'),
-	'ccCompulsory1'		=> array('Untrig=DNF','DNF unless this rule triggered'),
-	'ccCompulsory2'		=> array('Trigger=DNF','DNF if this rule triggered'),
-	'ccCompulsory3'		=> array('Placeholder','Plceholder rule'),
+	'ccRuletype'		=> array('Ruletype','1=DNF if not triggered;2=DNF if triggered; else 0'),
+	'ccRuletype0'		=> array('Regular rule','Ordinary scoring rule'),
+	'ccRuletype1'		=> array('Untrig=DNF','DNF unless this rule triggered'),
+	'ccRuletype2'		=> array('Trigger=DNF','DNF if this rule triggered'),
+	'ccRuletype3'		=> array('Placeholder','Placeholder rule'),
 	
 	'CertExplainer'		=> array('Certificates are "web" documents comprising well-formed HTML and CSS parts.',
 									'Please carefully specify the certificate layout and content in the texts below.'),
-	'CertExplainerW'	=> array('Certificates are "web" documents. This editor allows you to define the content and layout in a user-friendly way.',''),
+	'CertExplainerW'	=> array('Multiple \'classes\' may be defined, each with its own certificate.',''),
 	'CertTitle'			=> array('Title','Description of this certificate class'),
 
 	'cl_Applied'		=> array('Applied?','Has this claim been applied to the entrant\'s scorecard?'),
 	'cl_AppliedHdr'		=> array('Applied',''),
+	'cl_ApplyHdr'		=> array('Process "Good claim" records','Post all claims marked as being "Good claim" with no penalties in one batch. Be careful to ensure single-user access to the database during this process which should only take a minute or so.'),
+	'cl_Applying'		=> array('Applying claims marked as "Good claim"',''),
 	'cl_BonusHdr'		=> array('Bonus',''),
 	'cl_ClaimedHdr'		=> array('Claimed',''),
-	'cl_DDLabel'		=> array('New default','Default decision when posting new claims'),
+	'cl_ClaimsBumf'		=> array('Claims log','The claims log records individual bonus claims, typically during live bonus claiming. Usually this would be accessed by at least two team members, one recording and possibly judging the claims and another using the logged decisions to update individual scorecards.'),
+	'cl_ClaimsTitle'	=> array('Claims','HTML page title'),
+	'cl_Complete'		=> array('Processing complete &#x1F603;',''),
+	'cl_DateFrom'		=> array('From date','Start of date range'),
+	'cl_DateTo'			=> array('To date','End of date range'),
+	
+	'cl_DDLabel'		=> array('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;New defaults:','Default decision/date when posting new claims'),
 	'cl_DecisionHdr'	=> array('Decision',''),
 	'cl_EntrantHdr'		=> array('Entrant',''),
 	'cl_FilterBonus'	=> array('B#','Filter list by Bonus number'),
 	'cl_FilterEntrant'	=> array('E#','Filter list by Entrant number'),
+	'cl_Go'				=> array('Go on, go for it!','Go on, go for it!'),
 	'cl_LoggedHdr'		=> array('Logged',''),
+	'cl_NumClaims'		=> array('Number of claims shown','Number of claims shown'),
 	'cl_OdoHdr'			=> array('Odo',''),
+	'cl_PenaltyFuel'	=> array('&nbsp;F&nbsp;','Fuel penalty'),
+	'cl_PenaltyMagic'	=> array('&nbsp;M&nbsp;','Magic word penalty'),
+	'cl_PenaltySpeed'	=> array('&nbsp;S&nbsp;','Speeding penalty'),
 	'cl_RefreshList'	=> array('&circlearrowright;','Refresh the claims list'),
-	'cl_PostNewClaim'	=> array('Post new claim',''),
+	'cl_PostNewClaim'	=> array('+','Post new claim'),
 	'cl_showAllA'		=> array('show all','Filter list on applied to scorecard status'),
 	'cl_showNotA'		=> array('unapplied',''),
 	'cl_showOnlyA'		=> array('applied',''),
-	'cl_showAllD'		=> array('show all','Filter list on decided/judged status'),
+	'cl_showAllD'		=> array('show all','Filter list on decided/undecided status'),
 	'cl_showNotD'		=> array('undecided',''),
 	'cl_showOnlyD'		=> array('decided',''),
+	'cl_TimeFrom'		=> array('From time','Start of time range'),
+	'cl_TimeTo'			=> array('To time','End of time range'),
 	
 	'Class'				=> array('Class #','The certificate class applicable'),
 	'ChooseEntrant'		=> array('Choose entrant','Pick an entrant from this list'),
 	'ComboIDLit'		=> array('ComboID',''),
-	'ComboMaintHead'	=> array('Combination Bonuses','List of Combination bonuses'),
+	'ComboMaintHead'	=> array('Combination Bonuses','Combination bonuses are scored automatically when their underlying ordinary, special or combination bonuses are ticked. Combos can be set to score different values depending on the number of underlying bonuses ticked. By default all underlying bonuses must be ticked.'),
 	'ComboScoreMethod'	=> array('Points/Mults','Does this combo score points? or multipliers?'),
 
-	'CombosLit'			=> array('Combinations','Combination bonuses'),
+	'CombosLit'			=> array('Combos','Combination bonuses'),
 	'CommaSeparated'	=> array('Comma separated list',''),
-	'CompulsoryBonus'	=> array('Compulsory?','This bonus is required for Finisher status'),
+	'CompulsoryBonus'	=> array('Compulsory?','Compulsory means this bonus is required for Finisher status'),
 	'CompulsoryBonus0'	=> array('Optional',''),
 	'CompulsoryBonus1'	=> array('Compulsory',''),
+	'CompulsoryBonus2'	=> array('Must not',''),
 	'ConfirmDelEntrant'	=> array('Delete this entrant?','Confirm deletion of this entrant'),
 	'ConfirmedBonusTick'=> array('&#10004;','This bonus has been confirmed/reconciled'),
 	
 	'ContactDetails'	=> array('Contacts',''),
 	
-	'CorrectedMiles'	=> array('Miles ridden','Official rally mileage'),	// Miles/Kms
+	'CorrectedMiles'	=> array('Distance ridden','Official rally mileage'),	// Miles/Kms
 	
 	'Country'			=> array('Country',"Entrant's home country"),
-	'dberroragain'		=> array('Please resubmit. If problem persists tell Bob','The database save failed, probably temporary lock issue'),
+	'dberroragain'		=> array('The database save failed because [%s]. Please <button onClick="window.location.reload();">resubmit</button>. If problem persists tell Bob','The database save failed, probably temporary lock issue'),
 	'dblclickprint'		=> array('Double-click to print',''),
+	'DecimalComma'		=> array('Decimal point is','What character indicates a decimal point?'),
+	'DecimalCommaFalse'	=> array('&nbsp;.&nbsp; ','Regular decimal point'),
+	'DecimalCommaTrue'	=> array('&nbsp;,&nbsp;','Decimal point is comma'),
+	
 	'DeleteBonus'		=> array('Delete this bonus',''),
 	'DeleteClaim'		=> array('Delete this claim',''),
 	'DeleteEntrant'		=> array('Go ahead, delete the bugger!','Execute the deletion'),
-	'DeleteEntryLit'	=> array('Delete?',''),
+	'DeleteEntryLit'	=> array('Delete this record?',''),
+	
+	'DistanceUnit'		=> array('Unit of distance','Rallies report either in miles or in kilometres'),
+	
+	'DuplicateRecord'	=> array('Duplicate record!','That record already exists in the database'),
+	
+	'em_Attachment'		=> array('Add file attachment(s)','Upload a file'),
+	'em_Body'			=> array('Message text','The main text of the email. If ScoreX included, it comes after this.'),
+	
+	'em_EntrantID'		=> array('Include entrants whose number is','Enter one or more EntrantIDs separated by commas'),
+	'em_EntrantStatus'	=> array('Include entrants whose status is','Choose one or more entrant statuses to be emailed'),
+	'em_includeCertificate'
+						=> array('Attach certificate (Finishers only)','Include the individual entrant\'s Finisher Certificate'),
+	'em_includeScorex'	=> array('Include score explanation (Finishers,DNF)','Include the individual entrant\'s score explanation'),
+	'em_NotBlank'		=> array('must not be blank','must not be blank'),
+	'em_NumberSelected'	=> array('Number of recipients selected','Number of recipients selected'),
+	'em_SelectMethod'	=> array('Recipient selection method','Select based on what field'),
+	'em_Signature'		=> array('Optional signature','The signature text of the email. Comes after any inclusions.'),
+	
+	'em_SpecialIncludes'=> array('Special includes :- ','Include these specials'),
+	'em_Subject'		=> array('Subject line','The formal Subject of the email. May not be blank.'),
+	'em_Submit'			=> array('Send email now','Send email now'),
+	
+	'email:Username'	=> array('Username','Username known to the host'),
+	'email:SMTPAuth'	=> array('SMTPAuth','SMTP authentication required (true/false)'),
+	'email:SMTPSecure'	=> array('SMTPSecure','SMTP security transport'),
+	'email:Port'		=> array('Port','Port used for SMTP'),
+	'email:Host'		=> array('Host','SMTP server'),
+	'email:Password'	=> array('Password','Used with Username'),
+	'email:SetFrom'		=> array('SetFrom','Email address, Sender name'),
+	'EmailParams'		=> array('Email','Email parameters: These fields contain rather technical information for use with PHPMailer. If you know what you\'re doing, have at it otherwise don\'t guess, do consult a grownup.'),
+	
 	'EntrantDNF'		=> array('DNF','Did not qualify as a finisher'),
 	'EntrantDNS'		=> array('DNS','Entrant failed to start the rally'),
 	'EntrantEmail'		=> array('Entrant email','Email for this entrant'),
@@ -233,6 +292,7 @@ $TAGS = array(
 	'EntrantListBonus'	=> array('Entrants claiming bonus','List of entrants claiming a particular bonus'),
 	'EntrantListCheck'	=> array('Entrant check-ins/outs','Choose an entrant for checkin-in or checking-out'),
 	'EntrantListCombo'	=> array('Entrants claiming combo','List of entrants claiming a particular combination'),
+	'EntrantListFind'	=> array('Entrants found','List of entrants matching your search key'),
 	'EntrantListFull'	=> array('Full list of Entrants','Choose an entrant to view/edit his/her details'),
 	'EntrantListSpecial'=> array('Entrants claiming special','List of entrants claiming a particular special'),
 	'EntrantOK'			=> array('ok','Status normal'),
@@ -242,7 +302,7 @@ $TAGS = array(
 							// Careful! this is executed as PHP, get it right.
 	'EntrantStatusV'	=> array('array("0" => "DNS", "1" => "ok", "8" => "Finisher", "3" => "DNF");','array used for vertical tables'),
 	
-	'ExcessMileage'		=> array('Excess miles',''),						// Miles/Kms
+	'ExcessMileage'		=> array('Distance',''),						// Miles/Kms
 	
 	'ExtraData'			=> array('ExtraData','Extra data to be passed on to the main database. Format is <i>name</i>=<i>value</i>'),
 	
@@ -254,6 +314,8 @@ $TAGS = array(
 	'FinishTime'		=> array('Finish time','Official finish time. Entrants finishing later are DNF'),
 	'FinishTimeE'		=> array('Finish time','Official finish time. Check-in time.'),
 
+	'fl_RefreshList'	=> array('&circlearrowright;','Refresh the list'),
+	
 	'FuelBalance'		=> array('Fuel','Fuel distance remaining'),
 	'FuelWarning'		=> array('OUT OF FUEL!','This leg exceeded the remaining fuel capacity'),
 	
@@ -264,11 +326,19 @@ $TAGS = array(
 	'GroupNameLit'		=> array('Special group','Group used for presentation purposes'),
 	'HelpAbout'			=> array('About ScoreMaster',''),
 	
+	'HostCountry'		=> array('Host country','Used to default addresses for entrants'),
+	
 	// If an imported bike field matches this re, replace with the phrase
 	//                            re    phrase
 	'ImportBikeTBC'		=> array('/tbc|tba|unknown/i','motorbike','Replace re with literal'),
 	'InsertNewCC'		=> array('Enter new compound calc',''),
 	'InsertNewCombo'	=> array('New combo','Setup a new combination bonus'),
+	
+	// Import Xls stuff
+	'ix_ChooseAgain'	=> array('Choose again','Choose a different file'),
+	'ix_Fileformat'		=> array('File format','Specification of file layout'),
+	'ix_FileLoaded'		=> array('File loaded',''),
+	
 	'jodit_Borders'		=> array('Print borders',''),
 	'jodit_Borders_Double'
 						=> array('Double',''),
@@ -279,28 +349,36 @@ $TAGS = array(
 	'LegendPenalties'	=> array('Penalties',''),
 	'LegendScoring'		=> array('Scoring &amp; Ranking',''),
 	'LegendTeams'		=> array('Teams'),
+	'LocalTZ'			=> array('Rally timezone','Timezone (offset from GMT) used in this rally'),
+	
 	'login'				=> array('login','Go on, log me in then!'),
 	'LogoutScorer'		=> array('Logout','Log the named scorer off this terminal'),
 
 	'magicword'			=> array('Magic','The \'magic\' word associated with this claim'),
 	'MarkConfirmed'		=> array('Mark as confirmed','Mark all bonus claim decisions as having been confirmed'),
 	
-	'MaxHours'			=> array('Maximum hours','The duration of the rally in hours. Used to calculate DNF time, may show on certificates'),
+	'MaxHours'			=> array('Rideable hours','The maximum rideable hours available. Used to calculate DNF time, may show on certificates'),
 	'MaxMilesFixedM'	=> array('Multiplier','Excess mileage incurs deduction of multipliers'),							// Miles/Kms
 	'MaxMilesFixedP'	=> array('Fixed points','Excess mileage incurs fixed points deduction'),							// Miles/Kms
-	'MaxMilesPerMile'	=> array('Points per mile','Excess mileage incurs points deduction per excess mile'),				// Miles/Kms
-	'MaxMilesPoints'	=> array('Points or Multipliers deducted','Number of points or multipliers for excess mileage'),	// Miles/Kms
-	'MaxMilesUsed'		=> array('Tick if maximum miles used','Will entrants be DNF if they exceed a maximum distance?'),	// Miles/Kms
+	
+	'MaxMilesPerMile'	=> array('Points per mile/km','Excess mileage incurs points deduction per excess mile/km'),				// Miles/Kms
+	
+	'MaxMilesPoints'	=> array('Points or Multipliers deducted','Number of points or multipliers for excess distance'),	// Miles/Kms
+	'MaxMilesUsed'		=> array('Tick if maximum distance used','Will entrants be DNF if they exceed a maximum distance?'),	// Miles/Kms
 	'MilesPenaltyText'	=> array('Mileage penalty deduction',''),															// Miles/Kms
 	'MinimumTicks'		=> array('MinTicks','Minimum bonus ticks for this combo; 0=all'),
-	'MinMiles'			=> array('Minimum miles','Minimum number of miles to qualify as a finisher'),						// Miles/Kms
-	'MinMilesUsed'		=> array('Tick if minimum miles used','Will entrants need to ride a minimum distance in order to qualify as finishers?'), // Miles/Kms
+	'MinMiles'			=> array('Minimum distance','Minimum number of miles/kms to qualify as a finisher'),						// Miles/Kms
+	'MinMilesUsed'		=> array('Tick if minimum distance used','Will entrants need to ride a minimum distance in order to qualify as finishers?'), // Miles/Kms
 	
 	'MinPoints'			=> array('Minimum points','Minimum points scored to be a finisher'),
 	'MinPointsUsed'		=> array('Tick if minimum points used','Will entrants need to score a minimum number of points in order to qualify as finishers?'),
 	'ModBonus0'			=> array('Axis','Affects compound axis score'),
 	'ModBonus1'			=> array('Bonus','Modifies bonus score'),
 	'ModBonusLit'		=> array('Usage','1=This calc directly affects bonus value, 0=This calc builds the axis score'),
+	
+	'mw_AsFrom'			=> array('As from','From what time does this word apply'),
+	'mw_Word'			=> array('Word','The magic word'),
+	
 	'NameFilter'		=> array('Rider name','Use this to filter the list of riders shown below'),
 	'NewEntrantNum'		=> array('New number','What\'s the number number for this entrant'),
 	'NewPlaceholder'	=> array('start new entry','Placeholder for new table entries'),
@@ -308,7 +386,7 @@ $TAGS = array(
 	'NMethod-1'			=> array('Unused','Not used'),
 	'NMethod0'			=> array('Bonuses/cat','No of bonuses per cat'),
 	'NMethod1'			=> array('Cats/axis','No of NZ cats per axis'),
-	'NMethodLit'		=> array('NMethod','0=# entries per cat, 1=# of NZ cats, -1=record not used'),
+	'NMethodLit'		=> array('NMethod','N is either the number of entries in a particular category or the number of categories with at least one hit'),
 	'NMinLit'			=> array('NMin','The minimum value of N before this rule is triggered'),
 	'NoCerts2Print'		=> array('Sorry, no certificates to print.',''),
 	
@@ -327,7 +405,7 @@ $TAGS = array(
 	'OdoCheckStart'		=> array('Odo check start','The reading at the start of the odometer check'),						// Miles/Kms
 	'OdoCheckTrip'		=> array('Odo check trip','What distance did the trip meter record?'),								// Miles/Kms
 	'OdoCheckUsed'		=> array('Tick if odo check used','Will entrants be required to ride an odometer check route?'),	// Miles/Kms
-	'OdoKms'			=> array('Odo counts',''),																			// Miles/Kms
+	'OdoKms'			=> array('Odo counts','What unit of distance does the odo track'),									// Miles/Kms
 	'OdoKmsK'			=> array('kilometres',''),																			// Miles/Kms
 	'OdoKmsM'			=> array('miles',''),																				// Miles/Kms
 	'Odometer'			=> array('Odo&nbsp;readings',''),																		// Miles/Kms
@@ -337,11 +415,15 @@ $TAGS = array(
 	'OdoScaleFactor'	=> array('Correction factor','The number to multiply odo readings to get true distance'),			// Miles/Kms
 	
 	'OfferScore'		=> array('OfferScore','Would you like to help score this rally? If so, please tell me your name'),
+	
+	'oi_Scorecards'		=> array('Scorecards',''),
+	'oi_ScorecardsMC'	=> array('Scorecards (confirm)',''),
+	
 	'optCompulsory'		=> array('Compulsory',''),
 	'optOptional'		=> array('Optional',''),
 	
-	'PenaltyMaxMiles'	=> array('Max miles (penalties)','Mileage beyond this incurs penalties; 0=doesn\'t apply'),			// Miles/Kms
-	'PenaltyMilesDNF'	=> array('DNF mileage','Miles beyond here result in DNF; 0=doesn\'t apply'),						// Miles/Kms
+	'PenaltyMaxMiles'	=> array('Max distance (penalties)','Mileage beyond this incurs penalties; 0=doesn\'t apply'),			// Miles/Kms
+	'PenaltyMilesDNF'	=> array('DNF mileage','Miles/kms beyond here result in DNF; 0=doesn\'t apply'),						// Miles/Kms
 	
 	'PickAnEntrant'		=> array('Pick an entrant','Pick an entrant using the list below or by entering an Entrant number. Type a name to filter the list.'),
 	'PillionFirst'		=> array('Informal name',"Used for repeat mentions on finisher's certificate"),
@@ -371,12 +453,17 @@ $TAGS = array(
 	'raeSortA'			=> array('Ascending','Sort A-Z, 1-9'),
 	'raeSortD'			=> array('Descending','Sort Z-A, 9-1'),
 	'raeSubmit'			=> array('Go ahead, Renumber all entrants','Go ahead! Renumber all entrants'),
-	
+
+	'RallyConfigSaved'	=> array('Parameters saved',''),
 	'RallyResults'		=> array('Rally&nbsp;results',''),
-	'RallySlogan'		=> array('Rally slogan','Brief description of the rally, usually shown on finisher certificates.'),
-	'RallyTitle'		=> array('Rally title','Formal title of the rally. Surround an optional part with [ ]; Use | for newlines'),
+	'RallySlogan'		=> array('Rally slogan','Brief description of the rally, may be shown on finisher certificates.'),
+	'RallyTitle'		=> array('Rally title','Formal title of the rally. May be shown on certificates in full or with an optional part omitted. May be split over several lines. Surround an optional part with [ ]; Use | for newlines. eg: IBA Rally [2020]'),
 	'rcCategories'		=> array('Categories','Schedule of categories used for scoring'),
+	
 	'RecordSaved'		=> array('Record saved',''),
+	
+	'RegionalConfig'	=> array('Regional','Regional configuration'),
+	
 	
 	// Used as 'clear' line in claim reject popup menu
 	'RejectReason0'		=> array('0=not rejected','Bonus claim is not rejected'),
@@ -410,6 +497,18 @@ $TAGS = array(
 	'SaveRecord'		=> array('Save record','Save record to the database'),
 	'SaveScore'			=> array('Save scorecard','Save the updated score/status of this entrant'),
 	'SaveSettings'		=> array('Save settings','Save these details to the database'),
+	
+	'sc_AvgSpeed'		=> array('Speed','Avg speed'),
+	'sc_Distance'		=> array('Distance','Distance'),
+	'sc_EntrantID'		=> array('Entrant','Entrant'),
+	'sc_HiDistance'		=> array('Furthest distance','Highest distance'),
+	'sc_HiSpeed'		=> array('Highest average speed','Highest average speed'),
+	'sc_MaxBonuses'		=> array('Most ordinary bonuses','Max bonuses'),
+	'sc_NoConfirmed'	=> array('Scorecards confirmed','N<sup>o</sup> of scorecards confirmed'),
+	'sc_NoEntrants'		=> array('Entrants with status ','Number of entrants with status '),
+	'sc_Overview'		=> array('Overview','Overall standings'),
+	'sc_Status'			=> array('Status','Status'),
+	
 	'ScorecardIsDirty'	=> array('!!!','Scorecard is dirty'),
 	'ScoredBy'			=> array('Scored by','Who is (or did) scoring this entrant?'),
 	'ScoreNow'			=> array('Score now','Switch to live scoring this entrant(new tab)'),
@@ -427,14 +526,15 @@ $TAGS = array(
 	'ScoringMethodS'	=> array('Simple','Bonuses are ticked and points added up'),
 	
 	// Texts for use in setup wizard
-	'ScoringMethodWA'	=> array('Automatic','The system takes care of scoring method decisions based on your other configuration choices. This is probably the setting you should use.'),
+	'ScoringMethodWA'	=> array('Fully automatic','The system takes care of scoring method decisions based on your other configuration choices. This is probably the setting you should use.'),
 	'ScoringMethodWC'	=> array('Compound scoring','Scoring makes use of categories to modify bonus scores or provide an extra layer of scoring with/without multipliers'),
 	'ScoringMethodWM'	=> array('Manual scoring','Scores will be calculated manually by the scorers and entered as a simple points value'),
 	'ScoringMethodWS'	=> array('Simple scoring','The rally uses only ordinary bonuses, special bonuses and combination bonuses'),
+	'ScoringTab'		=> array('Scoring','Scoring details'),
 	'ScoringNow'		=> array('Being scored now','Is this entrant being scored by someone right now?'),
 	'SettingsSaved'		=> array('Settings saved','This screen matches the database, no changes yet'),
 	'SGroupLit'			=> array('Specials Group','Specials group name'),
-	'SGroupMaintHead'	=> array('Specials Bonus Groups','List of groups for specials'),
+	'SGroupMaintHead'	=> array('Specials Bonus Groups','Special bonuses may be grouped together either to visually separate them or to enable the use of radio buttons rather than checkboxes. Each group must have a unique name.'),
 	'SGroupTypeLit'		=> array('Interface','Radio buttons or checkboxes'),
 	'SGroupTypeC'		=> array('Checkbox','Checkboxes, multiple choices'),
 	'SGroupTypeR'		=> array('Radio','Radio buttons, one choice'),
@@ -446,7 +546,7 @@ $TAGS = array(
 	'ShowMultipliersN'	=> array('Hide','Don\'t show multipliers'),
 	'ShowMultipliersY'	=> array('Show','Show multipliers scored'),
 	'SMDesc'			=> array('ScoreMaster description','An application designed to make scoring &amp; administration of IBA style motorcycle rallies easy'),
-	'SpecialMaintHead'	=> array('Special Bonuses','List of Special bonuses'),
+	'SpecialMaintHead'	=> array('Special Bonuses','Special bonuses are used to implement, for example, sleep, call-in or ferry bonuses or arbitrary penalties such as loss of flag. Each special must have its own unique <em>bonusid</em>.'),
 	'SpecialMultLit'	=> array('Multipliers','Used in compound bonus calculations'),
 	'SpecialPointsLit'	=> array('Points',''),
 	'SpecialsLit'		=> array('Specials','Special bonuses'),
@@ -469,13 +569,15 @@ $TAGS = array(
 	'TeamRankingI'		=> array('Individual placing','Rank each team member separately'),
 	'TeamRankingL'		=> array('Lowest ranked member','Rank team as lowest member'),
 	'TeamRankingText'	=> array('Teams are ranked according to',''),
+	'TeamExplain'		=> array('Team matching','This attempts to identify entrants potentially riding together, whether declared or not, by finding matching strings of ordinary bonuses. A string must contains at least <em>m</em> matching bonuses separated by no more than <em>g</em> unmatched bonuses. It might also highlight where claims have not been omitted or not correctly posted. This is not a conclusive set of matches, just something for scorers to check.'),
 	'TeamWatch'			=> array('Team watch','Inspect claims history looking for potential teams/missed claims'),
 
 	'ThemeApplyLit'		=> array('Yes, apply this theme','Yes, apply this theme'),
 	'ThemeLit'			=> array('Theme','The name of the theme to apply'),
 	
+	'tickdelete'		=> array('Tick to delete','Tick to enable deletion'),
 	'TiedPointsRanking'	=> array('Split ties by mileage','In the event of a tie entrants will be ranked by mileage'),	// Miles/Kms
-	'TimePExplain'		=> array("Rally time runs from the start time to the finish time. Individual entrants may have less time available. Penalties other than DNF apply to specific periods within the overall or individual entrant's rally time. Periods are specified as date/time ranges or as minutes before DNF ranges.<br>Time penalties are triggered by entrant check-in time.",'Explanation of rally time penalties'),
+	'TimePExplain'		=> array("Rally time runs from the rally start time to the rally finish time. Individual entrants may have less time available. Penalties other than DNF apply to specific periods within the overall or individual entrant's rally time. Periods are specified as date/time ranges or as minutes before DNF ranges.<br>Time penalties are triggered by entrant check-in time.",'Explanation of rally time penalties'),
 	'TimepMaintHead'	=> array('Time Penalties','List of time penalty entries'),
 
 	
@@ -499,18 +601,22 @@ $TAGS = array(
 	'TotalPoints'		=> array('Total points','Final rally score'),
 
 	// Titles for browser tabs
-	'ttWelcome'			=> array('ScoreMaster','Welcome page for anyone'),
-	'ttAdminMenu'		=> array('ScoreMaster','Showing main admin menu'),
 	'ttAbout'			=> array('SM:About',''),
+	'ttAdminMenu'		=> array('ScoreMaster','Showing main admin menu'),
+	'ttCertificates'	=> array('Certificates',''),
+	'ttClaims'			=> array('SM:Claims',''),
+	'ttEmails'			=> array('SM:Emails','Send an email to entrants'),
 	'ttEntrants'		=> array('SM:Entrants',''),
 	'ttFinishers'		=> array('SM:Finishers','Quicklists'),
-	'ttCertificates'	=> array('Certificates',''),
-	'ttScoreX'			=> array('ScoreX',''),
-	'ttTeams'			=> array('SM:Teams','Potential team matches'),
-	'ttUpload'			=> array('SM:Upload','File pick screen'),
 	'ttImport'			=> array('SM:Import','Importing'),
+	'ttMagicWords'		=> array('SM:Magic','Magic words'),
+	'ttSanity'			=> array('SM:Sanity','Sanity checks'),
+	'ttScoreX'			=> array('ScoreX',''),
 	'ttScoring'			=> array('Scoring','Logged on to scoring'),
 	'ttSetup'			=> array('SM:Setup','Edit setups'),
+	'ttTeams'			=> array('SM:Teams','Potential team matches'),
+	'ttUpload'			=> array('SM:Upload','File pick screen'),
+	'ttWelcome'			=> array('ScoreMaster','Welcome page for anyone'),
 	
 
 
@@ -520,13 +626,15 @@ $TAGS = array(
 	'UpdateBonuses'		=> array('Update bonuses',''),
 	'UpdateCategory'	=> array('Update category',''),
 	'UpdateCCs'			=> array('Update compound calcs',''),
-	'UpdateCombo'		=> array('Update combination','Save this record to the database'),
+	'UpdateCombo'		=> array('Update database','Save this record to the database'),
 	'UpdateSGroups'		=> array('Update special groups',''),
 	'UpdateTimeP'		=> array('Update time penalties',''),
 	
 	'Upload'			=> array('Upload','Upload the file to the server'),
+	'UploadBonusesH1'	=> array('Uploading Ordinary Bonuses','Upload Ordinary Bonuses from spreadsheet'),
 	'UploadEntrantsH1'	=> array('Uploading Entrants','Upload Entrants data from spreadsheet'),
-	'UploadForce'		=> array('Force overwrite','Overwrite existing Entrant records'),
+	'UploadForceBonuses'=> array('Force overwrite','Overwrite existing Bonus records'),
+	'UploadForceEntrants'	=> array('Force overwrite','Overwrite existing Entrant records'),
 	'UploadPickFile'	=> array('Pick a file','Please select the input file'),
 
 	'UtlDeleteEntrant'	=> array('Delete entrant','Delete an entrant record from the database'),
@@ -534,6 +642,15 @@ $TAGS = array(
 	'UtlFolderMaker'	=> array('Folder maker','Generate script to make entrant/bonus folders'),
 	'UtlRAE'			=> array('Renumber all entrants','Renumber all the entrants, regardless of status'),
 	'UtlRenumEntrant'	=> array('Renumber entrant','Assign a new entrant number to an existing entrant'),
+
+	'VirtualParams'		=> array('Virtual','Virtual rally params'),
+	
+	'vr_RallyType'		=> array('Rally type','Is this a real or a virtual rally?'),
+	'vr_RallyType0'		=> array('Real rally',''),
+	'vr_RallyType1'		=> array('Virtual rally',''),
+	'vr_RefuelStops'	=> array('Refuel stops','Comma separated list of ordinary bonuses acting as refuel stops'),
+	'vr_TankRange'		=> array('Tank range','Virtual tank range (miles/kilometres)'),
+	'vr_StopMins'		=> array('Mins/stop','Number of minutes for each virtual stop'),
 	
 	'WizNextPage'		=> array('Next','Save and move to the next page of the wizard'),
 	'WizPrevPage'		=> array('Previous','Save and return to the previous wizard page'),
@@ -542,14 +659,31 @@ $TAGS = array(
 	// This one's different; both entries are pure text blobs, each presented as an HTML paragraph
 	'WizFinishText'		=> array('You have now completed the basic setup of the rally. <span style="font-size: 2em;">&#9786;</span>',
 									'When you click [Finish] the main rally setup menu is presented and you can<ul><li>enter the details ' .
-									'of ordinary and special bonuses</li><li>alter the text and layout of finisher certificates</li><li>load or enter details ' .
+									'of ordinary, special &amp; combination bonuses</li><li>alter the text and layout of finisher certificates</li><li>load or enter details ' .
 									'of rally entrants</li></ul> and maintain all other aspects of the rally configuration.'),
+									
+	'WizIsKms'			=> array('KILOMETRES',''),
+	'WizIsMiles'		=> array('MILES',''),
+	'WizIsReal'			=> array('Proper rally',''),
+	'WizIsVirtual'		=> array('Pale imitation',''),
+	'WizMaxHours'		=> array('Maximum hours','The maximum time available to individual entrants before becoming DNF. May be less than the number of hours between the rally start and finish times. For example, where a staggered start is used.'),
+	'WizMilesKms'		=> array('Miles/Kms','Unit of distance for this rally. All reporting will use this unit. Individual odometers may use either miles or kilometres.'),
+	'WizRallyTitle'		=> array('Rally title','What\'s the name of this rally? This will appear on all screens and finisher certificates. It can be refined later if necessary.'),
+	'WizRealVirtual'	=> array('Rally type','Is this a real rally, involving actual motorbikes, or a virtual rally involving only computers?'),
 
+	'WizRegion'			=> array('Region','Whereabouts will this rally be run - chooses miles/kms, timezone, etc'),
+	'WizStopMins'		=> array('Minutes per stop','The number of minutes stopped at each bonus stop'),
+	'WizTiedPoints'		=> array('Split ties by mileage','In the event of a tie, entrants can be left tied, or ranked by mileage: lower mileage ranked first'),	// Miles/Kms
+	'WizTiedPoints0'	=> array('Leave tied','Entrants tied on points are assigned the same rank'),
+	'WizTiedPoints1'	=> array('Split','When entrants are tied on points, the one with lower mileage will be ranked higher'),
 	'WizTitle'			=> array('This rally needs to be configured, please fill in the blanks',''),
+	'WizVirtualPage'	=> array('Virtual rally parameters','Virtual rally parameters'),
+	'WizTankRange'		=> array('Tank range','The maximum distance travelled before refuelling'),
 	
-	'xlsImporting'		=> array('Importing','Importing entrants data from spreadsheet'),
+	'xlsHeaders'		=> array('Header rows','Number of rows to skip before data'),
+	'xlsImporting'		=> array('Importing','Importing data from spreadsheet'),
 	'xlsNoSpecfile'		=> array('!specfile','No "specfile" parameter supplied'),
-	'xlsNotEmpty'		=> array('Entrants already setup!','The table of entrants is not empty, please tick override and retry'),
+	'xlsNotEmpty'		=> array('Table already setup!','The table you\'re uploading is not empty, please tick override and retry'),
 	
 	'ZapDatabaseOffer'	=> array('Zap / Reinitialize Database','Clear the database ready to start from scratch'),
 	'ZapDatabaseZapped'	=> array('Database Zapped/Initialized','The database is empty and ready to start from scratch'),

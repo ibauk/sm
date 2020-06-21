@@ -172,23 +172,6 @@ function editCertificate()
 }
 
 
-function dbInitialized()
-{
-	global $DB;
-
-	if ($R = $DB->query("SELECT DBState FROM rallyparams"))
-	{
-		$rd = $R->fetchArray();
-		return ($rd['DBState'] != 0);
-	}
-	return false;
-
-}
-
-
-
-
-
 
 function show_menu($menuid)
 {
@@ -234,16 +217,8 @@ function show_menu($menuid)
 			echo(' onclick="'.$x.'"');
 		}
 		echo('>');
-		$bcurl = $_REQUEST['breadcrumbs'];
-		//if ($bcurl != '')
-		//	$bcurl .= ';';
-		//$bcurl .= '#';
 		echo('<a href="'.$rd['url']);
-		if (strpos($rd['url'],'?'))
-			echo('&amp;');
-		else
-			echo('?');
-		echo('breadcrumbs='.urlencode($bcurl).'">'.$TAGS[$rd['menulbl']][0].'</a>');
+		echo('">'.$TAGS[$rd['menulbl']][0].'</a>');
 		echo('</li>');
 		
 	}
@@ -260,14 +235,7 @@ function show_tagmenu($tag)
 {
 	global $TAGS,$DB;
 	
-	//showNav();
-	$bchome = "<a href='".$HOME_URL."'> / </a>";
-	$bcstep = "<a href='".$HOME_URL.'?menu='.$menuid."'>".$TAGS[$rd['menulbl']][0].'</a>';
-	if ($menuid == 'admin')
-		pushBreadcrumb('');
-	else
-		pushBreadcrumb($bcstep);
-
+	pushBreadcrumb('');
 	emitBreadcrumbs();
 
 	echo('<div id="adminMM">');
@@ -380,126 +348,66 @@ function applyTheme()
 	
 }
 
-function showInitialisationOffer()
-{
-	global $TAGS, $DB;
+//var_dump($_REQUEST);
 
-	echo('<h4 title="'.$TAGS['ZapDatabaseOffer'][1].'">'.$TAGS['ZapDatabaseOffer'][0].'</h4>');
-	echo('<p>'.$TAGS['ZapDBCaution'][1].'</p>');
-	echo('<form method="post" action="admin.php">');
-	echo('<input type="hidden" name="c" value="zapdb">');
-	echo('<label for="ruSure1">'.$TAGS['ZapDBRUSure1'][1].'</label> ');
-	echo('<input type="checkbox" id="ruSure1" name="ruSure1" value="'.$TAGS['ZapDBRUSure1'][0].'"><br>');
-	echo('<label for="ruSure2">'.$TAGS['ZapDBRUSure2'][1].'</label> ');
-	echo('<input type="checkbox" id="ruSure2" name="ruSure2" value="'.$TAGS['ZapDBRUSure2'][0].'"><br>');
-	echo('<label for="ruCancel">'.$TAGS['ZapDBRUCancel'][1].'</label> ');
-	echo('<input type="checkbox" id="ruCancel" name="ruCancel" value="'.$TAGS['ZapDBRUCancel'][0].'"><br>');
-	echo('<input type="submit" name="zapdb" title="'.$TAGS['ZapDBGo'][1].'" value="'.$TAGS['ZapDBGo'][0].'">');
-	echo('</form>');
-	
-	echo('</body>');
-	echo('</html>');
-	
-	
-}
-
-function zapDatabase()
-{
-	global $TAGS, $DB;
-	
-	$DB->query('BEGIN TRANSACTION');
-	$DB->query('DELETE FROM rallyparams');
-	$sql = "INSERT INTO rallyparams (RallyTitle,RallySlogan) VALUES('".$TAGS['ZapDBRallyTitle'][1]."','".$TAGS['ZapDBRallySlogan'][1]."')";
-	//echo($sql.'<hr>');
-	$DB->query($sql);
-	$DB->query('DELETE FROM bonuses');
-	$DB->query('DELETE FROM catcompound');
-	$DB->query('DELETE FROM categories');
-	$DB->query('DELETE FROM claims');
-	$DB->query('DELETE FROM combinations');
-	$DB->query('DELETE FROM entrants');
-	$DB->query('DELETE FROM sgroups');
-	$DB->query('DELETE FROM specials');
-	$DB->query('DELETE FROM timepenalties');
-	$DB->query('COMMIT TRANSACTION');
-	
-	echo('<h4 title="'.TAGS['ZapDatabaseZapped'][1].'">'.$TAGS['ZapDatabaseZapped'][0].'</h4>');
-	show_menu('setup');
-	
-}
-
-function isZapDBCommand()
-{
-	global $TAGS;
-	
-	$res = isset($_REQUEST['c']) && isset($_REQUEST['zapdb']) && isset($_REQUEST['ruSure1']) &&	isset($_REQUEST['ruSure2']);
-	if (isset($_REQUEST['ruCancel']))
-	{
-		$res = FALSE;
-	}
-	if (!$res)
-		return FALSE;
-	if ($_REQUEST['ruSure1'] != $TAGS['ZapDBRUSure1'][0])
-		$res = FALSE;
-	if ($_REQUEST['ruSure2'] != $TAGS['ZapDBRUSure2'][0])
-		$res = FALSE;
-			
-	return $res;
-	
-}
-
-
-if (isset($_REQUEST['c']) && $_REQUEST['c']=='rank')
-{
+if (isset($_REQUEST['c']) && $_REQUEST['c']=='rank') {
 	rankEntrants();
 	include("entrants.php");
 	listEntrants('EntrantStatus DESC,FinishPosition');
 	exit;
 }
+
 if (isset($_REQUEST['savecert']))
 	saveCertificate();
 
-if (isset($_REQUEST['c']) && $_REQUEST['c']=='editcert')
-{
+if (isset($_REQUEST['c']) && $_REQUEST['c']=='editcert') {
 	editCertificate();
 	exit;
 }
 
-
-
-
-global $TAGS, $DBVERSION;
+if (isset($_REQUEST['step']))
+	gotoBreadcrumbStep($_REQUEST['step']);
 
 if (isset($_REQUEST['c']) && $_REQUEST['c']=='applytheme' && isset($_REQUEST['theme'])) 
 	applyTheme();
 
-startHtml($TAGS['ttAdminMenu'][0],'<a href="about.php" class="techie" title="'.$TAGS['HelpAbout'][1].'">'.$TAGS['HelpAbout'][0].'</a>',dbInitialized());
-//var_dump($_REQUEST);
-if (isset($_REQUEST['c']) && $_REQUEST['c']=='applytheme' && isset($_REQUEST['theme'])) 
-	show_menu('admin');
-else if (isset($_REQUEST['c']) && $_REQUEST['c']=='entrants')
-	show_menu('entrant');
-else if (isset($_REQUEST['c']) && $_REQUEST['c']=='bonus')
-	show_menu('bonus');
-else if (isset($_REQUEST['c']) && $_REQUEST['c']=='offerzap')
-	showInitialisationOffer();
-else if (isZapDBCommand())
-		ZapDatabase();
-else if (isset($_REQUEST['menu']))
+startHtml($TAGS['ttAdminMenu'][0],'<a href="about.php" class="techie" title="'.$TAGS['HelpAbout'][1].'">'.$TAGS['HelpAbout'][0].'</a>',rally_params_established());
+
+if (isset($_REQUEST['c'])) {
+	switch($_REQUEST['c']) {
+		case 'applytheme':
+			if (isset($_REQUEST['theme']))
+				show_menu('admin');
+			break;
+		case 'entrants':
+			show_menu('entrant');
+			break;
+		case 'bonus':
+			show_menu('bonus');
+			break;
+		case 'offerzap':
+			showInitialisationOffer();
+			break;
+		case 'themes':
+			show_theme_chooser();
+			break;
+		default:
+			show_menu('admin');
+	}
+	
+} else if (isset($_REQUEST['menu']))
 	show_menu($_REQUEST['menu']);
 else if (isset($_REQUEST['tag']))
 	show_tagmenu($_REQUEST['tag']);
-else if (isset($_REQUEST['c']) && $_REQUEST['c']=='testmenu')
-	show_tagmenu('score');
-else if (isset($_REQUEST['c']) && $_REQUEST['c']=='themes' && $DBVERSION>=4)
-	show_theme_chooser();
-else if (dbInitialized())
-	show_menu('admin');
-else
-	{
-		include("setup.php");
-		exit;
-	};
+else if (rally_params_established()) 
+	if (entrantsPresent() < 1)
+		show_menu('setup');
+	else
+		show_menu('admin');
+else {
+	include("setup.php");
+	exit;
+};
 
 
 ?>

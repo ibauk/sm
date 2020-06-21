@@ -86,6 +86,6 @@ p {
 
 
 @media print {
-	@page {size A4 portrait; margin:0;}
+	@page {size: A4 portrait; margin:0;}
 	html, body {height: 100%;}
 }

@@ -8,7 +8,7 @@
  * I am written for readability rather than efficiency, please keep me that way.
  *
  *
- * Copyright (c) 2019 Bob Stammers
+ * Copyright (c) 2020 Bob Stammers
  *
  *
  * This file is part of IBAUK-SCOREMASTER.
@@ -26,12 +26,6 @@
 
 $HOME_URL = 'admin.php?menu=entrant';
 
-/*
- *
- *	2.1	Autosuppress Team# in listings
- *	2.1	Certificate class
- *
- */
  
 require_once('common.php');
 
@@ -71,6 +65,31 @@ function fetchShowEntrant()
 			showEntrantRecord($rd);
 		else
 			showEntrantChecks($rd);
+}
+
+function fetchSpeedText($rd)
+/*
+ * I return either a blank string or an average speed depending on
+ * whether the entrant record $rd has odo readings, times, and 
+ * restminutes.
+ *
+ */
+{
+	global $DB, $TAGS, $KONSTANTS;
+	
+	if ($rd['CorrectedMiles']<1)
+		return '';
+	if (is_null($rd['FinishTime']))
+		return '';
+	if ($rd['FinishTime']<=$rd['StartTime'])
+		return '';
+	$start = new DateTime($rd['StartTime']);
+	$finish = new DateTime($rd['FinishTime']);
+	$etime = $start->diff($finish);
+//	print_r($etime);
+	$hours = ($etime->d * 24) + $etime->h + ($etime->i /60);
+	$speed = $rd['CorrectedMiles'] / $hours;
+	return number_format($speed,1);
 }
 
 function listEntrants($ord = "EntrantID")
@@ -127,27 +146,18 @@ function listEntrants($ord = "EntrantID")
 	$eltag0 = htmlentities($TAGS[$eltag][0]);
 	echo('<caption title="'.htmlentities($TAGS[$eltag][1]).'">'.$eltag0.' '.$bonus);
 	if ($eltag0 == '')
-		$eltag0 = '..';
-	
-	$bcurl ='&amp;breadcrumbs='.urlencode($_REQUEST['breadcrumbs']);
+		$eltag0 = '#';
 	
 	
-	$myurl = "http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
 	$myurl = "entrants.php?c=entrants";
 	if (isset($_REQUEST['mode']))
 		$myurl .= '&mode='.$_REQUEST['mode'];
-	$myurl .= '&ord='.$ord;
-	$p = strpos($myurl,'&nobc');
-	if ($p)
-		$p = strpos($myurl,'?nobc');
-	if ($p)
-		$myurl = substr($myurl,0,$p);
+	
+	
+
 	$mybc = "<a href='".$myurl."'>".$eltag0."</a>";
-	if (!isset($_REQUEST['nobc']))
-		pushBreadcrumb($mybc);
-	else
-		pushBreadcrumb($mybc);
-	$bcurldtl ='&amp;breadcrumbs='.urlencode($_REQUEST['breadcrumbs']);
+	//$mybc = '#';
+	pushBreadcrumb($mybc);
 	emitBreadcrumbs();
 	if (isset($_REQUEST['nobc']))
 		popBreadcrumb();
@@ -157,29 +167,20 @@ function listEntrants($ord = "EntrantID")
 	{
 		case 'full':
 		case 'check':
-			echo(' <input type="button" value="'.$TAGS['AdmNewEntrant'][0].'" onclick="window.location='."'entrants.php?c=newentrant".$bcurldtl."'".'">');
 	}
 	echo('</caption>');
-	/**
-	if ($_REQUEST['mode']=='full')
-		echo('<caption title="'.htmlentities($TAGS['EntrantListFull'][1]).'">'.htmlentities($TAGS['EntrantListFull'][0]).'</caption>');
-	else if ($_REQUEST['mode']=='bonus')
-		echo('<caption title="'.htmlentities($TAGS['EntrantListBonus'][1]).'">'.htmlentities($TAGS['EntrantListBonus'][0]).' '.$bonus.'</caption>');
-	else
-		echo('<caption title="'.htmlentities($TAGS['EntrantListCheck'][1]).'">'.htmlentities($TAGS['EntrantListCheck'][0]).'</caption>');
-	**/
 	
-	echo('<thead><tr><th class="EntrantID"><a href="entrants.php?c=entrants&amp;ord=EntrantID&amp;mode='.$_REQUEST['mode'].$bcurl.'">'.$TAGS['EntrantID'][0].'</a></th>');
+	echo('<thead><tr><th class="EntrantID"><a href="entrants.php?c=entrants&amp;ord=EntrantID&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['EntrantID'][0].'</a></th>');
 	if ($ord == 'RiderName' || $ord == 'RiderFirst')
 		$riderord = 'RiderLast';
 	else
 		$riderord = 'RiderName';
-	echo('<th class="RiderName"><a href="entrants.php?c=entrants&amp;ord='.$riderord.'&amp;mode='.$_REQUEST['mode'].$bcurl.'">'.$TAGS['RiderName'][0].'</a></th>');
-	echo('<th class="PillionName"><a href="entrants.php?c=entrants&amp;ord=PillionName&amp;mode='.$_REQUEST['mode'].$bcurl.'">'.$TAGS['PillionName'][0].'</a></th>');
-	echo('<th class="Bike"><a href="entrants.php?c=entrants&amp;ord=Bike&amp;mode='.$_REQUEST['mode'].$bcurl.'">'.$TAGS['Bike'][0].'</a></th>');
+	echo('<th class="RiderName"><a href="entrants.php?c=entrants&amp;ord='.$riderord.'&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['RiderName'][0].'</a></th>');
+	echo('<th class="PillionName"><a href="entrants.php?c=entrants&amp;ord=PillionName&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['PillionName'][0].'</a></th>');
+	echo('<th class="Bike"><a href="entrants.php?c=entrants&amp;ord=Bike&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['Bike'][0].'</a></th>');
 	if ($ShowTeamCol && $_REQUEST['mode']=='full')
-		echo('<th class="TeamID"><a href="entrants.php?c=entrants&amp;ord=TeamID&amp;mode='.$_REQUEST['mode'].$bcurl.'">'.$TAGS['TeamID'][0].'</a></th>');
-	echo('<th class="EntrantStatus"><a href="entrants.php?c=entrants&amp;ord=EntrantStatus&amp;mode='.$_REQUEST['mode'].$bcurl.'">'.$TAGS['EntrantStatus'][0].'</a></th>');
+		echo('<th class="TeamID"><a href="entrants.php?c=entrants&amp;ord=TeamID&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['TeamID'][0].'</a></th>');
+	echo('<th class="EntrantStatus"><a href="entrants.php?c=entrants&amp;ord=EntrantStatus&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['EntrantStatus'][0].'</a></th>');
 	if ($_REQUEST['mode']=='find')
 	{
 		echo('<th>');
@@ -187,13 +188,13 @@ function listEntrants($ord = "EntrantID")
 	}
 	else if ($_REQUEST['mode']!='check')
 	{
-		echo('<th class="FinishPosition"><a href="entrants.php?c=entrants&amp;ord=EntrantStatus DESC,FinishPosition&amp;mode='.$_REQUEST['mode'].$bcurl.'">'.$TAGS['FinishPosition'][0].'</a></th>');
-		echo('<th class="TotalPoints"><a href="entrants.php?c=entrants&amp;ord=TotalPoints&amp;mode='.$_REQUEST['mode'].$bcurl.'">'.$TAGS['TotalPoints'][0].'</a></th>');
-		echo('<th class="CorrectedMiles"><a href="entrants.php?c=entrants&amp;ord=CorrectedMiles&amp;mode='.$_REQUEST['mode'].$bcurl.'">'.$TAGS['CorrectedMiles'][0].'</a></th>');
+		echo('<th class="FinishPosition"><a href="entrants.php?c=entrants&amp;ord=EntrantStatus DESC,FinishPosition&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['FinishPosition'][0].'</a></th>');
+		echo('<th class="TotalPoints"><a href="entrants.php?c=entrants&amp;ord=TotalPoints&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['TotalPoints'][0].'</a></th>');
+		echo('<th class="CorrectedMiles"><a href="entrants.php?c=entrants&amp;ord=CorrectedMiles&amp;mode='.$_REQUEST['mode'].'">'.$TAGS['CorrectedMiles'][0].'</a></th>');
 	}
 	echo('</tr>');
 	echo('</thead><tbody id="entrantrows">');
-	$fldsrch = ($_REQUEST['x'] &&  strpos($_REQUEST['x'],'=') != FALSE);
+	$fldsrch = (isset($_REQUEST['x']) &&  strpos($_REQUEST['x'],'=') != FALSE);
 	if ($fldsrch)
 		$fv = explode('=',$_REQUEST['x']);
 	while ($rd = $R->fetchArray(SQLITE3_ASSOC))
@@ -202,7 +203,7 @@ function listEntrants($ord = "EntrantID")
 		$show_row = true;
 		$found_field = '';
 		$found_value = '';
-		if ($_REQUEST['mode']=='find')
+		if ($_REQUEST['mode']=='find' && isset($_REQUEST['x']))
 		{
 			$show_row = false;
 			foreach ($rd as $rdf=>$rdv)
@@ -219,7 +220,7 @@ function listEntrants($ord = "EntrantID")
 		}
 		$bclast = (isset($_REQUEST['nobc']) ? '' : '');
 		
-		echo('<tr class="link" onclick="window.location.href=\'entrants.php?c=entrant&amp;id='.$rd['EntrantID'].'&amp;mode='.$_REQUEST['mode'].$bcurldtl.'\'">');
+		echo('<tr class="link" onclick="window.location.href=\'entrants.php?c=entrant&amp;id='.$rd['EntrantID'].'&amp;mode='.$_REQUEST['mode'].'\'">');
 		echo('<td class="EntrantID">'.$rd['EntrantID'].'</td>');
 		echo('<td class="RiderName">'.$rd['RiderName'].'</td>');
 		echo('<td class="PillionName">'.$rd['PillionName'].'</td>');
@@ -235,7 +236,7 @@ function listEntrants($ord = "EntrantID")
 		if ($es=='')
 			$es = '[[ '.$rd['EntrantStatus'].']]';
 		echo('<td class="EntrantStatus">'.$es.'</td>');
-		if ($_REQUEST['mode']=='find')
+		if ($_REQUEST['mode']=='find' && isset($_REQUEST['x']))
 		{
 			echo('<td>');
 			if ($found_field != 'ExtraData')
@@ -251,6 +252,7 @@ function listEntrants($ord = "EntrantID")
 		echo('</tr>');
 	}
 	echo('</tbody></table>');
+	echo(' <button title="'.$TAGS['AdmNewEntrant'][0].'" onclick="window.location='."'entrants.php?c=newentrant"."'".'">+</button');
 
 }
 
@@ -294,11 +296,18 @@ function saveEntrantRecord()
 	if ($adding)
 	{
 		$sql = "SELECT Max(EntrantID) AS MaxID FROM entrants";
-		$R = $DB->query($sql);
-		$rd = $R->fetchArray();
-		$newid = $rd['MaxID'] + 1;
-		if (isset($_REQUEST['EntrantID']) && intval($_REQUEST['EntrantID']) > $newid)
-			$newid = intval($_REQUEST['EntrantID']);
+		$newid = getValueFromDB($sql,"MaxID",0) + 1;			// Next in sequence
+		$wishid = $newid;
+		if (isset($_REQUEST['EntrantID']) && $_REQUEST['EntrantID'] != '') {
+			$wishid = intval($_REQUEST['EntrantID']);
+			if ($wishid > 0) {
+				$sql = "SELECT EntrantStatus FROM entrants WHERE EntrantID=$wishid";
+				$res = getValueFromDB($sql,"EntrantStatus",-1);
+				if ($res >= 0)	// already exists
+					$wishid = $newid;
+			} else
+				$wishid = $newid;
+		}
 	}
 	
 	
@@ -323,7 +332,7 @@ function saveEntrantRecord()
 
 	if ($adding)
 	{
-		$sql .= $newid.',';
+		$sql .= $wishid.',';
 	}
 	$comma = '';
 	foreach($fa as $faa)
@@ -486,7 +495,7 @@ function renumberAllEntrants()
 	$base = 0;
 	while ($firstnum + $base <= $hinum)
 		$base += 1000; // Should be big enough
-	$DB->exec("START TRANSACTION");
+	$DB->exec("BEGIN TRANSACTION");
 	foreach ($rex as $k => $v)
 	{
 		$newnumber = $base + $v;
@@ -631,7 +640,15 @@ function showFinisherList()
 		$cm = ',';
 	}
 
-	$sortspec = 'FinishPosition ';
+	$status = $KONSTANTS['EntrantFinisher'];
+	if (isset($_REQUEST['ok']))
+		$status .= ",".$KONSTANTS['EntrantOK'];
+	if (isset($_REQUEST['dnf']))
+		$status .= ",".$KONSTANTS['EntrantDNF'];
+	if (isset($_REQUEST['status']))
+		$status = $_REQUEST['status'];
+	
+	$sortspec = 'EntrantStatus DESC,FinishPosition,TotalPoints DESC,CorrectedMiles ';
 	if (isset($_REQUEST['seq']))
 		$sortspec = $_REQUEST['seq'];
 	
@@ -639,14 +656,12 @@ function showFinisherList()
 	$sql .= ",substr(RiderName,RiderPos+1) As RiderLast";
 	$sql .= " FROM (SELECT *,instr(RiderName,' ') As RiderPos FROM entrants) ";
 
-	$sql .= " WHERE EntrantStatus==".$KONSTANTS['EntrantFinisher'];
-	
-	if (isset($_REQUEST['ok']))
-		$sql .= " OR EntrantStatus==".$KONSTANTS['EntrantOK'];
+	$sql .= " WHERE EntrantStatus IN (".$status.")";
 	
 	if (isset($_REQUEST['class']))
 		$sql .= ' AND Class In ('.$_REQUEST['class'].')';
 	$sql .= ' ORDER BY '.$sortspec;
+	//echo($sql);
 	$R = $DB->query($sql);
 ?><!DOCTYPE html>
 <html>
@@ -675,11 +690,25 @@ function countup(secs) {
 		spo.textContent = x;
 	},1000);
 }
+function formSubmit(e) {
+	e.target.form.submit();
+}
 -->
 </script>
 </head>
 <body onload="<?php echo("countup($TIMEOUTSECS)")?>">
-<p id="countdown" class="noprint" style="font-size:8pt; padding:0; margin:0;">&glj;</p>
+<div class="noprint" style="font-size:8pt; padding:0; margin:0;">
+<span id="countdown">&glj;</span>
+<span id="listctrl">
+<form method="get" action="entrants.php">
+<input type="hidden" name="c" value="qlist">
+<?php
+	echo('<label for="cd_ok">+ok</label> <input type="checkbox" id="cd_ok" name="ok" value="ok" '.(isset($_REQUEST['ok'])? 'checked' : '').' onclick="formSubmit(event);"> ');
+	echo('<label for="cd_dnf">+dnf</label> <input type="checkbox" id="cd_dnf" name="dnf" value="dnf" '.(isset($_REQUEST['dnf'])? 'checked' : '').' onclick="formSubmit(event);"> ');
+?> 
+ </form>
+ </span>
+</div>
 <?php
 	
 	$PAGEROWS = 0;
@@ -701,6 +730,8 @@ function countup(secs) {
 		echo('<th>'.$TAGS['qMiles'][0].'</th>');
 		echo('<th>'.$TAGS['qPoints'][0].'</th>');
 	
+		if (isset($_REQUEST['ss']))
+			echo('<th>Speed</th>');
 		echo('</tr></thead><tbody>');
 		$n = 0;
 		
@@ -708,13 +739,28 @@ function countup(secs) {
 		{
 			$rowsdone++;
 			echo('<tr>');
-			echo('<td>'.$rd['FinishPosition'].'</td>');
+			switch($rd['EntrantStatus']) {
+				case $KONSTANTS['EntrantDNF']:
+					echo('<td>DNF</td>');
+					break;
+				case $KONSTANTS['EntrantDNS']:
+					echo('<td>DNS</td>');
+					break;
+				case $KONSTANTS['EntrantOK']:
+					echo('<td>ok</td>');
+					break;
+				default:
+					echo('<td>'.$rd['FinishPosition'].'</td>');
+			}
 			echo('<td>'.$rd['RiderName']);
 			if ($rd['PillionName'] > '')
 				echo(' & '.$rd['PillionName']);
 			echo('</td>');
 			echo('<td>'.number_format($rd['CorrectedMiles'],0,$dp,$cm).'</td>');
 			echo('<td>'.number_format($rd['TotalPoints'],0,$dp,$cm).'</td>');
+			if (isset($_REQUEST['ss']))
+				echo('<td> '.fetchSpeedText($rd).'</td>');
+			
 			echo('</tr>');
 			$n++;
 			if ($PAGEROWS > 0 && $n >= $PAGEROWS)
@@ -930,7 +976,6 @@ function showEntrantChecks($rd)
 	popBreadcrumb();
 	echo('<input title="'.$TAGS['FullDetails'][1].'" id="FullDetailsButton" type="button" value="'.$TAGS['FullDetails'][0].'"');
 	echo(' onclick="window.location='."'entrants.php?c=entrant&amp;id=".$rd['EntrantID']."&mode=full");
-	echo('&breadcrumbs='.urlencode($_REQUEST['breadcrumbs']));
 	echo("'".'"> ');
 	
 	echo('<input type="submit" name="savedata" value="'.$TAGS['SaveEntrantRecord'][0].'">');
@@ -954,13 +999,25 @@ function showEntrantChecks($rd)
 	else
 		$hideOdoCheck = false;
 	
-	echo('<span   title="'.$TAGS['OdoKms'][1].' "> ');
-	echo('<label for="OdoKmsM">'.$TAGS['OdoKms'][0].' '.$TAGS['OdoKmsM'][0].': </label> ');
-	$chk = $rd['OdoKms'] <> $KONSTANTS['OdoCountsKilometres'] ? ' checked="checked" ' : '';
-	echo('<input onchange="odoAdjust();" type="radio" name="OdoKms" id="OdoKmsM" value="'.$KONSTANTS['OdoCountsMiles'].'"'.$chk.'></span>');
-	echo('&nbsp;&nbsp;&nbsp;<span><label for="OdoKmsK">'.$TAGS['OdoKmsK'][0].' </label> ');
-	$chk = $rd['OdoKms'] == $KONSTANTS['OdoCountsKilometres'] ? ' checked="checked" ' : '';
-	echo('<input  onchange="odoAdjust();" type="radio" name="OdoKms" id="OdoKmsK" value="'.$KONSTANTS['OdoCountsKilometres'].'"'.$chk.'></span>');
+
+	echo('<span class="vlabel" title="'.$TAGS['OdoKms'][1].'">');
+	echo('<label for="OdoKms">'.$TAGS['OdoKms'][0].' </label> ');
+	echo('<select name="OdoKms" id="OdoKms" onchange="odoAdjust();">');
+	if ($rd['OdoKms']==$KONSTANTS['OdoCountsKilometres'])
+	{
+		echo('<option value="'.$KONSTANTS['OdoCountsMiles'].'">'.$TAGS['OdoKmsM'][0].'</option>');
+		echo('<option value="'.$KONSTANTS['OdoCountsKilometres'].'" selected >'.$TAGS['OdoKmsK'][0].'</option>');
+	}
+	else
+	{
+		echo('<option value="'.$KONSTANTS['OdoCountsMiles'].'" selected >'.$TAGS['OdoKmsM'][0].'</option>');
+		echo('<option value="'.$KONSTANTS['OdoCountsKilometres'].'" >'.$TAGS['OdoKmsK'][0].'</option>');
+	}
+	echo('</select>');
+	echo('</span>');
+
+
+
 
 	if ($hideOdoCheck)
 		echo('<div style="display:none;">');
@@ -1150,7 +1207,7 @@ function showEntrantRecord($rd)
 	if ($is_new_record)
 	{
 		$ro = '';
-		$rd['OdoKms'] = $KONSTANTS['DefaultKmsOdo'];
+		$rd['OdoKms'] = $KONSTANTS['BasicDistanceUnit'];
 	}
 	else
 		$ro = ' readonly ';
@@ -1271,13 +1328,36 @@ function showEntrantRecord($rd)
 	
 	echo('<input type="hidden" name="OdoCheckMiles" id="OdoCheckMiles" value="'.$odoC['OdoCheckMiles'].'">');
 
-	echo('<span  class="xlabel" title="'.$TAGS['OdoKms'][1].' "> ');
-	echo('<label for="OdoKmsM">'.$TAGS['OdoKms'][0].' '.$TAGS['OdoKmsM'][0].': </label> ');
-	$chk = $rd['OdoKms'] <> $KONSTANTS['OdoCountsKilometres'] ? ' checked="checked" ' : '';
-	echo('<input onchange="odoAdjust();enableSaveButton();" type="radio" name="OdoKms" id="OdoKmsM" value="'.$KONSTANTS['OdoCountsMiles'].'"'.$chk.'></span>');
-	echo('&nbsp;&nbsp;&nbsp;<span><label for="OdoKmsK">'.$TAGS['OdoKmsK'][0].' </label> ');
-	$chk = $rd['OdoKms'] == $KONSTANTS['OdoCountsKilometres'] ? ' checked="checked" ' : '';
-	echo('<input  onchange="odoAdjust();enableSaveButton();" type="radio" name="OdoKms" id="OdoKmsK" value="'.$KONSTANTS['OdoCountsKilometres'].'"'.$chk.'></span>');
+
+	echo('<span class="xlabel" title="'.$TAGS['OdoKms'][1].'">');
+	echo('<label for="OdoKms">'.$TAGS['OdoKms'][0].' </label> ');
+	echo('<select name="OdoKms" id="OdoKms" onchange="odoAdjust();enableSaveButton();">');
+	if ($rd['OdoKms']==$KONSTANTS['OdoCountsKilometres'])
+	{
+		echo('<option value="'.$KONSTANTS['OdoCountsMiles'].'">'.$TAGS['OdoKmsM'][0].'</option>');
+		echo('<option value="'.$KONSTANTS['OdoCountsKilometres'].'" selected >'.$TAGS['OdoKmsK'][0].'</option>');
+	}
+	else
+	{
+		echo('<option value="'.$KONSTANTS['OdoCountsMiles'].'" selected >'.$TAGS['OdoKmsM'][0].'</option>');
+		echo('<option value="'.$KONSTANTS['OdoCountsKilometres'].'" >'.$TAGS['OdoKmsK'][0].'</option>');
+	}
+	echo('</select>');
+	echo('</span>');
+
+
+
+
+
+	//echo('<span  class="xlabel" title="'.$TAGS['OdoKms'][1].' "> ');
+	//echo('<label for="OdoKmsM">'.$TAGS['OdoKms'][0].' '.$TAGS['OdoKmsM'][0].': </label> ');
+	//$chk = $rd['OdoKms'] <> $KONSTANTS['OdoCountsKilometres'] ? ' checked="checked" ' : '';
+	//echo('<input onchange="odoAdjust();enableSaveButton();" type="radio" name="OdoKms" id="OdoKmsM" value="'.$KONSTANTS['OdoCountsMiles'].'"'.$chk.'></span>');
+	//echo('&nbsp;&nbsp;&nbsp;<span><label for="OdoKmsK">'.$TAGS['OdoKmsK'][0].' </label> ');
+	//$chk = $rd['OdoKms'] == $KONSTANTS['OdoCountsKilometres'] ? ' checked="checked" ' : '';
+	//echo('<input  onchange="odoAdjust();enableSaveButton();" type="radio" name="OdoKms" id="OdoKmsK" value="'.$KONSTANTS['OdoCountsKilometres'].'"'.$chk.'></span>');
+	
+	
 
 	echo('<span  class="xlabel" title="'.$TAGS['OdoCheckStart'][1].' "><label for="OdoCheckStart">'.$TAGS['OdoCheckStart'][0].' </label> ');
 	echo('<input  onchange="odoAdjust();enableSaveButton();" type="number" step="any" name="OdoCheckStart" id="OdoCheckStart" value="'.$rd['OdoCheckStart'].'"> </span>');
@@ -1392,25 +1472,14 @@ function showEntrantRecord($rd)
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 function showNewEntrant()
 {
 	global $DB, $TAGS, $KONSTANTS;
 
-	$rd = [];
+	$rd = defaultRecord('entrants');
 	
 	// Set some defaults
-	$rd['KmsOdo'] = $KONSTANTS['DefaultKmsOdo'];
+	$rd['KmsOdo'] = $KONSTANTS['BasicDistanceUnit'];
 	$rd['OdoScaleFactor'] = $KONSTANTS['DefaultOdoScaleFactor'];
 	$rd['EntrantStatus'] = $KONSTANTS['DefaultEntrantStatus'];
 	$rd['Country'] = $KONSTANTS['DefaultCountry'];
@@ -1418,6 +1487,34 @@ function showNewEntrant()
 	
 	showEntrantRecord($rd);
 }
+
+
+function prgListEntrants()
+/*
+ * prg = post/redirect/get
+ *
+ * Called to get browser to ask for listing after a post
+ *
+ */
+{
+	$get = "entrants.php?c=entrants";
+	header("Location: ".$get);
+	exit;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 	if (isset($_REQUEST['c']) && $_REQUEST['c']=='scorex')
 	{
@@ -1440,24 +1537,22 @@ if (isset($_REQUEST['savedata']))
 	
 }
 startHtml($TAGS['ttEntrants'][0]);
-//echo(htmlspecialchars($_REQUEST['breadcrumbs']));
-
 
 
 if (isset($_POST['c']) && $_POST['c']=='kill')
 {
 	deleteEntrant();
-	listEntrants();
+	prgListEntrants();
 }
 else if (isset($_POST['c']) && $_POST['c']=='rae')
 {
 	renumberAllEntrants();
-	listEntrants();
+	prgListEntrants();
 }
 else if (isset($_POST['c']) && $_POST['c']=='renumentrant')
 {
 	renumberEntrant();
-	listEntrants();
+	prgListEntrants();
 }
 else if (isset($_REQUEST['c']) && $_REQUEST['c']=='showrae')
 	showRAE();

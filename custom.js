@@ -32,6 +32,7 @@ const DNF_TOOFEWMILES = "Not enough miles";
 const DNF_TOOMANYMILES = "Too many miles";
 const DNF_FINISHEDTOOLATE = "Finished too late";
 const DNF_MISSEDCOMPULSORY = "Missed a compulsory bonus";
+const DNF_HITMUSTNOT = "Breached a special rule";
 const DNF_COMPOUNDRULE = "Breached a compound rule";
 const DNF_SPEEDING = "Excessive speed";
 
