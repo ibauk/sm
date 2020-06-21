@@ -63,7 +63,7 @@ function triggerNewRow(obj1)
 	pushBreadcrumb('#');
 	emitBreadcrumbs();
 
-	echo('<h4 class="explain">'.$TAGS['SpeedPExplain'][0].'</h4>');
+	echo('<p>'.$TAGS['SpeedPExplain'][0].'</p>');
 	
 	echo('<table id="speedPenalties"><caption></caption>');
 	echo('<thead>');

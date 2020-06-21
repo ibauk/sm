@@ -24,7 +24,7 @@
  */
 
 
-$PROGRAM = array("version" => "2.5rc4",	"title"	=> "ScoreMaster");
+$PROGRAM = array("version" => "2.6.1",	"title"	=> "ScoreMaster");
 /*
  *	2.0	25May18	Used live at BBR18
  *
@@ -64,7 +64,31 @@ $PROGRAM = array("version" => "2.5rc4",	"title"	=> "ScoreMaster");
  *	2.5			Average speeds, Team, cloning, Team detection, wysiwyg editing, specials maintenance
  *				Themes, adhoc Entrant import
  *
+ *	2.6	May20	Virtual rallies, claims capture, claims posting, 'must not' specials
+ *
+ *	2.6.1		First beta after refactor. Checklists not implemented, automated classes not implemented.
  */
+
+$MIT = <<<'EOT'
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+EOT;
+
 $HOME_URL = "admin.php";
 require_once("common.php");
 
@@ -87,7 +111,7 @@ function absolutePath($webfile)
 
 function showAbout()
 {
-	global $PROGRAM, $TAGS, $DBFILENAME, $DB, $KONSTANTS;
+	global $PROGRAM, $TAGS, $DBFILENAME, $DB, $KONSTANTS, $MIT;
 	
 	startHtml($TAGS['ttAbout'][0],'',false);
 	
@@ -136,7 +160,7 @@ function showAbout()
 	echo('</dl><hr>');
 	echo('<dl class="techie">');
 	$dbversion = 0;
-	if ($R = $DB->query("SELECT DBVersion FROM rallyparams"))
+	if ($R = $DB->query("SELECT DBVersion,MilesKms FROM rallyparams"))
 	{
 		$rd = $R->fetchArray();
 		$dbversion = $rd['DBVersion'];
@@ -147,13 +171,12 @@ function showAbout()
 	echo('<dt title="'.$TAGS['abtWebserver'][1].'">'.$TAGS['abtWebserver'][0].'</dt><dd>'.$_SERVER['SERVER_SOFTWARE'].'</dd>');
 	echo('<dt title="'.$TAGS['abtPHP'][1].'">'.$TAGS['abtPHP'][0].'</dt><dd>'.phpversion().'</dd>');
 	echo('<dt title="'.$TAGS['abtSQLite'][1].'">'.$TAGS['abtSQLite'][0].'</dt><dd>'.SQLite3::version()['versionString'].'</dd>');
-	$mk = ($KONSTANTS['BasicDistanceUnits'] == $KONSTANTS['DistanceIsMiles'] ? 'miles' : 'kilometres');
+	$mk = ($KONSTANTS['BasicDistanceUnit'] == $KONSTANTS['DistanceIsMiles'] ? 'miles' : 'kilometres');
 	echo('<dt title="'.$TAGS['abtBasicDistance'][1].'">'.$TAGS['abtBasicDistance'][0].'</dt><dd>'.$mk.'</dd>');
-	$mk = ($KONSTANTS['DefaultKmsOdo'] == $KONSTANTS['OdoCountsMiles'] ? 'miles' : 'kilometres');
-	echo('<dt title="'.$TAGS['abtDefaultOdo'][1].'">'.$TAGS['abtDefaultOdo'][0].'</dt><dd>'.$mk.'</dd>');
 	echo('<dt title="'.$TAGS['abtAuthor'][1].'">'.$TAGS['abtAuthor'][0].'</dt><dd>Bob Stammers &lt;webmaster@ironbutt.co.uk&gt; on behalf of <span title="Iron Butt Association (UK)">IBAUK</span>, inspired by Steve Eversfield (IBA #169)</dd>');
-	echo('<dt title="'.$TAGS['abtLicence'][1].'">'.$TAGS['abtLicence'][0].'</dt><dd>MIT</dd>');
+	echo('<dt title="'.$TAGS['abtLicence'][1].'">'.$TAGS['abtLicence'][0].'</dt><dd class="clickme" onclick="document.getElementById(\'mit\').className=\'show\';">MIT</dd>');
 	echo('</dl>');
+	echo('<p id="mit" class="hide">'.$MIT.'</p>');
 	echo("</div> <!-- helpabout -->\n");
 	
 	if (isset($_REQUEST['?']))

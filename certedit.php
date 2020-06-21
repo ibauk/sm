@@ -34,7 +34,7 @@ $EXCLUDE_FIELDS = array(
 	"Cat1Label","Cat2Label","Cat3Label","Cat4Label","Cat5Label","Cat6Label","Cat7Label","Cat8Label","Cat9Label",
 	"Confirmed",
 	"ExtraData","MaxMilesMethod","NoKName","NoKRelation","NoKPhone","OdoCheckMiles","OdoCheckStart","OdoCheckFinish",
-	"OdoKms","RejectReasons","RejectedClaims","ScoreX","ScoredBy","ScoringMethod","ScoringNow","ShowMultipliers",
+	"OdoKms","RejectReasons","RejectedClaims","ScoredBy","ScoringMethod","ScoringNow","ShowMultipliers",
 	"SpecialsTicked","TeamRanking","TiedPointsRanking","EntrantStatus"
 );
 
@@ -43,6 +43,7 @@ $CERT_FIELDS = array(
 	"CrewFirst"				=> "CrewFirst",
 	"CrewName"				=> "CrewName",
 	"DateRallyRange"		=> "DateRallyRange",
+	'FinishRank'			=> "FinishRank",
 	"RallyTitleSplit"		=> "RallyTitleSplit",
 	"RallyTitleShort"		=> "RallyTitleShort"
 	
@@ -65,15 +66,12 @@ function editCertificateW() {
 	echo('<h4 style="font-size:.8em;">'.$TAGS['CertExplainerW'][0].'<br>');
 	echo($TAGS['CertExplainerW'][1].'</h4>');
 
-	$bc = $_REQUEST['breadcrumbs'];
-	
 	pushBreadcrumb('#');
 	emitBreadcrumbs();
 
 	echo('<form id="certform" method="post" action="certedit.php" ');
 	echo('onsubmit="return document.querySelector('."'#savehtml'".').value=document.querySelector('."'#area_editor'".').value;">');
 	
-	echo('<input type="hidden" name="breadcrumbs" value="'.$bc.'">');
 	echo('<input type="hidden" name="c" value="editcert">');
 	echo('<input type="hidden" name="EntrantID" value="'.$EntrantID.'">');
 	echo('<input type="hidden" name="certcss" id="certcss" value="'.$rd['css'].'">');
@@ -118,7 +116,7 @@ function editCertificateW() {
 
 	
 	
-	echo('<input type="submit" disabled name="savecert" value="'.$TAGS['RecordSaved'][0].'" id="savedata" data-altvalue="'.$TAGS['SaveCertificate'][0].'" title="'.$TAGS['SaveCertificate'][1].'"> ');
+	echo('<input type="submit" data-triggered="0" onclick="this.setAttribute(\'data-triggered\',1);return true;" disabled name="savecert" value="'.$TAGS['RecordSaved'][0].'" id="savedata" data-altvalue="'.$TAGS['SaveCertificate'][0].'" title="'.$TAGS['SaveCertificate'][1].'"> ');
 
 	echo('</div>');
 	echo('<input type="hidden" name="certhtml"  value="" id="savehtml">');
@@ -240,7 +238,8 @@ function fetchCertificateW($EntrantID,$Class) {
 		$Class = 0;
 	$sql = "SELECT * FROM certificates WHERE EntrantID=";
 	$R = $DB->query($sql.$EntrantID." AND Class=$Class");
-	$rd = $R->fetchArray();
+	if (!$rd = $R->fetchArray())
+		$rd = defaultRecord('certificates');
 	return ['html'=>$rd['html'],'css'=>$rd['css'],'Title'=>$rd['Title'],'Class'=>$rd['Class']];
 	
 }

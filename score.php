@@ -41,6 +41,23 @@ $HOME_URL = "score.php";
 
 require_once('common.php');
 
+
+
+function blankFormRecord()
+// I return a blank entrant record
+{
+	global $DB;
+	
+	$sql = "PRAGMA table_info(entrants)";
+	$blankrec = [];
+	$R = $DB->query($sql);
+	while ($rd = $R->fetchArray()) {
+		$blankrec[$rd['name']] = '';
+	}
+	$blankrec['RiderName']		= '_________________';
+	return $blankrec;
+}
+
 // If ShowMults is automatic, I decide.
 function chooseShowMults($ScoringMethod)
 {
@@ -155,8 +172,10 @@ function loginNewScorer()
 {
 	global $DB, $TAGS, $KONSTANTS;
 
-	$_REQUEST['ScorerName'] = ucwords(strtolower($_REQUEST['ScorerName']));
-	showPicklist('EntrantID');
+	$scorer = ucwords(strtolower($_REQUEST['ScorerName']));
+	$_REQUEST['ScorerName'] = $scorer;
+	
+	prgPicklist();
 }
 
 
@@ -185,7 +204,7 @@ function putScore()
 	if (isset($_REQUEST['CorrectedMiles']))
 		$sql .= ",CorrectedMiles=".intval($_REQUEST['CorrectedMiles']);
 	if (isset($_REQUEST['FinishTime']))
-			$sql .= ",FinishTime='".$DB->escapeString($_REQUEST['FinishDate']).'T'.$DB->escapeString($_REQUEST['FinishTime'])."'";
+			$sql .= ",FinishTime='".$DB->escapeString(joinDateTime($_REQUEST['FinishDate'],$_REQUEST['FinishTime']))."'";
 		
 	if (isset($_REQUEST['BonusesVisited'])) {
 		$sql .= ",BonusesVisited='".$_REQUEST['BonusesVisited']."'";	
@@ -202,12 +221,12 @@ function putScore()
 	if (isset($_REQUEST['SpecialID']) || isset($_REQUEST['update_specials']))
 		//$sql .= ",SpecialsTicked='".implode(',',$_REQUEST['SpecialID'])."'";
 		$sql .= saveSpecials();
-	if (isset($_REQUEST['ComboID']) || isset($_REQUEST['update_combos']))
+	if (isset($_REQUEST['ComboID'])) // || isset($_REQUEST['update_combos']))
 		$sql .= ",CombosTicked='".implode(',',$_REQUEST['ComboID'])."'";
 	if (isset($_REQUEST['TotalPoints']))
 		$sql .= ",TotalPoints=".intval(str_replace(',','',$_REQUEST['TotalPoints']));
 	if (isset($_REQUEST['StartTime']))
-		$sql .= ",StartTime='".$DB->escapeString($_REQUEST['StartDate']).'T'.$DB->escapeString($_REQUEST['StartTime'])."'";
+		$sql .= ",StartTime='".$DB->escapeString(joinDateTime($_REQUEST['StartDate'],$_REQUEST['StartTime']))."'";
 	if (isset($_REQUEST['FinishPosition']))
 		$sql .= ",FinishPosition=".intval($_REQUEST['FinishPosition']);
 	if (isset($_REQUEST['EntrantStatus']))
@@ -218,17 +237,26 @@ function putScore()
 		$sql .= ",RejectedClaims='".$DB->escapeString($_REQUEST['RejectedClaims'])."'";
 	if (isset($_REQUEST['RestMinutes']))
 		$sql .= ",RestMinutes=".intval($_REQUEST['RestMinutes']);
+	if (isset($_REQUEST['Confirmed']))
+		$sql .= ",Confirmed=".intval($_REQUEST['Confirmed']);
+	if (isset($_REQUEST['AvgSpeed']) && $DBVERSION >= 5)
+		$sql .= ",AvgSpeed='".floatval($_REQUEST['AvgSpeed'])."'";
 	$sql .= " WHERE EntrantID=".$_REQUEST['EntrantID'];
 	
 	//echo('<hr>'.$sql.'<hr>');
 	$DB->exec($sql);
-	if (($res = $DB->lastErrorCode()) <> 0)
-		echo('<div id="dberror" title="'.$TAGS['dberroragain'][1].'">!!!!! '.$DB->lastErrorMsg().' - '.$TAGS['dberroragain'][0].'</div>');
+	if (($res = $DB->lastErrorCode()) <> 0) {
+		return dberror();
+	}
 	
-	putScoreTeam($confirmed);
+	if (putScoreTeam($confirmed)) {
 	
-	if ($AUTORANK)
-		rankEntrants();
+		if ($AUTORANK)
+			rankEntrants();
+		
+		return true;
+		
+	}
 	
 }
 
@@ -245,12 +273,13 @@ function putScoreTeam($confirmed)
 	
 	$sql = "SELECT TeamRanking FROM rallyparams";
 	if (getValueFromDB($sql,"TeamRanking",$KONSTANTS['RankTeamsAsIndividuals'])!=$KONSTANTS['RankTeamsCloning'])
-		return;
+		return true;
 	$sql = "SELECT TeamID FROM entrants WHERE EntrantID=".$_REQUEST['EntrantID'];
 	$team = getValueFromDB($sql,"TeamID","0");
 	if ($team==0)
-		return;
+		return true;
 	
+	echo(' Hello sailor ');
 	
 	$sql = "UPDATE entrants SET ScoredBy='".$DB->escapeString($_REQUEST['ScorerName'])."'";
 	
@@ -258,12 +287,12 @@ function putScoreTeam($confirmed)
 	
 		$sql .= ",CorrectedMiles=".intval($_REQUEST['CorrectedMiles']);
 	if (isset($_REQUEST['FinishTime']))
-			$sql .= ",FinishTime='".$DB->escapeString($_REQUEST['FinishDate']).'T'.$DB->escapeString($_REQUEST['FinishTime'])."'";
+			$sql .= ",FinishTime='".$DB->escapeString(joinDateTime($_REQUEST['FinishDate'],$_REQUEST['FinishTime']))."'";
 		
 	if (isset($_REQUEST['BonusesVisited'])) {
 		$sql .= ",BonusesVisited='".$_REQUEST['BonusesVisited']."'";	
 		if ($DBVERSION >= 4)
-			$$sql .= ",Confirmed=".($confirmed ? 1 : 0);
+			$sql .= ",Confirmed=".($confirmed ? 1 : 0);
 	}
 	elseif (isset($_REQUEST['BonusID']) || isset($_REQUEST['update_bonuses'])) 
 		$sql .= ",BonusesVisited='".implode(',',$_REQUEST['BonusID'])."'";
@@ -276,7 +305,7 @@ function putScoreTeam($confirmed)
 	if (isset($_REQUEST['TotalPoints']))
 		$sql .= ",TotalPoints=".intval(str_replace(',','',$_REQUEST['TotalPoints']));
 	if (isset($_REQUEST['StartTime']))
-		$sql .= ",StartTime='".$DB->escapeString($_REQUEST['StartDate']).'T'.$DB->escapeString($_REQUEST['StartTime'])."'";
+		$sql .= ",StartTime='".$DB->escapeString(joinDateTime($_REQUEST['StartDate'],$_REQUEST['StartTime']))."'";
 	if (isset($_REQUEST['FinishPosition']))
 		$sql .= ",FinishPosition=".intval($_REQUEST['FinishPosition']);
 	if (isset($_REQUEST['EntrantStatus']))
@@ -289,13 +318,19 @@ function putScoreTeam($confirmed)
 		$sql .= ",RestMinutes=".intval($_REQUEST['RestMinutes']);
 	if (isset($_REQUEST['Confirmed']))
 		$sql .= ",Confirmed=".intval($_REQUEST['Confirmed']);
+	if (isset($_REQUEST['AvgSpeed']) && $DBVERSION >= 5)
+		$sql .= ",AvgSpeed='".floatval($_REQUEST['AvgSpeed'])."'";
 	$sql .= " WHERE TeamID=$team AND EntrantID<>".$_REQUEST['EntrantID'];
 
-//	echo('<hr>'.$sql.'<hr>');
+	echo('<hr>'.$sql.'<hr>');
 	$DB->exec($sql);
-	if (($res = $DB->lastErrorCode()) <> 0)
-		echo('ERROR: '.$DB->lastErrorMsg().'<br />'.$sql.'<hr>');
+	if (($res = $DB->lastErrorCode()) <> 0) {
+		echo($DB->lastErrorCode().' '.$DB->lastErrorMsg().' ');
+		return dberror();
+	}
+	echo(' well '.$AUTORANK.' ');
 	
+	return true;
 }
 
 function saveSpecials()
@@ -333,8 +368,11 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 {
 	global $DB, $TAGS, $KONSTANTS, $DBVERSION;
 
+	updateScoringFlags((isset($_REQUEST['EntrantID']) ? $_REQUEST['EntrantID'] : 0));
+
 	if (isset($_REQUEST['prf']))
 		$postRallyForm = $_REQUEST['prf'] == '1';
+	
 	if (!$showBlankForm) 
 	{
 		$sql = 'SELECT * FROM entrants';
@@ -356,7 +394,7 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 		$scorex_class = 'hidescorex';
 	}
 	
-	$otherinfo = $TAGS['Scorer'][0].': '.$ScorerName;
+	$otherinfo = ($ScorerName=='' ? '' : $TAGS['Scorer'][0].': '.$ScorerName);
 	if ($showBlankForm && !$postRallyForm)
 			$otherinfo = '';
 	startHtml($TAGS['ttScoring'][0],$otherinfo,false);
@@ -372,7 +410,7 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 	$rallyTimeDNF = $rd['FinishTime'];
 	$rallyTimeStart = $rd['StartTime'];
 	
-	$certhours = ($DBVERSION >= 4) ? $rd['MaxHours'] : $rd['CertificateHours'];
+	$certhours = ($DBVERSION >= 4) ? $rd['MaxHours'] : $rd['CertificateHours']; // Field was renamed at DBv4
 	
 	$axisnames = [];
 
@@ -402,8 +440,8 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 	if ($ShowMults == $KONSTANTS['AutoShowMults'])
 		$ShowMults = chooseShowMults($ScoringMethod);
 	
-	updateScoringFlags((isset($_REQUEST['EntrantID']) ? $_REQUEST['EntrantID'] : 0));
 	
+	// This contains the bonus rejection menu
 	echo("\r\n");
 	echo('<div id="rcmenu" style="display:none;">');
 	echo('<ul>');
@@ -417,7 +455,9 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 	echo('</ul>');
 	echo('</div>');
 	echo("\r\n");
+	// End of bonus rejection menu
 	
+	// =================================================================================== ScoreSheet
 	echo('<div id="ScoreSheet">'."\r\n");
 	echo("\r\n");
 	echo('<form method="post" action="score.php" onsubmit="submitScore();">');
@@ -431,14 +471,22 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 	echo('<input type="hidden" id="ScoringMethod" value="'.$ScoringMethod.'">');
 	echo('<input type="hidden" id="ShowMults" value="'.$ShowMults.'">');
 	echo('<input type="hidden" name="ScoreX" id="scorexstore" value=""/>');
+	echo('<input type="hidden" id="bduText" value="'.($KONSTANTS['BasicDistanceUnit']==$KONSTANTS['DistanceIsMiles'] ? $TAGS['OdoKmsM'][0] : $TAGS['OdoKmsK'][0]).'">');
+	
+	// mc offers confirmation
 	if (isset($_REQUEST['mc']) && $DBVERSION >= 4)
 		echo('<input type="hidden" name="mc" value="mc">');
+	
+	//					Time penalties
 	//echo(" 1 ");
 	$TimePenaltyTime =($DBVERSION < 3 ? '0 as TimeSpec' : 'TimeSpec');
 		
 	$R = $DB->query('SELECT rowid AS id,'.$TimePenaltyTime.',PenaltyStart,PenaltyFinish,PenaltyMethod,PenaltyFactor FROM timepenalties ORDER BY PenaltyStart,PenaltyFinish');
 	while ($rd = $R->fetchArray())
 		echo('<input type="hidden" name="TimePenalty[]" data-spec="'.$rd['TimeSpec'].'" data-start="'.$rd['PenaltyStart'].'" data-end="'.$rd['PenaltyFinish'].'" data-factor="'.$rd['PenaltyFactor'].'" data-method="'.$rd['PenaltyMethod'].'">');
+	
+	
+	// 					Speed penalties
 	//echo(" 2 ");
 	if ($DBVERSION >= 4)
 	{
@@ -450,41 +498,38 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 		}
 	}
 	
-	$sql = ($DBVERSION < 3 ? ',0 as Compulsory' : ',Compulsory');
-	$R = $DB->query('SELECT rowid AS id,Axis,Cat,NMethod,ModBonus,NMin,PointsMults,NPower'.$sql.' FROM catcompound ORDER BY Axis,NMin DESC');
+	//					Compound rules
+	
+	$R = $DB->query('SELECT rowid AS id,Axis,Cat,NMethod,ModBonus,NMin,PointsMults,NPower,Ruletype FROM catcompound ORDER BY Axis,NMin DESC');
 	while ($rd = $R->fetchArray())
-		echo('<input type="hidden" name="catcompound[]" data-axis="'.$rd['Axis'].'" data-cat="'.$rd['Cat'].'" data-method="'.$rd['NMethod'].'" data-mb="'.$rd['ModBonus'].'" data-min="'.$rd['NMin'].'" data-pm="'.$rd['PointsMults'].'" data-power="'.$rd['NPower'].'" data-reqd="'.$rd['Compulsory'].'">');
+		echo('<input type="hidden" name="catcompound[]" data-axis="'.$rd['Axis'].'" data-cat="'.$rd['Cat'].'" data-method="'.$rd['NMethod'].'" data-mb="'.$rd['ModBonus'].'" data-min="'.$rd['NMin'].'" data-pm="'.$rd['PointsMults'].'" data-power="'.$rd['NPower'].'" data-reqd="'.$rd['Ruletype'].'">');
+	
+	
+	//					Entrant record
 	//echo(" 3 ");
-	$sql = 'SELECT * FROM entrants';
-	if ($showBlankForm) 
-		$sql .= ' LIMIT 1';	// Just need a valid array, don't care about the contents
-	else
-		$sql .= ' WHERE EntrantID='.$_REQUEST['EntrantID'];
-	$R = $DB->query($sql);
-	$rd = $R->fetchArray();
-
-	if ($showBlankForm)
-	{
+	
+	if ($showBlankForm) {
 		$_REQUEST['EntrantID']	= '';
-		$rd['EntrantID']		= '';
-		$rd['RiderName']		= '_________________';
-		$rd['PillionName']		= '';
-		$rd['FinishTime']		= '';
-		$rd['OdoCheckFinish']	= '';
-		$rd['CorrectedMiles']	= '';
-		$rd['TotalPoints']		= '';
-		//$rd['EntrantStatus']	= '';
-		$rd['BonusesVisited']	= '';
-		$rd['SpecialsTicked']	= '';
-		$rd['CombosTicked']		= '';
+		$rd = blankFormRecord();
+	} else {
+		$sql = 'SELECT * FROM entrants';
+		$sql .= ' WHERE EntrantID='.$_REQUEST['EntrantID'];
+		$R = $DB->query($sql);
+		$rd = $R->fetchArray();
 	}
-	$mtDNF = DateTime::createFromFormat('Y\-m\-d\TH\:i',$rd['StartTime']);
+
+	if (is_null($rd['StartTime']))
+		$starttime = date("Y-m-d\TH:i");
+	else
+		$starttime = $rd['StartTime'];
+	error_log($starttime);
+	$mtDNF = DateTime::createFromFormat('Y\-m\-d\TH\:i',$starttime);
 	try {
 		$mtDNF = date_add($mtDNF,new DateInterval("PT".$certhours."H"));
 	} catch(Exception $e) {
 		echo('omg! '.$e->getMessage());
 	}
-	$myTimeDNF = date_format($mtDNF,'Y-m-d').'T'.date_format($mtDNF,'H:i');
+	$myTimeDNF = joinDateTime(date_format($mtDNF,'Y-m-d'),date_format($mtDNF,'H:i'));
 	if ($rallyTimeDNF < $myTimeDNF)
 		$myTimeDNF = $rallyTimeDNF;
 		
@@ -495,16 +540,16 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 	echo('<input type="hidden" id="FinishTimeDNF" value="'.$myTimeDNF.'">');
 	echo('<input type="hidden" name="BonusesVisited" id="BonusesVisited" value="'.$rd['BonusesVisited'].'">');
 	
-	$chk = $rd['OdoKms'] == $KONSTANTS['OdoCountsKilometres'] ? ' checked="checked" ' : ' ';
-	echo('<input type="hidden" id="OdoKmsK" '.$chk.'>');
 	echo('<input type="hidden" id="OdoScaleFactor" name="OdoScaleFactor" value="'.$rd['OdoScaleFactor'].'">');
 	echo('<input type="hidden" id="EntrantID" name="EntrantID" value="'.$_REQUEST['EntrantID'].'">');
 	echo('<input type="hidden" name="RejectedClaims" id="RejectedClaims" value="'.$rd['RejectedClaims'].'">');
 	$rm = ($DBVERSION >= 4 ? $rd['RestMinutes'] : 0);
 	echo('<input type="hidden" name="RestMinutes" id="RestMinutes" value="'.$rm.'">');
-	$rm = ($DBVERSION >= 4 ? $rd['Confirmed'] : 0);
-	echo('<input type="hidden" name="Confirmed" id="Confirmed" value="'.$rm.'">');
+	$rm = ($rd['Confirmed'] == 1 ? 1 : 0);
+	//echo('<input type="hidden" name="Confirmed" id="Confirmed" value="'.$rm.'">');
 	
+	
+	// ======================================================================================== ScoreHeader
 	echo("\r\n");
 	echo('<div id="ScoreHeader"');
 	if ($ScoringMethod == $KONSTANTS['ManualScoring'])
@@ -581,7 +626,7 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 	if (!$showBlankForm)
 	{
 		echo('<span title="'.$TAGS['OdoKms'][1].'"><label for="OdoKms">'.$TAGS['OdoKms'][0].' </label> ');
-		echo('<select name="OdoKms" id="OdoKms" onchange="flipMilesKms();calcScore(true)">');
+		echo('<select name="OdoKms" id="OdoKms" onchange="calcMiles();calcScore(true)">');
 		if ($rd['OdoKms']==$KONSTANTS['OdoCountsKilometres'])
 		{
 			echo('<option value="'.$KONSTANTS['OdoCountsMiles'].'">'.$TAGS['OdoKmsM'][0].'</option>');
@@ -599,12 +644,11 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 		echo('</span> ');
 		
 		echo('<span class="explain" title="'.$TAGS['CalculatedAvgSpeed'][1].'"><label for="CalculatedAvgSpeed" >'.$TAGS['CalculatedAvgSpeed'][0].' </label> ');
-		echo('<input readonly type="text" name="CalculatedAvgSpeed" id="CalculatedAvgSpeed" value="">');
+		echo('<input tabindex="-1" readonly type="text" name="AvgSpeed" id="CalculatedAvgSpeed" value="'.($DBVERSION >= 5 ? $rd['AvgSpeed'] : '').'">');
 		echo('</span>');
 	}
 	
 		
-	echo("\r\n".'<span><label  class="clickme" title="'.$TAGS['ToggleScoreX'][1].'" for="TotalPoints">'.$TAGS['TotalPoints'][0].' </label> ');
 	if ($ScoringMethod <> $KONSTANTS['ManualScoring'])
 		$ro = 'readonly="readonly" ';
 	else
@@ -612,7 +656,7 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 	if ($showBlankForm)
 	{
 		$ctotal = '_____';
-		$tp_id = 'tpoints';
+		$tp_id = 'tpoints'; // So it's not updated
 	}
 	else
 	{
@@ -620,6 +664,7 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 		$tp_id = 'TotalPoints';
 	}
 	// call to sxtoggle removed
+	echo("\r\n".'<span><label  class="clickme" title="'.$TAGS['ToggleScoreX'][1].'" for="'.$tp_id.'">'.$TAGS['TotalPoints'][0].' </label> ');
 	echo('<input  class="clickme"  title="'.$TAGS['TotalPoints'][1].'" type="'.($ro != ''? 'text' : 'number').'" '.$ro.' name="TotalPoints" id="'.$tp_id.'" value="'.$ctotal.'" onchange="calcScore(true)" /> ');
 	echo('</span> ');
 	
@@ -666,7 +711,6 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 			echo(' checked');
 		echo('> </span>');
 	}
-	echo('</form>');
 	
 	} // End !$showBlank Form
 	
@@ -675,7 +719,7 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 	
 	
 	echo("\r\n");
-	echo('</div>');
+	echo('</div>');		// =======================================  End of ScoreHeader
 	echo("\r\n");
 	
 	
@@ -713,7 +757,7 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 	echo("\r\n");
 	echo('</form>');
 	echo("\r\n");
-	echo('</div>'."\r\n"); // End ScoreSheet
+	echo('</div>'."\r\n"); // ========================================= End ScoreSheet
 
 
 	if ($ScoringMethod == $KONSTANTS['CompoundScoring'] && !$showBlankForm)
@@ -725,7 +769,7 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 		echo('</div>');
 	}
 	echo('<div id="scorex" oncontextmenu="showBonusOrder()" title="'.$TAGS['ScorexHints'][0].'" class="'.$scorex_class.' scorex" data-show="0" ondblclick="sxprint();" >'.$rd['ScoreX'].'</div>');
-	echo('<div id="ddarea" class="hide"><p> </p></div>');
+	echo('<div id="ddarea" class="hide"><p> </p></div>');	// Used for drag/drop operations
 	echo('</body></html>');
 }
 
@@ -747,11 +791,13 @@ function showBonuses($bonusesTicked,$showBlankForm,$postRallyForm)
 			$tick = $chk=='' ? '' :  $KONSTANTS['ConfirmedBonusTick'];
 		}
 		$spncls = ($chk <> '') ? ' checked' : ' unchecked';
+		if ($rd['Compulsory']<>0)
+			$spncls .= ' compulsory';
 		echo('<span class="showbonus'.$spncls.'"');
 		if (!$showBlankForm)
 			echo(' oncontextmenu="showPopup(this);"');
-		if ($rd['Compulsory']<>0)
-			echo(' compulsory');
+		
+		
 		echo(' title="'.htmlspecialchars($bd).' [ '.$rd['Points'].' ]">');
 		echo('<label for="B'.$bk.'">'.$bk.'-</label>');
 		echo('<input type="checkbox"'.$chk.' name="BonusID[]" id="B'.$bk.'" value="'.$bk.'" onchange="tickBonus(this)"');
@@ -846,10 +892,17 @@ function showPicklist($ord)
 
 	$R = $DB->query('SELECT * FROM entrants ORDER BY '.$ord);
 	
-	$lnk = '<a href="'.$HOME_URL.'" onclick="return areYouSure(\'\r\n'.$TAGS['LogoutScorer'][0].' '.$_REQUEST['ScorerName'].' ?\');">';
+	if (isset($_REQUEST['ScorerName'])) {
+		$lnk = '<a href="'.$HOME_URL.'" onclick="return areYouSure(\'\r\n'.$TAGS['LogoutScorer'][0].' '.$_REQUEST['ScorerName'].' ?\');">';
+		startHtml($TAGS['ttScoring'][0],$lnk.$TAGS['Scorer'][0].': '.$_REQUEST['ScorerName'].'</a>',true);
+	} else {
+		$lnk = '<a href="'.$HOME_URL.'">';
+		startHtml($TAGS['ttScoring'][0],$TAGS['oi_Scorecards'.(isset($_REQUEST['mc']) ? 'MC' : '')][0],true);
+	}
 
-	startHtml($TAGS['ttScoring'][0],$lnk.$TAGS['Scorer'][0].': '.$_REQUEST['ScorerName'].'</a>',false);
-
+	pushBreadcrumb('');
+	emitBreadcrumbs();
+	
 	eval("\$evs = ".$TAGS['EntrantStatusV'][0]);
 ?>
 <script>
@@ -867,15 +920,21 @@ function submitMe(obj)
 	 frm.submit();
 
 }
+
 function filterByName(x)
 {
 	//alert('FBN=='+x);
-	var tab = document.getElementById('entrantrows');
-	var firstLink = -1;
-	for (var i = 0; i < tab.childNodes.length; i++ )
+	if (x=='')
+		return;
+	
+	let tab = document.getElementById('entrantrows');
+	let firstLink = -1;
+	let nrows = 0;
+	
+	for (let i = 0; i < tab.childNodes.length; i++ )
 	{
 		//alert('Row ' + i + ' is ' + tab.childNodes[i].className);
-		for ( var j = 0; j < tab.childNodes[i].childNodes.length; j++ )
+		for ( let j = 0; j < tab.childNodes[i].childNodes.length; j++ )
 		{
 			//alert('col ' + j + ' is ' + tab.childNodes[i].childNodes[j].className);
 			if ( tab.childNodes[i].childNodes[j].className == 'EntrantID' )
@@ -893,6 +952,7 @@ function filterByName(x)
 					if (firstLink < 0)
 						firstLink = i;
 					tab.childNodes[i].className = 'link';
+					nrows++;
 				}
 			}
 		}
@@ -902,6 +962,7 @@ function filterByName(x)
 		//alert('Setting EntrantID from row '+firstLink+'; value '+tab.childNodes[firstLink].getAttribute('data-ent'));
 		document.getElementById('EntrantID').value = tab.childNodes[firstLink].getAttribute('data-ent');
 	}
+	document.getElementById('savedata').disabled = (nrows != 1);
 }
 </script>
 <?php	
@@ -913,9 +974,10 @@ function filterByName(x)
 	echo('<input type="hidden" name="c" value="score">');
 	if (isset($_REQUEST['mc']) && $DBVERSION >= 4)
 		echo('<input type="hidden" name="mc" value="mc">');
-	echo('<input type="hidden" name="ScorerName" value="'.htmlspecialchars($_REQUEST['ScorerName']).'">');
+	$sname = (isset($_REQUEST['ScorerName']) ? htmlspecialchars($_REQUEST['ScorerName']) : '');
+	echo('<input type="hidden" name="ScorerName" value="'.$sname.'">');
 	echo('<label for="NameFilter">'.$TAGS['NameFilter'][0].' </label>');
-	echo(' <input onchange="enableSaveButton();" type="text" id="NameFilter" title="'.$TAGS['NameFilter'][1].'" onkeyup="filterByName(this.value)">');
+	echo(' <input  type="text" id="NameFilter" title="'.$TAGS['NameFilter'][1].'" onkeyup="filterByName(this.value)">');
 	echo('<input class="button" type="submit" id="savedata" disabled="disabled" value="'.$TAGS['ScoreThis'][0].'" > ');
 	echo('</form>');
 	echo("</div>\r\n");
@@ -943,7 +1005,7 @@ function filterByName(x)
 				$es .= ' '.$KONSTANTS['ConfirmedBonusTick'];
 		echo('<td class="EntrantStatus">'.$es.'</td>');
 		echo('<td class="ScoredBy">');
-		if ($rd['ScoringNow']<>0)
+		if ($rd['ScoringNow']<>0 && $rd['ScoredBy']<>'')
 			echo('== '.$rd['ScoredBy']);
 		echo('</td>');
 		echo('</tr>');
@@ -1093,27 +1155,46 @@ function updateScoringFlags($EntrantID=0)
 	
 }
 
+function prgPicklist()
+/*
+ * prg = post/redirect/get
+ *
+ * Called to get browser to ask for picklist after a post
+ *
+ */
+{
+	$get = "score.php";
+	if (isset($_REQUEST['ScorerName']))
+		$get .= '?ScorerName='.$_REQUEST['ScorerName'];
+	header("Location: ".$get);
+	exit;
+}
+
 //var_dump($_REQUEST);
+//var_dump($_COOKIE);
 
 if (isset($_REQUEST['clear']))
 	updateScoringFlags(0);
 
 if (isset($_REQUEST['showpicklist']))
 {
-	if ($_REQUEST['showpicklist']=='savescore')
-		putScore();
+	if ($_REQUEST['showpicklist']=='savescore') {
+		if (putScore())
+			prgPicklist();
+		exit;
+	}
 	showPicklist('EntrantID');
 	exit;
 }
 
 if (isset($_REQUEST['savescore']))
 {
-	putScore();
-	showPicklist('EntrantID');
+	if (putScore())
+		prgPicklist();
 	exit;
 }
 
-if (isset($_REQUEST['login']) && $_REQUEST['ScorerName'] <> '')
+if (isset($_REQUEST['login']) && $_REQUEST['ScorerName'] <> '') 
 	loginNewScorer();
 else if (isset($_REQUEST['c']) && $_REQUEST['c'] == 'score')
 	scoreEntrant(FALSE);
@@ -1121,7 +1202,7 @@ else if (isset($_REQUEST['c']) && $_REQUEST['c'] == 'blank')
 	scoreEntrant(TRUE);
 else if (isset($_REQUEST['c']) && $_REQUEST['c'] == 'pickentrant')
 	showPicklist($_REQUEST['ord']);
-else if (isset($_REQUEST['ScorerName']))
+else if (isset($_REQUEST['ScorerName']) || rally_params_established())
 	showPicklist('EntrantID');
 else if (rally_params_established())
 	inviteScorer();

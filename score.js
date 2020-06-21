@@ -302,10 +302,10 @@ function calcAvgSpeed()
 	if (odoScale < 0.5)
 		odoScale = 1.0;
 	let odoDistance = (parseInt(document.querySelector('#OdoRallyFinish').value) - parseInt(document.querySelector('#OdoRallyStart').value)) * odoScale;
-	let odoKms = document.querySelector('#OdoKmsK').checked;
+	let odoKms = document.querySelector('#OdoKms').value=='1';
 	
 	// Any non-zero value here means that we're handling kilometres rather than miles
-	let basicKms = parseInt(document.querySelector('#BasicDistanceUnits').value) != 0;
+	let basicKms = parseInt(document.getElementById('BasicDistanceUnit').value) != 0;
 	
 	if (odoKms && !basicKms)
 		odoDistance = odoDistance / KmsPerMile;
@@ -926,7 +926,6 @@ function calcScore(enableSave)
 		calcAvgSpeed();
 		
 		sxstart();
-		reportRejectedClaims();
 		tickCombos();
 		if (debug) console.log("calcScore[0][2]");
 		repaintBonuses();
@@ -937,6 +936,7 @@ function calcScore(enableSave)
 		else
 			TPS = calcSimpleScore(res);
 		if (debug) console.log("calcScore[2]");
+		reportRejectedClaims();
 		sxappend('',RPT_Total,'',0,TPS);
 		document.getElementById('TotalPoints').value = formatNumberScore(TPS);
 		document.getElementById('TotalPoints').setAttribute('title',res.reason);
@@ -1068,7 +1068,7 @@ function calcSpeedPenalty(dnf)
  */
 {
 	let SP = document.getElementsByName('SpeedPenalty[]');
-	let speed = parseFloat(document.querySelector('#CalculatedAvgSpeed').value);
+	let speed = parseFloat(document.getElementById('CalculatedAvgSpeed').value);
 	for (let i =0; i < SP.length; i++)
 		if (speed >= parseFloat(SP[i].getAttribute('data-MinSpeed')))
 		{
@@ -1198,7 +1198,7 @@ function countNZ(cnts)
 function enableSaveButton()
 {
 	var cmd;
-	
+	console.log('enabling save');
 	cmd = document.getElementById('savescorebutton');
 	if (cmd == null)
 		cmd = document.getElementById('savedata'); /* Forms other than scoresheet */
@@ -1229,7 +1229,7 @@ function explainOrdinaryBonuses(totalSoFar)
 				if (bp[i].getAttribute('data-rejected') < 1)
 					showB(bp[i]);
 				else
-;//					reportRejectedClaim(bp[i].id,bp[i].getAttribute('data-rejected'));
+					reportRejectedClaim(bp[i].id,bp[i].getAttribute('data-rejected'));
 	}
 	else if (bv.value.length > 0)
 	{
@@ -1241,7 +1241,7 @@ function explainOrdinaryBonuses(totalSoFar)
 				if (bp.getAttribute('data-rejected') < 1)
 					showB(bp);
 				else
-;//					reportRejectedClaim(bp.id,bp.getAttribute('data-rejected'));
+					reportRejectedClaim(bp.id,bp.getAttribute('data-rejected'));
 			else if (!bp)
 				console.log("Can't find "+bva[i]);
 		}
@@ -1309,9 +1309,9 @@ function odoAdjust(useTrip)
 	if (!odox) return;
 	
 	// Any non-zero value here means that we're handling kilometres rather than miles
-	var basickms = parseInt(document.getElementById('BasicDistanceUnits').value) != 0;
+	var basickms = parseInt(document.getElementById('BasicDistanceUnit').value) != 0;
 	
-	var odokms = document.getElementById('OdoKmsK').checked;
+	var odokms = document.getElementById('OdoKms').value=='1';
 	var odocheckmiles = parseFloat(document.getElementById('OdoCheckMiles').value);
 	var correctionfactor = parseFloat(document.getElementById('OdoScaleFactor').value);
 	if (correctionfactor < 0.5)	//SanityCheck
@@ -1358,8 +1358,9 @@ function odoAdjust(useTrip)
 
 function calcMiles()
 {
-	var basickms = parseInt(document.getElementById('BasicDistanceUnits').value) != 0;
-	var odokms = document.getElementById('OdoKmsK').checked;
+	var basickms = parseInt(document.getElementById('BasicDistanceUnit').value) != 0;
+	var odokms = document.getElementById('OdoKms').value=='1';
+	console.log('cm: bk='+basickms+' ok='+odokms);
 	var correctionfactor = parseFloat(document.getElementById('OdoScaleFactor').value);
 	if (correctionfactor < 0.5)	//SanityCheck
 		correctionfactor = 1.0;
@@ -1399,20 +1400,6 @@ function clearUnrejectedClaims()
 	}
  }
  
- function flipMilesKms()
- /*
-  * I'm called by the dropdown on the scoresheet to flip
-  * between miles and kilometres for odo readings
-  *
-  */
- {
-	let sel = document.querySelector('#OdoKms');
-	let val = sel.options[sel.selectedIndex].value;
-	let oks = document.querySelector('#OdoKmsK');
-	oks.checked = (val != 0);
-	calcMiles();
- }
-
 
 function markAsConfirmed()
 /*
@@ -1422,7 +1409,7 @@ function markAsConfirmed()
  */
 {
 	console.log('mac called');
-	let bv = document.querySelector('#'+ORDINARY_BONUSES_VISITED);
+	let bv = document.getElementById(ORDINARY_BONUSES_VISITED);
 	if (!bv)
 		return;
 	let bva = bv.value.split(',');
@@ -1431,8 +1418,10 @@ function markAsConfirmed()
 		bva[i] = CONFIRMED_BONUS_MARKER+bva[i].replace(CONFIRMED_BONUS_MARKER,'');
 	bv.value = bva.join(',');
 	
+	//document.getElementById('Confirmed').value = '1';
+	
 	enableSaveButton();
-	document.querySelector('#savescorebutton').click();
+	document.getElementById('savescorebutton').click();
 }
 
 
@@ -1513,7 +1502,7 @@ function reportRejectedClaims()
 	for (var i = 0; i < rca.length; i++ )
 	{
 		var cr = rca[i].split('=');
-//		if (cr[0].substr(0,1) != ORDINARY_BONUS_PREFIX)
+		if (cr[0].substr(0,1) != ORDINARY_BONUS_PREFIX)
 			reportRejectedClaim(cr[0],cr[1]);
 	}
 }
@@ -1577,6 +1566,8 @@ function setFinisherStatus()
 	for (var i = 0 ; i < BL.length; i++ )
 		if (BL[i].getAttribute('data-reqd')==COMPULSORYBONUS && !BL[i].checked)
 			return SFS(EntrantDNF,DNF_MISSEDCOMPULSORY);
+		else if (BL[i].getAttribute('data-reqd')==MUSTNOTMATCH && BL[i].checked)
+			return SFS(EntrantDNF,DNF_HITMUSTNOT);
 	
 	var sgObj = document.getElementById('SGroupsUsed');
 	if (sgObj != null)
@@ -1587,6 +1578,8 @@ function setFinisherStatus()
 			for (var i = 0 ; i < BL.length; i++ )
 				if (BL[i].getAttribute('data-reqd')==COMPULSORYBONUS && !BL[i].checked)
 					return SFS(EntrantDNF,DNF_MISSEDCOMPULSORY);
+				else if (BL[i].getAttribute('data-reqd')==MUSTNOTMATCH && BL[i].checked)
+					return SFS(EntrantDNF,DNF_HITMUSTNOT);
 	}
 	
 	BL = document.getElementsByName('ComboID[]');
@@ -1752,11 +1745,14 @@ function showBonusOrder()
 	event.preventDefault();
 	var dda = document.getElementById(DDAREA_id);
 	var obs = fetchBonusOrder();
+	console.log("obs: "+JSON.stringify(obs));
 	var html = '<input type="button" title="' + OBSORTAZ + '" style="font-size: 1.1em;" value="&duarr;" onclick="sortBonusOrder()"/> ';
 	html += '<input type="button" title="' + APPLYCLOSE + '" style="float: right; font-size: 1.1em;" value="&cross;" onclick="finishBonusOrder()"/>';
 	html += '<ol class="ddlist">';
 	for (var i = 0; i < obs.length; i++)
 	{
+		if (obs[i]=='')
+			continue;
 		var bon = document.getElementById(ORDINARY_BONUS_PREFIX+obs[i].replace(CONFIRMED_BONUS_MARKER,''));
 		console.log("sbo: "+JSON.stringify(bon));
 		html += '<li draggable="true" ondragstart="dragStart(event)" ondragover="dragOver(event)" >';
@@ -1818,7 +1814,7 @@ function showBreadcrumbs()
 	var bc = obj.value.split(';');
 	for (var i = 0; i + 1 < bc.length; i++)
 	{
-		if (bc[i] != '')
+		if (bc[i] != '' && bc[i].search('#') < 0)
 		{
 			var e = document.createElement('span');
 			e.className = 'breadcrumb';
@@ -1980,23 +1976,6 @@ function sxprint()
 	var ent = document.getElementById('EntrantID').value;
     var mywindow = window.open('entrants.php?c=scorex&entrant='+ent, 'PRINT', 'height=400,width=600');
 	
-	//var hdrtitle = document.getElementById('hdrRallyTitle').innerHTML;
-	
-    //mywindow.document.write('<html><head><title>' + document.title  + '</title>');
-	//mywindow.document.write('<link rel="stylesheet" type="text/css" href="score.css">');
-
-    //mywindow.document.write('</head><body>');
-    //mywindow.document.write('<h1>' + hdrtitle  + '</h1>');
-	//mywindow.document.write('<div class="scorex">');
-    //mywindow.document.write(document.getElementById(SX_id).innerHTML);
-    //mywindow.document.write('</div></body></html>');
-
-    //mywindow.document.close(); // necessary for IE >= 10
-    //mywindow.focus(); // necessary for IE >= 10*/
-
-    //mywindow.print();
-    //mywindow.close();
-
     return true;	
 }
 function sxshow()
@@ -2010,15 +1989,21 @@ function sxshow()
 function sxstart()
 {
 //	console.log('start');
-	var showMults = document.getElementById("ShowMults").value == SM_ShowMults;
+	let showMults = document.getElementById("ShowMults").value == SM_ShowMults;
 	
-	var sx = document.getElementById(SX_id);
+	let sx = document.getElementById(SX_id);
 	if (!sx) return;
 	
-	var html = '<table><caption>'+document.getElementById("RiderID").innerHTML+' [&nbsp;<span id="sxsfs"></span>&nbsp;]';
-	let avg = document.querySelector('#CalculatedAvgSpeed').value;
+	let html = '<table><caption>'+document.getElementById("RiderID").innerHTML+' [&nbsp;<span id="sxsfs"></span>&nbsp;]';
+	let distance = '';
+	let cm = parseInt(document.getElementById('CorrectedMiles').value);
+	if (cm > 0)
+		distance = distance + cm + ' ' + document.getElementById('bduText').value;
+	let avg = document.getElementById('CalculatedAvgSpeed').value;
 	if (avg != '')
-		html += '<br><span class="explain">'+avg+'</span>';
+		distance = distance + ' @ ' + avg;
+	if (distance != '')
+		html += '<br><span class="explain">'+distance+'</span>';
 	html += '</caption><thead><tr><th class="id">id</th><th class="desc"></th><th class="bp">BP</th>';
 	if (showMults) html += '<th class="bm">BM</th>';
 	html += '<th class="tp">TP</th></tr></thead><tbody></tbody></table>';

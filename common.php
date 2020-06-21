@@ -1,4 +1,6 @@
 <?php
+error_reporting(E_ALL);
+ini_set("display_errors", 1); 
 
 /*
  * I B A U K   -   S C O R E M A S T E R
@@ -9,7 +11,7 @@
  * I am written for readability rather than efficiency, please keep me that way.
  *
  *
- * Copyright (c) 2019 Bob Stammers
+ * Copyright (c) 2020 Bob Stammers
  *
  *
  * This file is part of IBAUK-SCOREMASTER.
@@ -24,11 +26,17 @@
  *
  */
 
+session_start();
 
 $KONSTANTS['DistanceIsMiles'] = 0;
 $KONSTANTS['DistanceIsKilometres'] = 1;
 $KONSTANTS['OdoCountsMiles'] = 0;
 $KONSTANTS['OdoCountsKilometres'] = 1;
+$KONSTANTS['KmsPerMile'] = 1.60934;
+
+$KONSTANTS['TimezoneCities'] = ['Europe/London','Europe/Berlin','Europe/Helsinki','Europe/Moscow','Europe/Dublin'];
+// Timezone range to offer: GMT-n .. GMT+n
+$KONSTANTS['GMTPlusMinus'] = 10;
 
 require_once('customvars.php');
 	
@@ -81,6 +89,15 @@ $KONSTANTS['ConfirmedBonusTick'] = '<span class="ConfirmedBonusTick" title="'.$T
 //entrants.confirmed value
 $KONSTANTS['ScorecardIsDirty'] = 2;
 
+
+// Claims list constants	
+$KONSTANTS['showAll'] = 0;		// ignore Judged/applied status
+$KONSTANTS['showOnly'] = 1;		// show only Judged/applied claims
+$KONSTANTS['showNot'] = 2;		// show only undecided/unapplied claims
+$KONSTANTS['UNDECIDED_CLAIM']	= -1;
+
+$KONSTANTS['UPLOADS_FOLDER'] = "./uploads";
+
 // Common subroutines below here; nothing translateable below
 	
 	
@@ -97,6 +114,13 @@ if ($DBVERSION >= 4)
 	$AUTORANK =  getValueFromDB("SELECT AutoRank FROM rallyparams","AutoRank",0);
 else
 	$AUTORANK = 0;
+
+if ($DBVERSION >= 5) {
+	$KONSTANTS['BasicDistanceUnit'] = getValueFromDB("SELECT MilesKms FROM rallyparams","MilesKms",$KONSTANTS['BasicDistanceUnit']);
+	$KONSTANTS['LocalTZ'] = getValueFromDB("SELECT LocalTZ FROM rallyparams","LocalTZ",$KONSTANTS['LocalTZ']);
+	$KONSTANTS['DecimalPointIsComma'] = getValueFromDB("SELECT DecimalComma FROM rallyparams","DecimalComma",$KONSTANTS['DecimalPointIsComma']);
+	$KONSTANTS['DefaultCountry'] = getValueFromDB("SELECT HostCountry FROM rallyparams","HostCountry",$KONSTANTS['DefaultCountry']);
+}
 
 /* Each simple bonus may be classified using
  * this number of categories. This reflects 
@@ -117,30 +141,175 @@ $HTML_STARTED = false;
 
 // Common subroutines
 
-function popBreadcrumb()
+function calcCorrectedMiles($entrantOdoKms,$entrantOdoStart,$entrantOdoFinish,$entrantOdoScaleFactor)
+// This is here because it might be needed from multiple locations throughout the application
+// ASSUMPTIONS:
+// All params apart from scale are positive integers
+// Finish >= Start
 {
-	if (!isset($_REQUEST['breadcrumbs']))
-		return;
-	$bc = strrpos($_REQUEST['breadcrumbs'],';');
-	if (!$bc)
-		return;
-	$_REQUEST['breadcrumbs'] = substr($_REQUEST['breadcrumbs'],0,$bc);
+	global $KONSTANTS;
+	
+	$rallyUsesKms = ($KONSTANTS['BasicDistanceUnit'] != $KONSTANTS['DistanceIsMiles']);
+	$cf = $entrantOdoScaleFactor;
+	// Now sanity check
+	if ($cf < 0.5)
+		$cf = 1.0;
+	
+	//echo("rK=$rallyUsesKms; eK=$entrantOdoKms; eS=$entrantOdoStart; eF=$entrantOdoFinish; cf=$cf<br>");
+	
+	$odoDistance = ($entrantOdoFinish - $entrantOdoStart) * $cf;
+
+	if ($entrantOdoKms && !$rallyUsesKms)
+		$odoDistance = $odoDistance / $KONSTANTS['KmsPerMile'];
+	if (!$entrantKms && $rallyUsesKms)
+		$odoDistance = $odoDistance * KmsPerMile;
+	
+	return intval($odoDistance);
+	
 	
 }
 
-function pushBreadcrumb($step)
-{
-	$bchome = "<a href='".'admin.php'."'> / </a>";
 
-	if (!isset($_REQUEST['breadcrumbs']))
-		$_REQUEST['breadcrumbs'] = $bchome;
-	$_REQUEST['breadcrumbs'] .= ";".$step;
+function dberror()
+{
+	global $DB,$TAGS;
+	
+	startHtml('!');
+	echo('<div id="dberror" title="'.$TAGS['dberroragain'][1].'">'.sprintf($TAGS['dberroragain'][0],$DB->lastErrorMsg()).'</div>');
+	return false;
+	
+}
+
+function defaultRecord($table)
+/*
+ * I return an array of fields corresponding to each of the columns
+ * in $table. Each field is set to the relevant default value.
+ *
+ */
+{
+	global $DB;
+	
+	$sql = "PRAGMA table_info($table)";
+	$R = $DB->query($sql);
+	$res = [];
+	while ($rd = $R->fetchArray()) 
+		$res[$rd['name']] = $rd['dflt_value'];
+	return $res;
+	
+}
+
+function emitChooseTZ($name,$id)
+/*
+ * This contructs and emits a SELECT to show/choose
+ * a timezone either as GMT +/- offset or registered
+ * timezone city identifier
+ *
+ */
+{
+	global $KONSTANTS;
+	
+	echo('<select name="'.$name.'" id="'.$id.'" oninput="enableSaveButton();" >');
+	foreach($KONSTANTS['TimezoneCities'] As $tz) {
+		echo('<option value="'.$tz.'"');
+		if ($tz==$KONSTANTS['LocalTZ'])
+			echo(' selected');
+		echo('>'.$tz.'</option>');
+	}
+	$tz = 0 - $KONSTANTS['GMTPlusMinus'];
+	while ($tz <= $KONSTANTS['GMTPlusMinus']) {
+		$tzz = sprintf("%+03d",$tz).'00';
+		echo('<option value="'.$tzz.'"');
+		if ($tzz==$KONSTANTS['LocalTZ'])
+			echo(' selected');
+		echo('>GMT'.$tzz.'</option>');
+		$tz++;
+	}
+	echo('</select>');
+	
+	
+}
+
+
+function entrantsPresent()
+{
+	return getValueFromDB("SELECT count(*) As Rex FROM entrants","Rex",-1);
+}
+
+function gotoBreadcrumbStep($step)
+{
+	if (!isset($_SESSION['bc']))
+		return;
+	$laststep = count($_SESSION['bc']) - 1;
+	if (!isset($_SESSION['bc'][$step]))
+		$step = $laststep;
+	
+	$get = $_SESSION['bc'][$step][0];
+	
+	error_log('gotoBreadcrumbStep: '.$step.' == '.$get);
+
+	while($step <= $laststep) {
+		if ($step > 0)
+			unset($_SESSION['bc'][$step]);
+		$step++;
+	}
+	header("Location: ".$get);
+	exit;
+	
+}
+
+function joinDateTime($dt,$tm)
+// Accept a date and a time and return a properly formatted Datetime based on ISO8601
+{
+	return $dt.'T'.$tm;
+}
+
+function joinPaths() {
+    $paths = func_get_args();
+	
+	return preg_replace('~[/\\\\]+~', DIRECTORY_SEPARATOR, implode(DIRECTORY_SEPARATOR, $paths));
+}
+
+function popBreadcrumb()
+{
+	if (!isset($_SESSION['bc']))
+		return;
+	$laststep = count($_SESSION['bc']) - 1;
+	unset($_SESSION['bc'][$laststep]);
+	
+}
+
+function pushBreadcrumb($alink)
+{
+	
+	if (!isset($_SESSION['bc']) || $alink=='') {
+		$_SESSION['bc'] = [];
+		$_SESSION['bc'][0] = ['admin.php','/'];
+		$steps = -1;
+	} else {
+		$steps = count($_SESSION['bc']);
+		if ($alink=='#') {
+			$_SESSION['bc'][$steps] = ['#','#'];
+		} else {
+			preg_match("/<a href=\'([^\']+)\'>([^<]+)/",$alink,$matches);
+			$_SESSION['bc'][$steps] = [$matches[1],$matches[2]];
+		}
+	}
+	if (($steps > 0) && ($_SESSION['bc'][$steps][1]==$_SESSION['bc'][$steps - 1][1]))
+		unset($_SESSION['bc'][$steps]);
+	$bc = '';
+	foreach ($_SESSION['bc'] as $s => $a) 
+		$bc .= "<a href='admin.php?step=".$s."'>".$a[1]."</a>;";
+	
+	$_REQUEST['breadcrumbs'] = $bc;
 		
 }
 
 function emitBreadcrumbs()
 {
-	echo('<input type="hidden" name="breadcrumbs" id="breadcrumbs" value="'.$_REQUEST['breadcrumbs'].'">');
+	$bc = '';
+	foreach ($_SESSION['bc'] as $s => $a) 
+		$bc .= "<a href='admin.php?step=".$s."'>".$a[1]."</a>;";
+	echo('<input type="hidden" name="breadcrumbs" id="breadcrumbs" value="'.$bc.'">');
 }
 
 function properName($enteredName)
@@ -204,7 +373,7 @@ function presortTeams($TeamRanking)
 	$sql = 'SELECT * FROM _ranking WHERE TeamID>0 ORDER BY TeamID,TotalPoints';
 	if ($TeamRanking == $KONSTANTS['TeamRankHighest'])
 		$sql .= ' DESC';
-	$LastTeamID = -1;
+	$LastTeam = -1;
 	$LastTeamPoints = 0;
 	$LastTeamMiles = 0;
 
@@ -231,6 +400,8 @@ function presortTeams($TeamRanking)
 function rankEntrants()
 {
 	global $DB, $TAGS, $KONSTANTS;
+
+error_log(' ranking entrants ');
 
 	$R = $DB->query('SELECT * FROM rallyparams');
 	$rd = $R->fetchArray();
@@ -295,6 +466,8 @@ function rankEntrants()
 
 	}
 	$DB->query('COMMIT TRANSACTION');
+	
+	error_log(' ranking complete ');
 }
 
 
@@ -306,6 +479,34 @@ function rankEntrants()
 function retraceBreadcrumb()
 {
 	// This returns to penultimate breadcrumb
+	
+	if (!isset($_SESSION['bc']))
+		return false;
+	$last = count($_SESSION['bc']) - 2;
+	if ($last < 0)
+		return false;
+	
+	
+	$loc = $_SESSION['bc'][$last][0];
+	error_log('retraceBreadcrumb: last='.$last.' == '.$loc);
+
+	popBreadcrumb();
+	if ($last > 0)
+		popBreadcrumb();
+	
+	$bc = '';
+	foreach ($_SESSION['bc'] as $s => $a) 
+		$bc .= "<a href='admin.php?step=".$s."'>".$a[1]."</a>;";
+	
+	error_log('retraceBreadcrumb: bc='.$bc);
+	
+	$_REQUEST['breadcrumbs'] = $bc;
+	header('Location: '.$loc);
+	
+	return true;
+	
+	
+	
 	
 	if (!isset($_REQUEST['breadcrumbs']))
 		return false;
@@ -434,7 +635,7 @@ echo('<title>'.$pagetitle.'</title>');
 <script src="score.js?ver=<?= filemtime('score.js')?>" defer></script>
 </head>
 <body onload="bodyLoaded();">
-<?php echo('<input type="hidden" id="BasicDistanceUnits" value="'.$KONSTANTS['BasicDistanceUnits'].'"/>'); ?>
+<?php echo('<input type="hidden" id="BasicDistanceUnit" value="'.$KONSTANTS['BasicDistanceUnit'].'"/>'); ?>
 <?php echo('<input type="hidden" id="DBVERSION" value="'.$DBVERSION.'"/>'); ?>
 <div id="header">
 <?php	

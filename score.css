@@ -45,6 +45,7 @@
 		
 }
 
+body					{ margin-left: .5em; margin-right: .5em; }
 
 body, input, select		{ 
     font-family: Verdana, Arial, Helvetica, sans-serif; font-size: calc(14pt + 1vmin);  background-color: var(--regular-background) }
@@ -56,14 +57,20 @@ select.fldsel			{ font-size: .8em !important; }
 .center					{ text-align: center; }
 .hoverlite :hover		{ background-color: var(--hover-background); }
 
+
 input, select			{ border: 1px solid var(--solid-border); }
-input:read-only,
-select:read-only,
-select:-moz-read-only	{ border: none; }
+
+input:-moz-read-only	{ border:none; }
+input:read-only 		{ border:none; }
+
+select:read-only		{ border:none; }
+select:-moz-read-only	{ border:none; }
+
+
 input.wide				{ width: 12em; }
 
 /* These buttons are action buttons. Menu 'buttons' merely look like buttons */
-input[type='submit'], input[type='button']	{
+input[type='submit'], input[type='button'], button	{
 	background-color: var(--bright-background); 
     border: none;
     border-radius: 10px;
@@ -78,7 +85,7 @@ input[type='submit'], input[type='button']	{
     cursor: pointer;
     box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
 }
-input[type='submit']:disabled	{
+input[type='submit']:disabled, input[type='button']:disabled, button:disabled	{
 	background-color: var(--button-back-disabled); 
     border: none;
     border-radius: 10px;
@@ -109,10 +116,15 @@ fieldset				{ margin-bottom: 1em; }
 input[name="FinishPosition"]	{ width: 3em; }
 input[name="BonusID[]"],
 input[name="bonusid"],
+input[name="showb"],
+.BonusID,
+input[name="comboid"],
 input[name="BonusID"]	{ width: 3em; }
+input[name="EntrantID"]	{ width: 3em; }
 input[name="OdoCheckMiles"]	{ width:3em; }
 input.bignumber			{ width: 5em;}
 input.smallnumber		{ width: 3em; }
+
 .link:hover				{ cursor: pointer; background-color: var(--hover-background);}
 
 #dberror		{ background-color: var(--bright-background); color: var(--bright-text); top: 0; position: sticky; padding:.5em; }
@@ -137,11 +149,13 @@ ul#tabs li a { color: var(--tabs-text); background-color: var(--tabs-background)
 
 
 }
-ul#tabs li a:hover { font-weight: bold; color: }
+ul#tabs li a:hover { font-weight: bold; color: var(--tabs-text); }
 ul#tabs li a.selected { font-weight: bold; padding: 0.7em 0.3em 0.38em 0.3em; }
 .tabContent { border: 10px solid var(--solid-border);  background-color: var(--form-background); padding: 0.5em;  display:inherit; }
 .tabContenthide { display: none; }
 .tabcell	{ display: table-cell; }
+
+.frmContent { border: 10px solid var(--solid-border);  background-color: var(--form-background); padding: 0.5em;  display:inherit; }
 
 .compulsory		{ font-weight: bold; }
 .techie			{ font-size: .6em; } /* For largely uninteresting items */
@@ -170,7 +184,7 @@ ul#tabs li a.selected { font-weight: bold; padding: 0.7em 0.3em 0.38em 0.3em; }
 					/* Keep the header visible when scrolling down */
 					position: -webkit-sticky; position: sticky; top:0; background-color: var(--regular-background);
 				}
-#ScoreHeader span { margin-left: 1em; margin-right: 1em; white-space: nowrap; }
+#ScoreHeader span { margin-left: 1em; margin-right: 0em; white-space: nowrap; }
 
 #ScoreHeader.manualscoring span:before
 				{ content: '\A'; white-space: pre; }
@@ -228,6 +242,9 @@ table#entrants	td.EntrantID	{ text-align: center; }
 table#entrants	.RiderName,.PillionName,.Bike	{ text-align: left; }
 table#entrants	.FinishPosition,.TotalPoints,.CorrectedMiles	{ text-align: center; }
 
+/* Spreadsheet import header rows */
+.xlshdr			{ background-color: var(--button-back-disabled); color: var(--button-text-disabled); }
+
 .maindiv		{ margin: 2em auto 2em auto; padding-left: 2em; }
 #header a		{ text-decoration: none; }
 #header a:link	{ color: var(--input-text); }
@@ -238,8 +255,8 @@ table#entrants	.FinishPosition,.TotalPoints,.CorrectedMiles	{ text-align: center
 #footer a:visited	{ color: var(--input-text); }
 
 /* Maybe use different background colour for output only items */
-#tab_combos		{ background-color: var(--regular-background); margin-top: .8em; } 
-#tab_combos legend { background-color: var(--regular-background); color: #282828; padding: 0 1em 0 1em; border-radius: 25px; }
+#Scoresheet #tab_combos		{ background-color: var(--regular-background); margin-top: .8em; } 
+#Scoresheet #tab_combos legend { background-color: var(--regular-background); color: #282828; padding: 0 1em 0 1em; border-radius: 25px; }
 
 #cat_results	{ background-color: #659dbd; }
 #cat_results td.catdesc { width: 6em; text-align: right; padding-right: .5em; }
@@ -287,7 +304,11 @@ table#entrants	.FinishPosition,.TotalPoints,.CorrectedMiles	{ text-align: center
 .dox a			{ color: black;}
 .dox a:visited	{ color: black;}
 
-textarea		{ font-size: 0.6em; }
+textarea		{ font-size: 0.6em; background-color: white; color: black;}
+.textarea		{ font-size: 0.8em; background-color: white; color: black;}
+::placeholder	{ font-weight: lighter; }
+
+.rowcol			{ padding-right: .5em; }
 
 table.qdfinishers {
 	display: table;
@@ -313,6 +334,8 @@ table.qdfinishers th {
 .explain {
 	font-size: smaller;
 }
+
+
 
 /* Right-click claim reject menu */
 #rcmenu { 
@@ -368,6 +391,9 @@ input[name="RallySlogan"]	{ width: 20em; }
 	padding-bottom: .5em;
 	display:block;
 }
+.wizitem label {
+		font-weight: bold;
+}
 .wizhide	{
 	display:none;
 }
@@ -393,13 +419,15 @@ input[name="RallySlogan"]	{ width: 20em; }
 .teamslist .BonusMatches	{ font-family: monospace; }
 .teamslist .lastrow	td	{ padding-bottom: .5em; }
 
+#listctrl *		{ font-size: small; }
+
 @media print {
 	*			{ background-color: white; color: black !important; }
 .noprint		{ display: none !important; }
 #navbar			{ display: none !important; }
 .scorex			{ font-size: 0.7em; page-break-after: always; }
 #ScoreSheet		{ background-image: none !important; font-size: 1.2em; font-family: monospace;}
-input[type='checkbox'] {
+input[type="checkbox"] {
     -webkit-appearance:none;
     width:1.2em;
     height:1.2em;

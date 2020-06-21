@@ -52,7 +52,7 @@ import ("os"
 )
 
 
-var SMFLAVOUR	=	"v2.5"
+var SMFLAVOUR	=	"v2.6.1"
 var port		=	flag.String("port","80","Webserver port specification")
 var caddyFolder	=	flag.String("caddy","..","Path to Caddy folder")
 var srcFolder	=	flag.String("src",".","Path to ScoreMaster source")
@@ -64,16 +64,16 @@ var lang2use	=	flag.String("lang","en","Language code (en,de)")
 var ok			=	flag.Bool("ok",false,"Overwrite existing target")
 
 var sqlite3 string = "./sqlite3.exe"	// path to executable
-var caddy string = "../caddy.exe"
+var caddy string = "./caddy.exe"
 
 var SMFILES = [...] string {
-			"about.php","admin.php",
+			"about.php","admin.php","bonuses.php",
 			"certedit.php","certificate.css","certificate.php","claims.php","common.php",
-			"entrants.php","exportxls.php",
+			"entrants.php","exportxls.php","emails.php",
 			"favicon.ico","importxls.php","index.php",
 			"licence.txt","readme.txt","reboot.css",
 			"setup.php","score.css","score.js","score.php","sm.php",
-			"speeding.php","teams.php","utils.php",
+			"speeding.php","teams.php","utils.php","timep.php","cats.php",
 }
 
 var LANGFILES = [...] string {
@@ -127,7 +127,7 @@ func main() {
 	copyExecs()
 	copyImages()
 	copyJodit()
-	copyPhpSpreadsheet()
+	copyPhpPackages()
 	log.Println("ScoreMaster installed in "+*targetFolder)
 	fmt.Println()
 
@@ -163,7 +163,7 @@ func copyExecs() {
 	log.Print("Copying executables")
 	copyFile(caddy,filepath.Join(*targetFolder,"caddy","caddy.exe"))
 	copyFile(filepath.Join(*srcFolder,"runsm.exe"),filepath.Join(*targetFolder,"runsm.exe"))
-	os.Symlink(filepath.Join(*targetFolder,"runsm.exe"),filepath.Join(*targetFolder,"debugsm.exe"))
+	copyFile(filepath.Join(*srcFolder,"runsm.exe"),filepath.Join(*targetFolder,"debugsm.exe"))
 }
 
 func copyFile(src, dst string) (int64, error) {
@@ -273,10 +273,9 @@ func copyPHP() {
 	
 }
 
-func copyPhpSpreadsheet() {
+func copyPhpPackages() {
 
-	log.Print("Copying PhpSpreadsheet")
-	copyFolderTree(filepath.Join(*srcFolder,"PhpSpreadsheet"),filepath.Join(smFolder,"PhpSpreadsheet"))
+	log.Print("Copying PHP packages")
 	copyFolderTree(filepath.Join(*srcFolder,"vendor"),filepath.Join(smFolder,"vendor"))
 
 }
