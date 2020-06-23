@@ -2,9 +2,23 @@
  * RBLR CERTIFICATES
  *
  *
- * As at February 2020
+ * As at June 2020
  *
  */
+
+INSERT INTO "classes" (Class,BriefDesc,AutoAssign) VALUES(1,'NAC',0);
+INSERT INTO "classes" (Class,BriefDesc,AutoAssign) VALUES(2,'NCW',0);
+INSERT INTO "classes" (Class,BriefDesc,AutoAssign) VALUES(3,'SAC',0);
+INSERT INTO "classes" (Class,BriefDesc,AutoAssign) VALUES(4,'SCW',0);
+INSERT INTO "classes" (Class,BriefDesc,AutoAssign) VALUES(5,'BBG',0);
+INSERT INTO "classes" (Class,BriefDesc,AutoAssign) VALUES(6,'500CW',0);
+INSERT INTO "classes" (Class,BriefDesc,AutoAssign) VALUES(7,'500AC',0);
+INSERT INTO "classes" (Class,BriefDesc,AutoAssign) VALUES(8,'CertNAC',0);
+INSERT INTO "classes" (Class,BriefDesc,AutoAssign) VALUES(9,'CertNCW',0);
+INSERT INTO "classes" (Class,BriefDesc,AutoAssign) VALUES(10,'CertSAC',0);
+INSERT INTO "classes" (Class,BriefDesc,AutoAssign) VALUES(11,'CertSCW',0);
+INSERT INTO "classes" (Class,BriefDesc,AutoAssign) VALUES(12,'BB',0);
+INSERT INTO "classes" (Class,BriefDesc,AutoAssign) VALUES(13,'FSB',0);
 
 
 INSERT INTO "certificates" ("EntrantID","css","html","options","image","Class","Title") VALUES (0,'','<div class="header"><!-- 1 NAC -->

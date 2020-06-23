@@ -149,6 +149,21 @@ function defaultFinishTime()
 }
 	
 
+function emitClasses($entrantClass)
+{
+	global $DB, $KONSTANTS, $DBVERSION;
+	
+	echo('<input type="hidden" name="Class" id="entrantClass" value="'.$entrantClass.'">');
+	$R = $DB->query("SELECT * FROM classes ORDER BY Class");
+	while ($rd = $R->fetchArray()) {
+		echo('<input type="hidden" class="classSpec" value="'.$rd['Class'].'" ');
+		echo('data-BriefDesc="'.htmlspecialchars($rd['BriefDesc']).'" ');
+		echo('data-AutoAssign="'.$rd['AutoAssign'].'" data-MinPoints="'.$rd['MinPoints'].'" ');
+		echo('data-MinBonuses="'.$rd['MinBonuses'].'" data-BonusesReqd="'.htmlspecialchars($rd['BonusesReqd']).'" ');
+		echo('data-LowestRank="'.$rd['LowestRank'].'" >');
+	}
+		
+}
 
 function inviteScorer()
 {
@@ -472,6 +487,8 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 	echo('<input type="hidden" id="ShowMults" value="'.$ShowMults.'">');
 	echo('<input type="hidden" name="ScoreX" id="scorexstore" value=""/>');
 	echo('<input type="hidden" id="bduText" value="'.($KONSTANTS['BasicDistanceUnit']==$KONSTANTS['DistanceIsMiles'] ? $TAGS['OdoKmsM'][0] : $TAGS['OdoKmsK'][0]).'">');
+	
+	emitClasses($rd['Class']);
 	
 	// mc offers confirmation
 	if (isset($_REQUEST['mc']) && $DBVERSION >= 4)
