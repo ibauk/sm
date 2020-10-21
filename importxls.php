@@ -572,6 +572,8 @@ function uploadFile(obj) {
 		return;
 	}
 	
+	echo('<p style="font-size:smaller;">'.$TAGS['ix_HelpPrompt'][0].'</p>');
+
 	echo('<span class="vlabel" style="font-size:smaller;">');
 	echo('<label for="specfile">'.$TAGS['ix_Fileformat'][0].'</label> ');
 	echo('<select name="specfile" id="specfile" onchange="'."document.getElementById('uploadxls').submit();".'">');

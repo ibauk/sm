@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS "rallyparams" (
 6=Flag not in photo
 7=Missing rider/pillion
 8=Missing receipt
-9=Rallymaster!',
+9=Refer to Rallymaster!',
 	"DBState" INTEGER NOT NULL DEFAULT 0,
 	"DBVersion" INTEGER NOT NULL DEFAULT 5, 		/* DBVERSION */
 	"AutoRank" INTEGER NOT NULL DEFAULT 1,
@@ -73,7 +73,7 @@ CREATE TABLE IF NOT EXISTS "rallyparams" (
 	"LocalTZ" TEXT NOT NULL DEFAULT 'Europe/London',
 	"DecimalComma" INTEGER NOT NULL DEFAULT 0,
 	"HostCountry" TEXT NOT NULL DEFAULT 'UK',
-	"EmailParams" TEXT DEFAULT '{"SMTPAuth":"TRUE","SMTPSecure":"tls","Port":"587","Host":"","Username":"","Password":"","SetFrom":["","The Rally Team"]}',
+	"EmailParams" TEXT DEFAULT '{"SMTPAuth":"TRUE","SMTPSecure":"tls","Port":"587","Host":"smtp.gmail.com","Username":"ibaukebc@gmail.com","Password":"","SetFrom":["ibaukebc@gmail.com","The Rally Team"]}',
 	"isvirtual"	INTEGER NOT NULL DEFAULT 0,
 	"tankrange"	INTEGER NOT NULL DEFAULT 200,
 	"refuelstops"	TEXT,
@@ -83,6 +83,25 @@ CREATE TABLE IF NOT EXISTS "rallyparams" (
 	"mpbonus"	TEXT
 );
 
+CREATE TABLE "emailq" (
+	"EntrantID"	INTEGER NOT NULL,
+	"TemplateID"	INTEGER NOT NULL DEFAULT 0,
+	"EmailSent"	INTEGER NOT NULL DEFAULT 0,
+	"SentAt"	TEXT
+);
+
+CREATE TABLE IF NOT EXISTS "emailtemplates" (
+	"TemplateID"	INTEGER NOT NULL,
+	"EmailSubject"	TEXT,
+	"EmailBody"	TEXT,
+	"EmailSignature"	TEXT,
+	"IncludeScorex"	INTEGER NOT NULL DEFAULT 0,
+	"IncludeCertificate"	INTEGER NOT NULL DEFAULT 0,
+	"AttachFiles"	TEXT,
+	"AttachNames"	TEXT,
+	"WhereSQL"	TEXT,
+	PRIMARY KEY("TemplateID")
+);
 
 CREATE TABLE IF NOT EXISTS "functions" (
 	"functionid"	INTEGER,
@@ -188,7 +207,7 @@ CREATE TABLE IF NOT EXISTS "combinations" (
 	"BriefDesc"	TEXT,
 	"ScoreMethod"	INTEGER NOT NULL DEFAULT 0,
 	"MinimumTicks"	INTEGER NOT NULL DEFAULT 0,
-	"ScorePoints"	TEXT DEFAULT '0',
+	"ScorePoints"	TEXT DEFAULT 0,
 	"Bonuses"	TEXT,
 	"Cat1"	INTEGER NOT NULL DEFAULT 0,
 	"Cat2"	INTEGER NOT NULL DEFAULT 0,
@@ -209,7 +228,6 @@ CREATE TABLE IF NOT EXISTS "claims" (
 	"EntrantID"	INTEGER,
 	"BonusID"	TEXT,
 	"OdoReading"	INTEGER,
-	"Judged"	INTEGER NOT NULL DEFAULT 0,
 	"Decision"	INTEGER NOT NULL DEFAULT 0,
 	"Applied"	INTEGER NOT NULL DEFAULT 0,
 	"NextTimeMins"	INTEGER NOT NULL DEFAULT 0,
@@ -312,7 +330,7 @@ DELETE FROM "magicwords";
 DELETE FROM "classes";
 
 INSERT INTO "rallyparams" (RallyTitle,RallySlogan) VALUES ('IBA rally','Fun with motorcycles');
-INSERT INTO "classes" (Class,BriefDesc) VALUES(0,'Default');
+INSERT INTO "classes" (Class,BriefDesc,AutoAssign) VALUES(0,'Default',0);
 
 INSERT INTO "functions" (functionid,menulbl,url,onclick,Tags) VALUES (1,'AdmEntrantChecks','entrants.php?c=entrants&amp;ord=EntrantID&amp;mode=check',NULL,'entrant,check-in/check-out');
 INSERT INTO "functions" (functionid,menulbl,url,onclick,Tags) VALUES (2,'AdmDoScoring','score.php',NULL,'entrant,score');
@@ -357,13 +375,15 @@ INSERT INTO "functions" (functionid,menulbl,url,onclick,Tags) VALUES (40,'AdmMag
 INSERT INTO "functions" (functionid,menulbl,url,onclick,Tags) VALUES (41,'AdmSendEmail','emails.php',NULL,'email,scorex,certificate');
 INSERT INTO "functions" (functionid,menulbl,url,onclick,Tags) VALUES (42,'AdmShowAdvanced','admin.php?menu=advanced',NULL,'advanced,setup');
 INSERT INTO "functions" (functionid,menulbl,url,onclick,Tags) VALUES (43,'AdmRallyParams','sm.php?c=rallyparams&adv',NULL,'params,rally,advanced');
+INSERT INTO "functions" (functionid,menulbl,url,onclick,Tags) VALUES (44,'AdmClasses','classes.php?c=classes',NULL,'params,class,advanced');
+INSERT INTO "functions" (functionid,menulbl,url,onclick,Tags) VALUES (45,'AdmExportEntrants','exportxls.php?c=expentrants','this.firstChild.innerHTML=FINISHERS_EXPORTED;','entrant,all,export');
 
 INSERT INTO "menus" (menuid,menulbl,menufuncs) VALUES ('admin','AdmMenuHeader','2,37,36,4,24,25,41,6,5');
 INSERT INTO "menus" (menuid,menulbl,menufuncs) VALUES ('setup','AdmSetupHeader','16,17,18,19,20,42');
 INSERT INTO "menus" (menuid,menulbl,menufuncs) VALUES ('entrant','AdmEntrantsHeader','11,2,24,4,15');
 INSERT INTO "menus" (menuid,menulbl,menufuncs) VALUES ('bonus','AdmBonusHeader','7,8,9,10,39');
-INSERT INTO "menus" (menuid,menulbl,menufuncs) VALUES ('util','AdmUtilHeader','29,28,27,26,32,13,33,35,38,40');
-INSERT INTO "menus" (menuid,menulbl,menufuncs) VALUES ('advanced','AdmAdvancedHeader','43,34,21,22,23,30');
+INSERT INTO "menus" (menuid,menulbl,menufuncs) VALUES ('util','AdmUtilHeader','29,28,27,26,32,13,33,35,38,40,45');
+INSERT INTO "menus" (menuid,menulbl,menufuncs) VALUES ('advanced','AdmAdvancedHeader','43,34,21,22,44,23,30');
 
 
 
@@ -523,8 +543,8 @@ $IMPORTSPEC[''data''][''Postal_Address'']		= ''12:13:14:15:16:17'';
 //$IMPORTSPEC[''reject''][18]	= ''/Unpaid/'';
 
 $IMPORTSPEC[''default''][''BCMethod'']       = 0;
-$IMPORTSPEC[''setif''][''BCMethod''][1]	= [26,''/Electronic/''];
-$IMPORTSPEC[''setif''][''BCMethod''][2]	= [26,''/Paper/''];
+$IMPORTSPEC[''setif''][''BCMethod''][1]	= [25,''/Electronic/''];
+$IMPORTSPEC[''setif''][''BCMethod''][2]	= [25,''/Paper|Delayed/''];
 
 
 ');

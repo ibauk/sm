@@ -32,7 +32,8 @@ $HOME_URL = 'admin.php?menu=setup';
 $EXCLUDE_FIELDS = array(
 	"AutoRank","BCMethod","BonusesVisited","CombosTicked","DBState","DBVersion",
 	"Cat1Label","Cat2Label","Cat3Label","Cat4Label","Cat5Label","Cat6Label","Cat7Label","Cat8Label","Cat9Label",
-	"Confirmed",
+	"Confirmed","DecimalComma","EmailParams",
+	"fpbonus","spbonus","mpbonus","isvirtual","refuelstops","stopmins","tankrange","Theme",
 	"ExtraData","MaxMilesMethod","NoKName","NoKRelation","NoKPhone","OdoCheckMiles","OdoCheckStart","OdoCheckFinish",
 	"OdoKms","RejectReasons","RejectedClaims","ScoredBy","ScoringMethod","ScoringNow","ShowMultipliers",
 	"SpecialsTicked","TeamRanking","TiedPointsRanking","EntrantStatus"
@@ -63,8 +64,8 @@ function editCertificateW() {
 	
 	startHtmlW($rd['css']);
 	
-	echo('<h4 style="font-size:.8em;">'.$TAGS['CertExplainerW'][0].'<br>');
-	echo($TAGS['CertExplainerW'][1].'</h4>');
+	//echo('<p>'.$TAGS['CertExplainerW'][0].'<br>');
+	//echo($TAGS['CertExplainerW'][1].'</p>');
 
 	pushBreadcrumb('#');
 	emitBreadcrumbs();
@@ -81,7 +82,8 @@ function editCertificateW() {
 	$MC = getValueFromDB("SELECT count(*) As Rex FROM certificates WHERE EntrantID=$EntrantID","Rex",0);
 	if ($MC > 1)
 	{
-		$R = $DB->query("SELECT Class,Title FROM certificates WHERE EntrantID=$EntrantID ORDER BY Class");
+		$sql = "SELECT Class,Title FROM certificates WHERE EntrantID=$EntrantID ORDER BY Class";
+		$R = $DB->query($sql);
 		if ($DB->lastErrorCode() <> 0)
 			echo($DB->lastErrorCode().' == '.$DB->lastErrorMsg().'<br>'.$sql.'<hr>');
 		$pv = "document.getElementById('Class').value=this.value;";
@@ -104,14 +106,15 @@ function editCertificateW() {
 		echo('</select> ');
 	}
 
-	echo('<label for="Class">'.$TAGS['Class'][0].' </label>');
-	$x = ' onchange="document.getElementById('."'".'fetchcert'."'".').disabled=false;"';
-	echo('<input title="'.$TAGS['Class'][1].'" type="number" min="0" name="Class" id="Class" value="'.$class.'" '.$x.' class="smallnumber"> ');
 	
-	echo('<input type="submit" disabled id="fetchcert" name="fetchcert" value="'.$TAGS['FetchCert'][0].'" title="'.$TAGS['FetchCert'][1].'"> ');
-	echo('<label for="Title">'.$TAGS['CertTitle'][0].' </label>');
-	echo('<input title="'.$TAGS['CertTitle'][1].'" type="text" name="Title" id="Title" value="'.$rd['Title'].'" > ');
-
+		//echo('<label for="Class">'.$TAGS['Class'][0].' </label>');
+		$x = ' onchange="document.getElementById('."'".'fetchcert'."'".').disabled=false;"';
+		echo('<input title="'.$TAGS['Class'][1].'" type="hidden" min="0" name="Class" id="Class" value="'.$class.'" '.$x.' class="smallnumber"> ');
+	
+		//echo('<input type="submit" disabled id="fetchcert" name="fetchcert" value="'.$TAGS['FetchCert'][0].'" title="'.$TAGS['FetchCert'][1].'"> ');
+		//echo('<label for="Title">'.$TAGS['CertTitle'][0].' </label>');
+		echo('<input title="'.$TAGS['CertTitle'][1].'" type="hidden" name="Title" id="Title" value="'.$rd['Title'].'" > ');
+	
 	
 
 	

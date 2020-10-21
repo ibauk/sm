@@ -90,6 +90,7 @@ $TAGS = array(
 	'AdmBonusTable'		=> array('Ordinary bonuses','View/edit schedule of ordinary bonuses'),
 	'AdmCatTable'		=> array('Categories','View/edit axis categories'),
 	'AdmClaims'			=> array('Claims log','Access log of bonus claims'),
+	'AdmClasses'		=> array('Classes','View/edit certificate classes'),
 	'AdmCombosTable'	=> array('Combinations','View/edit combination bonuses'),
 	'AdmCompoundCalcs'	=> array('Compound calculations','Maintain table of calculation records'),
 	'AdmConfirm'		=> array('Reconcile scorecards','Confirm scorecards as accurate'),
@@ -100,6 +101,7 @@ $TAGS = array(
 	'AdmEntrants'		=> array('Full Entrant records','View/edit list of Entrants'),
 	'AdmEntrantChecks'	=> array('Check-out/in','Entrant checks @ start/end of rally'),
 	'AdmEntrantsHeader'	=> array('Entrants',''),
+	'AdmExportEntrants'	=> array('Export entrant records','Save CSV containing full details of entrants'),
 	'AdmExportFinishers'=> array('Export finishers','Save CSV containing details of finishers'),
 	'AdmImportBonuses'	=> array('Import ordinary bonuses','Load ordinary bonuses from a spreadsheet'),
 	'AdmImportEntrants'	=> array('Import Entrants','Load entrant details from a spreadsheet'),
@@ -139,10 +141,11 @@ $TAGS = array(
 	'AutoRank'			=> array('Automatic Ranking','Rank automatically recalculated when scorecard updated'),
 	'BasicDetails'		=> array('Basic',''),
 	'BasicRallyConfig'	=> array('Basic','Basic rally configuration fields'),
-	'BCMethod'			=> array('Bonus claiming','Method of bonus claim: 0=unknown,1=EBC,2=paper'),
+	'BCHOME'			=> array('/','Main menu'),
+	'BCMethod'			=> array('Bonus claiming','Method of bonus claim: 0=unknown,1=EBC,2=paper/deferred'),
 	'BCMethod0'			=> array('unknown',''),
 	'BCMethod1'			=> array('EBC','Electronic Bonus Claiming'),
-	'BCMethod2'			=> array('Paper','Paper claiming'),
+	'BCMethod2'			=> array('Paper','Paper or deferred claiming'),
 	'Bike'				=> array('Bike','Make &amp; model of bike'),
 	'BikeReg'			=> array('Registration','Registration number of the bike if known'),
 	'BonusClaimDecision'=> array('Decision','The status of this claim'),
@@ -206,6 +209,7 @@ $TAGS = array(
 	'cl_FilterBonus'	=> array('B#','Filter list by Bonus number'),
 	'cl_FilterEntrant'	=> array('E#','Filter list by Entrant number'),
 	'cl_Go'				=> array('Go on, go for it!','Go on, go for it!'),
+	'cl_LastBonusID'	=> array('Last bonus claimed:','ID of last bonus claimed by this entrant'),
 	'cl_LoggedHdr'		=> array('Logged',''),
 	'cl_NumClaims'		=> array('Number of claims shown','Number of claims shown'),
 	'cl_OdoHdr'			=> array('Odo',''),
@@ -224,6 +228,15 @@ $TAGS = array(
 	'cl_TimeTo'			=> array('To time','End of time range'),
 	
 	'Class'				=> array('Class #','The certificate class applicable'),
+	'ClassMaintHead'	=> array('Classes','Classes may be used to produce different certificates for different groups or \'classes\' of entrant. Class can be assigned manually, as in the RBLR1000 to distinguish route for example, or can be assigned automatically using entrant scores, bonuses visited and/or rank.<br>Class 0 is the default class for all entrants and may not have any filters applied. Other classes are examined in numeric order starting at 1 until the filter criteria are matched. If no matching class is found, 0 is applied.'),
+	'cls_Assigned'		=> array('Assigned','Auto/manual'),
+	'cls_Assigned0'		=> array('MANUAL','manually'),
+	'cls_Assigned1'		=> array('AUTO','automatically'),
+	'cls_BonusesReqd'	=> array('Required<br>Bonuses','Comma separated list of ordinary bonus IDs needed to qualify for this class'),
+	'cls_Certificate'	=> array('&equivDD;','Show certificate for this class'),
+	'cls_LowestRank'	=> array('Rank','Lowest ranking to qualify for this class'),
+	'cls_MinBonuses'	=> array('Bonuses<br>visited','Minimum number of ordinary bonuses visited'),
+	'cls_MinPoints'		=> array('Min<br>points','Minimum points score to trigger this class'),
 	'ChooseEntrant'		=> array('Choose entrant','Pick an entrant from this list'),
 	'ComboIDLit'		=> array('ComboID',''),
 	'ComboMaintHead'	=> array('Combination Bonuses','Combination bonuses are scored automatically when their underlying ordinary, special or combination bonuses are ticked. Combos can be set to score different values depending on the number of underlying bonuses ticked. By default all underlying bonuses must be ticked.'),
@@ -304,6 +317,8 @@ $TAGS = array(
 	
 	'ExcessMileage'		=> array('Distance',''),						// Miles/Kms
 	
+	'ExpClasses'		=> array('Class help','Classes are used to produce different certificates for different groups of entrants. Classes may be either static, manually assigned, or dynamically calculated by reference to bonuses visited, points scored or rank achieved.'),
+	'ExpTeams'			=> array('Teams help','A team consists of two or more bikes riding together. They can be scored individually or as a single team.'),
 	'ExtraData'			=> array('ExtraData','Extra data to be passed on to the main database. Format is <i>name</i>=<i>value</i>'),
 	
 	'FetchCert'			=> array('Fetch certificate','Fetch the HTML, CSS &amp; options for this certificate'),
@@ -338,6 +353,9 @@ $TAGS = array(
 	'ix_ChooseAgain'	=> array('Choose again','Choose a different file'),
 	'ix_Fileformat'		=> array('File format','Specification of file layout'),
 	'ix_FileLoaded'		=> array('File loaded',''),
+	'ix_HelpPrompt'		=> array('If the loaded file is in one of the known formats, choose the appropriate format using the \'file format\' dropdown. If it\'s in some other format, you\'ll have to
+								use the individual column headers to map the database fields. You can also use the column dropdowns to customise a standard layout.<br>
+								You can\'t append entries, you must overwrite any existing entries.',''),
 	
 	'jodit_Borders'		=> array('Print borders',''),
 	'jodit_Borders_Double'
@@ -348,7 +366,7 @@ $TAGS = array(
 	'jodit_InsertField'	=> array('Insert database field',''),
 	'LegendPenalties'	=> array('Penalties',''),
 	'LegendScoring'		=> array('Scoring &amp; Ranking',''),
-	'LegendTeams'		=> array('Teams'),
+	'LegendTeams'		=> array('Teams',''),
 	'LocalTZ'			=> array('Rally timezone','Timezone (offset from GMT) used in this rally'),
 	
 	'login'				=> array('login','Go on, log me in then!'),
@@ -356,7 +374,7 @@ $TAGS = array(
 
 	'magicword'			=> array('Magic','The \'magic\' word associated with this claim'),
 	'MarkConfirmed'		=> array('Mark as confirmed','Mark all bonus claim decisions as having been confirmed'),
-	
+	'MarkConfirmedFull'	=> array('Mark scorecards as confirmed/reconciled.','Normally carried out by two people comparing the claims log or other evidence to the details recorded on the scorecards.'),
 	'MaxHours'			=> array('Rideable hours','The maximum rideable hours available. Used to calculate DNF time, may show on certificates'),
 	'MaxMilesFixedM'	=> array('Multiplier','Excess mileage incurs deduction of multipliers'),							// Miles/Kms
 	'MaxMilesFixedP'	=> array('Fixed points','Excess mileage incurs fixed points deduction'),							// Miles/Kms
@@ -479,7 +497,7 @@ $TAGS = array(
 	'RejectReason8'		=> array('8=Reason 8',''),
 	'RejectReason9'		=> array('9=Ask Rallymaster',''),
 	
-	'RejectReasons'		=> array('RejectReasons','Reasons for bonus claim rejection'),
+	'RejectReasons'		=> array('RejectReasons','Reasons for bonus claim rejection. These may be customised for this particular rally and appear in the score explanations.'),
 	
 	'RejectsLit'		=> array('Rejections','Rejected bonus claims'),
 	'RenumberGo'		=> array('Go ahead, renumber','Submit the request'),
@@ -546,6 +564,14 @@ $TAGS = array(
 	'ShowMultipliersN'	=> array('Hide','Don\'t show multipliers'),
 	'ShowMultipliersY'	=> array('Show','Show multipliers scored'),
 	'SMDesc'			=> array('ScoreMaster description','An application designed to make scoring &amp; administration of IBA style motorcycle rallies easy'),
+
+
+	// SendNextMail vars
+	'snm_Number'		=> array('Number queued:','Number queued:'),
+	'snm_Processing'	=> array('Processing mail queue','Processing mail queue'),
+	'snm_QEmpty'		=> array('Queue empty, run complete','Queue empty, run complete'),
+	'snm_Subject'		=> array('Subject:','Subject:'),
+
 	'SpecialMaintHead'	=> array('Special Bonuses','Special bonuses are used to implement, for example, sleep, call-in or ferry bonuses or arbitrary penalties such as loss of flag. Each special must have its own unique <em>bonusid</em>.'),
 	'SpecialMultLit'	=> array('Multipliers','Used in compound bonus calculations'),
 	'SpecialPointsLit'	=> array('Points',''),
@@ -643,6 +669,7 @@ $TAGS = array(
 	'UtlRAE'			=> array('Renumber all entrants','Renumber all the entrants, regardless of status'),
 	'UtlRenumEntrant'	=> array('Renumber entrant','Assign a new entrant number to an existing entrant'),
 
+	'ValueHdr'			=> array('Value','Value(Points/mults)'),
 	'VirtualParams'		=> array('Virtual','Virtual rally params'),
 	
 	'vr_RallyType'		=> array('Rally type','Is this a real or a virtual rally?'),

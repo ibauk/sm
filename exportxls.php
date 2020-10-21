@@ -38,10 +38,16 @@ function exportAllEntrants()
 {
 	global $DB, $KONSTANTS;
 	
-	$cols = array('EntrantID','RiderName','PillionName','Bike','Phone','Email','NoKName','NoKPhone','NoKRelation');
+	$cols = array_keys(defaultRecord("ENTRANTS"));
+	
+	$dropcols = ["ScoreX","ScoredBy","ScoringNow","Confirmed","ExtraData"];
+	foreach ($dropcols as $dc)
+		if (($key = array_search($dc,$cols)) != false)
+			unset($cols[$key]);
+		
 	header('Content-Type: text/csv; charset=utf-8');
 	header("Content-Disposition: attachment; filename=entrants.csv;");
-	$sql = "SELECT ".implode(',',$cols)." FROM (SELECT *,Instr(RiderName,' ') As pos FROM entrants)";
+	$sql = "SELECT * FROM entrants";
 	$R = $DB->query($sql);
 	
 	ob_end_clean();  // Clear out any whitespace we've accidentally accumulated so far
@@ -56,8 +62,11 @@ function exportAllEntrants()
 	// loop over the rows, outputting them
 	while ($rd = $R->fetchArray(SQLITE3_ASSOC))
 	{
-		$xa = explode("\n",$rd['ExtraData']);
-		unset($rd['ExtraData']);
+		$xa = [];
+		if (isset($rd['ExtraData'])) {
+			$xa = explode("\n",$rd['ExtraData']);
+			unset($rd['ExtraData']);
+		}
 		if (!$hdrDone)
 		{
 			//var_dump($xa);
@@ -73,9 +82,14 @@ function exportAllEntrants()
 		{
 			$cv = explode('=',$itm);
 			//var_dump($cv);
-			$rd[$cv[0]] = $cv[1];
+			if (count($cv) >= 2)
+				$rd[$cv[0]] = $cv[1];
 		}
 		//var_dump($rd);
+		foreach ($dropcols as $dc)
+			if (isset($rd[$dc]))
+				unset($rd[$dc]);
+			
 		fputcsv($output, $rd);
 	}
 	exit();
@@ -122,7 +136,10 @@ function exportFinishers()
 		{
 			$cv = explode('=',$itm);
 			//var_dump($cv);
-			$rd[$cv[0]] = $cv[1];
+			if (count($cv) >= 2)
+				$rd[$cv[0]] = $cv[1];
+			else
+				$rd[$cv[0]] = '';
 		}
 		//var_dump($rd);
 		fputcsv($output, $rd);

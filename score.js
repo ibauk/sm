@@ -269,6 +269,16 @@ function bodyLoaded()
 		
 }
 
+function bonusScoredOk(B)
+/*
+ * B is a checkbox reflecting the current state of the bonus
+ *
+ */
+{
+	return B.checked && (!B.hasAttribute('data-rejected') || B.getAttribute('data-rejected')=='0');
+}
+
+
 
 function calcAvgSpeed()
 {
@@ -382,7 +392,7 @@ function calcComplexScore(res)
 		// Now process individual bonuses
 		for (var i = 0; i < bonuses.length; i++)
 		{
-			if (!bonuses[i].checked || bonuses[i].getAttribute('data-rejected') > 0)
+			if (!bonusScoredOk(bonuses[i]))
 				continue;
 			
 			totalTickedBonuses++;
@@ -696,7 +706,7 @@ function calcComplexScore(res)
 				sbonuses = document.getElementsByName("SpecialID_"+sg[j]+"[]");
 				for (var i = 0, bps = 0, mults = 0; i < sbonuses.length; i++ )
 				{
-					if (!sbonuses[i].checked || sbonuses[i].getAttribute('data-rejected') > 0)
+					if (!bonusScoredOk(sbonuses[i]))
 						continue;
 				
 					bps = parseInt(sbonuses[i].getAttribute('data-points'));
@@ -715,7 +725,7 @@ function calcComplexScore(res)
 		sbonuses = document.getElementsByName("SpecialID[]");
 		for (var i = 0, bps = 0, mults = 0; i < sbonuses.length; i++ )
 		{
-			if (!sbonuses[i].checked || sbonuses[i].getAttribute('data-rejected') > 0)
+			if (!bonusScoredOk(sbonuses[i]))
 				continue;
 			bps = parseInt(sbonuses[i].getAttribute('data-points'));
 			totalBonusPoints += bps;
@@ -741,7 +751,7 @@ function calcComplexScore(res)
 		var bonuses = document.getElementsByName("ComboID[]");
 		for (var i = 0, bps = 0, mults = 0; i < bonuses.length; i++ )
 		{
-			if (!bonuses[i].checked || bonuses[i].getAttribute('data-rejected') > 0)
+			if (!bonusScoredOk(bonuses[i]))
 				continue;
 		
 			//console.log(bonuses[i].getAttribute('id')+' checked = '+bonuses[i].getAttribute('data-points'));
@@ -917,15 +927,14 @@ function calcScore(enableSave)
 	
 	hidePopup();
 	
-	if (sm != SM_Manual)
-	{
-		setFinishTimeDNF();
-		if (debug) console.log("calcScore[0][1]");
-		//clearUnrejectedClaims();
+	setFinishTimeDNF();
+	if (debug) console.log("calcScore[0][1]");
+	//clearUnrejectedClaims();
 		
-		calcAvgSpeed();
-		
-		sxstart();
+	calcAvgSpeed();
+	sxstart();
+	
+	if (sm != SM_Manual) 	{
 		tickCombos();
 		if (debug) console.log("calcScore[0][2]");
 		repaintBonuses();
@@ -940,6 +949,8 @@ function calcScore(enableSave)
 		sxappend('',RPT_Total,'',0,TPS);
 		document.getElementById('TotalPoints').value = formatNumberScore(TPS);
 		document.getElementById('TotalPoints').setAttribute('title',res.reason);
+	} else {
+		sxappend('',RPT_Total,'',0,document.getElementById('TotalPoints').value);
 	}
 	if (debug) console.log("calcScore[3]");
 	
@@ -967,7 +978,7 @@ function calcSimpleScore(res)
 
 	var bp = document.getElementsByName("BonusID[]");
 	for (var i = 0, bps = 0; i < bp.length; i++ )
-		if (bp[i].checked && bp[i].getAttribute('data-rejected') < 1)
+		if (bonusScoredOk(bp[i]))
 		{
 			bps += parseInt(bp[i].getAttribute('data-points'));
 			ticks++;
@@ -987,7 +998,7 @@ function calcSimpleScore(res)
 		{
 			bp = document.getElementsByName("SpecialID_"+sg[j]+"[]");
 			for (var i = 0, bps = 0; i < bp.length; i++ )
-				if (bp[i].checked && bp[i].getAttribute('data-rejected') < 1)
+				if (bonusScoredOk(bp[i]))
 				{
 					bps = parseInt(bp[i].getAttribute('data-points'));
 					TS += bps;
@@ -1001,7 +1012,7 @@ function calcSimpleScore(res)
 	
 	bp = document.getElementsByName("SpecialID[]");
 	for (var i = 0, bps = 0; i < bp.length; i++ )
-		if (bp[i].checked && bp[i].getAttribute('data-rejected') < 1)
+		if (bonusScoredOk(bp[i]))
 		{
 			bps += parseInt(bp[i].getAttribute('data-points'));
 			let rm = bp[i].getAttribute('data-mins');
@@ -1015,7 +1026,7 @@ function calcSimpleScore(res)
 
 	bp = document.getElementsByName("ComboID[]");
 	for (var i = 0, bps = 0; i < bp.length; i++ )
-		if (bp[i].checked && bp[i].getAttribute('data-rejected') < 1)
+		if (bonusScoredOk(bp[i]))
 		{
 			bps += parseInt(bp[i].getAttribute('data-points'));
 			sxappend(bp[i].getAttribute('id'),bp[i].parentNode.firstChild.innerHTML,bp[i].getAttribute('data-points'),0,TS + bps);
@@ -1027,7 +1038,7 @@ function calcSimpleScore(res)
 	if (debug) console.log('css[M]');
 	var MPenalty = calcMileagePenalty();
 	
-	TS -= MPenalty[0];
+	TS += MPenalty[0];
 	if (MPenalty[0] != 0)
 		reason += "\r\n" + RPT_MPenalty + ': ' + MPenalty[0];
 	
@@ -1226,7 +1237,7 @@ function explainOrdinaryBonuses(totalSoFar)
 		var bp = document.getElementsByName("BonusID[]");
 		for (var i = 0; i < bp.length; i++ )
 			if (bp[i].checked)
-				if (bp[i].getAttribute('data-rejected') < 1)
+				if (!bp.hasAttribute('data-rejected') || bp[i].getAttribute('data-rejected') == '0')
 					showB(bp[i]);
 				else
 					reportRejectedClaim(bp[i].id,bp[i].getAttribute('data-rejected'));
@@ -1238,7 +1249,7 @@ function explainOrdinaryBonuses(totalSoFar)
 		{
 			var bp = document.getElementById('B'+bva[i].replace(CONFIRMED_BONUS_MARKER,''));
 			if (bp && bp.checked)
-				if (bp.getAttribute('data-rejected') < 1)
+				if (!bp.hasAttribute('data-rejected') || bp.getAttribute('data-rejected') == '0')
 					showB(bp);
 				else
 					reportRejectedClaim(bp.id,bp.getAttribute('data-rejected'));
@@ -1430,9 +1441,9 @@ function reflectBonusCheckedState(B)
 	//if (B.id == 'CLinked1')
 		//console.log('Bonus ' + B.id + ' has checked = ' + B.checked + ' and Reject = ' + B.getAttribute('data-rejected'));
 	var S = B.parentElement;
-	if (B.checked && B.getAttribute('data-rejected') <= 0)
+	if (bonusScoredOk(B))
 		S.className = class_showbonus + class_checked;
-	else if (B.getAttribute('data-rejected') > 0)
+	else if (B.hasAttribute('data-rejected') && B.getAttribute('data-rejected') > '0')
 		S.className = class_showbonus + class_rejected;
 	else
 		S.className = class_showbonus + class_unchecked;
@@ -1559,14 +1570,14 @@ function setFinisherStatus()
 	
 	var BL = document.getElementsByName('BonusID[]');
 	for (var i = 0 ; i < BL.length; i++ )
-		if (BL[i].getAttribute('data-reqd')==COMPULSORYBONUS && !BL[i].checked)
+		if (BL[i].getAttribute('data-reqd')==COMPULSORYBONUS && !bonusScoredOk(BL[i]))
 			return SFS(EntrantDNF,DNF_MISSEDCOMPULSORY);
 	
 	BL = document.getElementsByName('SpecialID[]');
 	for (var i = 0 ; i < BL.length; i++ )
-		if (BL[i].getAttribute('data-reqd')==COMPULSORYBONUS && !BL[i].checked)
+		if (BL[i].getAttribute('data-reqd')==COMPULSORYBONUS && !bonusScoredOk(BL[i]))
 			return SFS(EntrantDNF,DNF_MISSEDCOMPULSORY);
-		else if (BL[i].getAttribute('data-reqd')==MUSTNOTMATCH && BL[i].checked)
+		else if (BL[i].getAttribute('data-reqd')==MUSTNOTMATCH && bonusScoredOk(BL[i]))
 			return SFS(EntrantDNF,DNF_HITMUSTNOT);
 	
 	var sgObj = document.getElementById('SGroupsUsed');
@@ -1576,15 +1587,15 @@ function setFinisherStatus()
 		for (var i = 0; i < sg.length; i++)
 			BL = document.getElementsByName('SpecialID_' + sg[i] + '[]');
 			for (var i = 0 ; i < BL.length; i++ )
-				if (BL[i].getAttribute('data-reqd')==COMPULSORYBONUS && !BL[i].checked)
+				if (BL[i].getAttribute('data-reqd')==COMPULSORYBONUS && !bonusScoredOk(!BL[i]))
 					return SFS(EntrantDNF,DNF_MISSEDCOMPULSORY);
-				else if (BL[i].getAttribute('data-reqd')==MUSTNOTMATCH && BL[i].checked)
+				else if (BL[i].getAttribute('data-reqd')==MUSTNOTMATCH && bonusScoredOk(BL[i]))
 					return SFS(EntrantDNF,DNF_HITMUSTNOT);
 	}
 	
 	BL = document.getElementsByName('ComboID[]');
 	for (var i = 0 ; i < BL.length; i++ )
-		if (BL[i].getAttribute('data-reqd')==COMPULSORYBONUS && !BL[i].checked)
+		if (BL[i].getAttribute('data-reqd')==COMPULSORYBONUS && !bonusScoredOk(BL[i]))
 			return SFS(EntrantDNF,DNF_MISSEDCOMPULSORY);
 	
 	BL = document.getElementsByName('catcompound[]');
@@ -1596,7 +1607,7 @@ function setFinisherStatus()
 	
 	var TS = parseInt(document.getElementById('TotalPoints').value);
 	var MP = parseInt(document.getElementById('MinPoints').value);
-	if (MP > 0 && TS < MP)
+	if (TS < MP) /* Admin manual specifies this */
 		return SFS(EntrantDNF,DNF_TOOFEWPOINTS);
 	
 	
@@ -1658,7 +1669,7 @@ function setRejectedClaim(bonusid,reason)
 	RC.value = rca.toString();
 	if (reason == 0)
 		B.parentElement.className = class_showbonus + class_unchecked;
-	else
+	else 
 		B.parentElement.className = class_showbonus + class_rejected;
 	
 	setRejectedTooltip(B.parentNode,reason);
@@ -2128,7 +2139,7 @@ function tickCombos()
 	for (var i = 0; i < cmbs.length; i++ )
 	{
 		var tick = true;
-		if (cmbs[i].getAttribute('data-rejected') > 0)
+		if (cmbs[i].hasAttribute('data-rejected') && cmbs[i].getAttribute('data-rejected') > '0')
 			tick = false;
 		else
 		{
@@ -2141,7 +2152,7 @@ function tickCombos()
 					var bp = document.getElementById('B'+bps[j]);
 					var sp = document.getElementById('S'+bps[j]);
 					var cp = document.getElementById('C'+bps[j]);
-					if ((bp != null && bp.checked) || (sp != null && sp.checked) || (cp != null && cp.checked))
+					if ( (bp != null && bonusScoredOk(bp)) || (sp != null && bonusScoredOk(sp)) || (cp != null && bonusScoredOk(cp)) )
 						ticks++;
 					else
 						nticks++;
@@ -2166,8 +2177,8 @@ function tickCombos()
 					}
 				document.getElementById(cmbs[i].getAttribute('id')).setAttribute('data-points',pts);
 		}
-		document.getElementById(cmbs[i].getAttribute('id')).checked = tick && 
-					(document.getElementById(cmbs[i].getAttribute('id')).getAttribute('data-rejected') < 1);
+		let bonus = document.getElementById(cmbs[i].getAttribute('id'));
+		bonus.checked = tick && (!bonus.hasAttribute('data-rejected') || bonus.getAttribute('data-rejected')=='0');
 	}
 }
 

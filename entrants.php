@@ -43,7 +43,8 @@ function deleteEntrant()
 		return;
 	if ($_POST['rusure'] != $KONSTANTS['AreYouSureYes'])
 		return;
-	$DB->exec("DELETE FROM entrants WHERE EntrantID=$entrantid");
+	$sql = "DELETE FROM entrants WHERE EntrantID=$entrantid";		
+	$DB->exec($sql);
 	if ($DB->lastErrorCode()<>0) {
 		echo("SQL ERROR: ".$DB->lastErrorMsg().'<hr>'.$sql.'<hr>');
 		exit;
@@ -533,7 +534,8 @@ function renumberEntrant()
 		return;
 	if (getValueFromDB("SELECT EntrantID FROM entrants WHERE EntrantID=$newnumber","EntrantID",0) != 0)
 		return;
-	$DB->exec("UPDATE entrants SET EntrantID=$newnumber WHERE EntrantID=$entrantid");
+	$sql = "DELETE FROM entrants WHERE EntrantID=$entrantid";
+	$DB->exec($sql);
 	if ($DB->lastErrorCode()<>0) {
 		echo("SQL ERROR: ".$DB->lastErrorMsg().'<hr>'.$sql.'<hr>');
 		exit;
@@ -1428,16 +1430,18 @@ function showEntrantRecord($rd)
 	echo(' <input type="number" name="FinishPosition" id="FinishPosition" onchange="enableSaveButton();" value="'.$rd['FinishPosition'].'" title="'.$TAGS['FinishPosition'][1].'"> ');
 	echo('</span>');
 
-	echo('<span class="xlabel" title="'.$TAGS['ScoringNow'][1].'">');
-	echo('<label for="ScoringNow" class="vlabel">'.$TAGS['ScoringNow'][0].' </label>');
-	$chk = $rd['ScoringNow'] == $KONSTANTS['BeingScored'] ? ' checked="checked" ' : '';
-	echo('<input type="checkbox"'.$chk.' name="ScoringNow" disabled id="ScoringNow" value="'.$KONSTANTS['BeingScored'].'"> ');
-	echo('</span>');
+	if (false) {
+		echo('<span class="xlabel" title="'.$TAGS['ScoringNow'][1].'">');
+		echo('<label for="ScoringNow" class="vlabel">'.$TAGS['ScoringNow'][0].' </label>');
+		$chk = $rd['ScoringNow'] == $KONSTANTS['BeingScored'] ? ' checked="checked" ' : '';
+		echo('<input type="checkbox"'.$chk.' name="ScoringNow" disabled id="ScoringNow" value="'.$KONSTANTS['BeingScored'].'"> ');
+		echo('</span>');
 	
-	echo('<span title="'.$TAGS['ScoredBy'][1].'">');
-	echo('<label for="ScoredBy" class="vlabel">'.$TAGS['ScoredBy'][0].' </label>');
-	echo('<input type="text" name="ScoredBy" readonly id="ScoredBy" value="'.$rd['ScoredBy'].'"> ');
-	echo('</span>');
+		echo('<span title="'.$TAGS['ScoredBy'][1].'">');
+		echo('<label for="ScoredBy" class="vlabel">'.$TAGS['ScoredBy'][0].' </label>');
+		echo('<input type="text" name="ScoredBy" readonly id="ScoredBy" value="'.$rd['ScoredBy'].'"> ');
+		echo('</span>');
+	}
 	
 	echo('</fieldset>');
 	

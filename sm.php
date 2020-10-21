@@ -513,7 +513,7 @@ function triggerNewRow(obj)
 	if (false) {
 	echo('<th>'.$TAGS['MinimumTicks'][0].'</th>');
 	}
-	echo('<th>'.$TAGS['PointsMults'][0].'</th>');
+	echo('<th>'.$TAGS['ValueHdr'][0].'</th>');
 	if (false) {
 	if ($DBVERSION >= 3)
 		for ($i=1; $i <= $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $i++)
@@ -548,7 +548,7 @@ function triggerNewRow(obj)
 		if (false) {
 		echo('<td><input readonly title="'.$TAGS['MinimumTicks'][1].'" type="number" name="MinimumTicks[]" value="'.$rd['MinimumTicks'].'"></td>');
 		}
-		echo('<td><input readonly title="'.$TAGS['PointsMults'][1].'" class="ScorePoints" type="text" name="ScorePoints[]" value="'.$rd['ScorePoints'].'"></td> ');
+		echo('<td><input readonly title="'.$TAGS['ValueHdr'][1].'" class="ScorePoints" type="text" name="ScorePoints[]" value="'.$rd['ScorePoints'].'"></td> ');
 		if (false) {
 		if ($DBVERSION >= 3)
 			for ($i=1; $i <= $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $i++)
@@ -585,7 +585,7 @@ function triggerNewRow(obj)
 	echo('</select></td>');
 	echo('<td><input title="'.$TAGS['BonusListLit'][1].'" class="Bonuses" type="text" name="Bonuses[]" placeholder="'.$TAGS['CommaSeparated'][0].'"></td>');
 	echo('<td><input title="'.$TAGS['MinimumTicks'][1].'" type="number" name="MinimumTicks[]" ></td>');
-	echo('<td><input title="'.$TAGS['PointsMults'][1].'" class="ScorePoints" type="text" name="ScorePoints[]" ></td> ');
+	echo('<td><input title="'.$TAGS['ValueHdr'][1].'" class="ScorePoints" type="text" name="ScorePoints[]" ></td> ');
 	for ($i=1; $i <= $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $i++)
 		if (isset($cats[$i]))
 		{
@@ -765,7 +765,7 @@ function checkBonusOk(str) {
 	echo('<option value="1" '.($rd['ScoreMethod']==1 ? 'selected ' : '').'>'.$TAGS['AddMults'][0].'</option>');
 	echo('</select></span>');
 	echo('<span class="vlabel" title="'.$TAGS['BonusListLit'][1].'"><label class="wide" for="bonuses">'.$TAGS['BonusListLit'][0].'</label> ');
-	echo('<input type="text" name="Bonuses" id="bonuses" value="'.$rd['Bonuses'].'" oninput="checkComponentList();"> </span>');
+	echo('<input type="text" name="Bonuses" id="bonuses" class="ComboBonusList" value="'.$rd['Bonuses'].'" oninput="checkComponentList();"> </span>');
 	echo('<span class="vlabel" title="'.$TAGS['MinimumTicks'][1].'"><label class="wide" for="minimumticks">'.$TAGS['MinimumTicks'][0].'</label> ');
 	echo('<input type="number" class="smallnumber" name="MinimumTicks" id="minimumticks" value="'.$rd['MinimumTicks'].'"> </span>');
 	echo('<span class="vlabel" title="'.$TAGS['ScoreValue'][1].'"><label class="wide" for="scorepoints">'.$TAGS['ScoreValue'][0].'</label> ');

@@ -27,67 +27,72 @@
  *	2019-09-29	Check/report changed IP
  *	2019-11-05	Linux setup; webserver/PHP already available
  *	2020-02-19	Apple Mac setup
+ *	2020-06-29	Window title
  *
  */
 
-
 package main
 
-import ("fmt"
-		"os"
-		"net"
-		"log"
-		"time"
-		"path/filepath"
-		"runtime"
-		"context"
-		"os/exec"
-		"github.com/pkg/browser"
-		"strings"
-		"flag")
+import (
+	"context"
+	"flag"
+	"fmt"
+	"log"
+	"net"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"runtime"
+	"strings"
+	"syscall"
+	"time"
+	"unsafe"
 
-const PROGTITLE = "ScoreMaster Server v2.5 [2020-02-19]"
+	"github.com/pkg/browser"
+)
 
-var phpcgi		= filepath.Join("php","php-cgi")
-var phpdbg 		= ""
+const myPROGTITLE = "ScoreMaster Server v2.6 [2020-06-29]"
+const myWINTITLE = "IBA ScoreMaster"
 
-var debug			= flag.Bool("debug",false,"Run in PHP debug mode (Windows only)")
-var port 			= flag.String("port","80","Webserver port specification")
-var ipspec 			= flag.String("ip","*","Webserver IP specification")
-var spawnInterval 	= flag.Int("respawn",60,"Number of minutes before restarting PHP server")
-var nolocal 		= flag.Bool("nolocal",false,"Don't start a web browser on the host machine")
-var root 			= flag.String("root","/","HTTP document root")
+var phpcgi = filepath.Join("php", "php-cgi")
+var phpdbg = ""
 
-const cgiport 			= "127.0.0.1:9000"
-const sm_caddyFolder	= "caddy"
-const starturl 			= "http://localhost"
+var debug = flag.Bool("debug", false, "Run in PHP debug mode (Windows only)")
+var port = flag.String("port", "80", "Webserver port specification")
+var ipspec = flag.String("ip", "*", "Webserver IP specification")
+var spawnInterval = flag.Int("respawn", 60, "Number of minutes before restarting PHP server")
+var nolocal = flag.Bool("nolocal", false, "Don't start a web browser on the host machine")
+var root = flag.String("root", "/", "HTTP document root")
 
-
+const cgiport = "127.0.0.1:9000"
+const smCaddyFolder = "caddy"
+const starturl = "http://localhost"
 
 type logWriter struct {
 }
 
 func (writer logWriter) Write(bytes []byte) (int, error) {
-    return fmt.Print(time.Now().UTC().Format("2006-01-02 15:04:05") + " " + string(bytes))
+	return fmt.Print(time.Now().UTC().Format("2006-01-02 15:04:05") + " " + string(bytes))
 }
 
 func init() {
-	
-	log.SetFlags(0)
-    log.SetOutput(new(logWriter))
 
-	os := runtime.GOOS;
+	log.SetFlags(0)
+	log.SetOutput(new(logWriter))
+
+	os := runtime.GOOS
 	switch os {
-	case "darwin":  // Apple
-	
+	case "darwin": // Apple
+
 		phpdbg = "/usr/bin/php"
-		
+
 	case "linux":
-	
+
 	case "windows":
-	
+
 		phpdbg = "\\php\\php"
-		
+		SetMyWindowTitle(myWINTITLE)
+
 	default:
 		// freebsd, openbsd,
 		// plan9, ...
@@ -96,14 +101,15 @@ func init() {
 
 func main() {
 
-	fmt.Printf("\n%s\t\t%s\n","Iron Butt Association UK","webmaster@ironbutt.co.uk")
-	fmt.Printf("\n%s\n\n",PROGTITLE)
+	fmt.Printf("\n%s\t\t%s\n", "Iron Butt Association UK", "webmaster@ironbutt.co.uk")
+	fmt.Printf("\n%s\n\n", myPROGTITLE)
+
 	setupRun()
 	serverIP := getOutboundIP()
-	fmt.Printf("%s IPv4 = %s\n",timestamp(),serverIP)
-	
+	fmt.Printf("%s IPv4 = %s\n", timestamp(), serverIP)
+
 	if *debug && runtime.GOOS != "windows" {
-		
+
 		*debug = false
 	}
 	if *debug && phpdbg != "" {
@@ -112,45 +118,45 @@ func main() {
 		go runCaddy()
 		go runPHP()
 	}
-	
+
 	if !*nolocal {
 		showInvite()
 	}
-	
+
 	if *debug {
-		fmt.Printf("%s quitting\n\n",timestamp())
+		fmt.Printf("%s quitting\n\n", timestamp())
 		os.Exit(0)
 	}
-	
+
 	// Now just kill time and wait for someone to kill me
 	for {
-		time.Sleep(1*time.Minute)
+		time.Sleep(1 * time.Minute)
 		myIP := getOutboundIP()
 		if !myIP.Equal(serverIP) {
 			serverIP = myIP
-			fmt.Printf("%s IPv4 = %s\n",timestamp(),serverIP)
+			fmt.Printf("%s IPv4 = %s\n", timestamp(), serverIP)
 		}
 	}
 }
 
 func showInvite() {
 
-	time.Sleep(5*time.Second)
-	fmt.Println(timestamp()+" presenting "+starturl+":"+*port)
-	browser.OpenURL(starturl+":"+*port)
+	time.Sleep(5 * time.Second)
+	fmt.Println(timestamp() + " presenting " + starturl + ":" + *port)
+	browser.OpenURL(starturl + ":" + *port)
 
 }
 
 func debugPHP() {
-// This runs PHP as a local, single user, webserver as an aid to debugging or for
-// very lightweight usage
+	// This runs PHP as a local, single user, webserver as an aid to debugging or for
+	// very lightweight usage
 
 	if phpdbg == "" {
 		return
 	}
-	fmt.Println(timestamp()+" debugging PHP")
-	cmd := exec.Command("cmd","/C","start","/min",phpdbg,"-S","127.0.0.1:"+*port,"-t","sm","-c",filepath.Join("php","php.ini"))
-	cmd.Env = append(os.Environ(),"PHP_FCGI_MAX_REQUESTS=0")
+	fmt.Println(timestamp() + " debugging PHP")
+	cmd := exec.Command("cmd", "/C", "start", "/min", phpdbg, "-S", "127.0.0.1:"+*port, "-t", "sm", "-c", filepath.Join("php", "php.ini"))
+	cmd.Env = append(os.Environ(), "PHP_FCGI_MAX_REQUESTS=0")
 	err := cmd.Start()
 	if err != nil {
 		log.Fatal(err)
@@ -158,52 +164,52 @@ func debugPHP() {
 
 }
 
-
 func execPHP() {
-// This runs PHP as a background service to an external webserver
+	// This runs PHP as a background service to an external webserver
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*spawnInterval)*time.Minute)
 	defer cancel()
-	if err := exec.CommandContext(ctx, phpcgi,"-b",cgiport).Run(); err != nil {
+	if err := exec.CommandContext(ctx, phpcgi, "-b", cgiport).Run(); err != nil {
 		//fmt.Println(phpcgi+" <=== ")
 		log.Println(err)
 	}
 }
 
-
 func getOutboundIP() net.IP {
-	udp := "udp4"
-	ip := "8.8.8.8:80"	// Google public DNS
-    conn, err := net.Dial(udp, ip)
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer conn.Close()
+	udp := "udp"
+	ip := "8.8.8.8:80" // Google public DNS
 
-    localAddr := conn.LocalAddr().(*net.UDPAddr)
+	//	udp := "udp6"
+	//	ip := "[2a03:2880:f003:c07:face:b00c::2]:80"	// Facebook public DNS
 
-    return localAddr.IP
+	conn, err := net.Dial(udp, ip)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+
+	return localAddr.IP
 }
 
 func timestamp() string {
 
-		var t = time.Now()
-		return t.Format("2006-01-02 15:04:05")
+	var t = time.Now()
+	return t.Format("2006-01-02 15:04:05")
 
 }
 
-
-
 func runPHP() {
 
-	cgi := strings.Split(cgiport,":")
-	if !raw_portAvail(cgi[1]) {
-		fmt.Println(timestamp()+" PHP ["+cgi[1]+"] already listening")
+	cgi := strings.Split(cgiport, ":")
+	if !rawPortAvail(cgi[1]) {
+		fmt.Println(timestamp() + " PHP [" + cgi[1] + "] already listening")
 		return
 	}
-	os.Setenv("PHP_FCGI_MAX_REQUESTS","0") // PHP defaults to die after 500 requests so disable that
+	os.Setenv("PHP_FCGI_MAX_REQUESTS", "0") // PHP defaults to die after 500 requests so disable that
 	x := "spawning"
 	for {
-		fmt.Printf("%s %s PHP\n",timestamp(),x)
+		fmt.Printf("%s %s PHP\n", timestamp(), x)
 		x = "respawning"
 		execPHP()
 	}
@@ -213,29 +219,29 @@ func runPHP() {
 func runCaddy() {
 
 	// If IP is not wildcard then assume that grownup has checked
-	if *ipspec=="*" && !raw_portAvail(*port) {
-		fmt.Println(timestamp()+" service port "+*port+" already served")
+	if *ipspec == "*" && !rawPortAvail(*port) {
+		fmt.Println(timestamp() + " service port " + *port + " already served")
 		return
 	}
-	fmt.Printf(timestamp()+" serving on "+*ipspec+":"+*port+"\n")
+	fmt.Printf(timestamp() + " serving on " + *ipspec + ":" + *port + "\n")
 	// Create the conf file
-	cp := filepath.Join(sm_caddyFolder,"caddyfile")
-	ep := filepath.Join(sm_caddyFolder,"error.log")
+	cp := filepath.Join(smCaddyFolder, "caddyfile")
+	ep := filepath.Join(smCaddyFolder, "error.log")
 	f, err := os.Create(cp)
 	if err != nil {
 		log.Fatal(err)
 	}
-	f.WriteString(*ipspec+":"+*port+"\n")
+	f.WriteString(*ipspec + ":" + *port + "\n")
 	f.WriteString("root sm\n")
-	f.WriteString("errors "+ep+"\n")
-	f.WriteString("fastcgi "+*root+" "+cgiport+" php\n")
+	f.WriteString("errors " + ep + "\n")
+	f.WriteString("fastcgi " + *root + " " + cgiport + " php\n")
 	f.Close()
-	
+
 	// Now run Caddy
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	fp := filepath.Join(sm_caddyFolder,"caddy")
-	if err := exec.CommandContext(ctx, fp,"-agree","-conf",cp).Run(); err != nil {
+	fp := filepath.Join(smCaddyFolder, "caddy")
+	if err := exec.CommandContext(ctx, fp, "-agree", "-conf", cp).Run(); err != nil {
 		log.Fatal(err)
 	}
 
@@ -244,22 +250,35 @@ func runCaddy() {
 func setupRun() {
 
 	args := os.Args
-	
+
 	// Change to the folder containing this executable
 	dir := filepath.Dir(args[0])
 	os.Chdir(dir)
 	flag.Parse()
 	if !*debug && runtime.GOOS == "windows" {
 		filename := filepath.Base(os.Args[0])
-		*debug = strings.Index(filename,"debug") >= 0
+		*debug = strings.Index(filename, "debug") >= 0
 	}
 }
 
+func setMyWindowTitle(txt string) {
+	/* Windows only */
+	mod := syscall.NewLazyDLL("user32.dll")
+	proc := mod.NewProc("GetForegroundWindow")
+	hwnd, _, _ := proc.Call()
+	if hwnd != 0 {
+		proc1 := mod.NewProc("SetWindowTextW")
+		buf := make([]uint16, len(txt))
+		buf = syscall.StringToUTF16(txt)
+		proc1.Call(uintptr(hwnd), uintptr(unsafe.Pointer(&buf[0])))
+	}
 
-func raw_portAvail(port string) bool {
+}
+
+func rawPortAvail(port string) bool {
 
 	timeout := time.Second
-    conn, err := net.DialTimeout("tcp", net.JoinHostPort("localhost", port), timeout)
+	conn, err := net.DialTimeout("tcp", net.JoinHostPort("localhost", port), timeout)
 	if err != nil {
 		return true
 	}
@@ -269,4 +288,3 @@ func raw_portAvail(port string) bool {
 	}
 	return true
 }
-

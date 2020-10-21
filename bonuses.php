@@ -339,7 +339,7 @@ function callbackInsertBonus()
 	$sql .= ",Compulsory) VALUES(";
 	$sql .= "'".$DB->escapeString($_POST['bid'])."'";
 	$sql .= ",'".$DB->escapeString($_POST['bd'])."'";
-	$sql .= ",".intval($_POST['bid']);
+	$sql .= ",".intval($_POST['p']);
 	for ($i = 1; $i < $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $i++)
 		if (isset($_POST['cat'.$i]))
 			$sql .= ",".intval($_POST['cat'.$i]);

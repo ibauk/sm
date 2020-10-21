@@ -113,7 +113,8 @@ function showTimePenalties()
 
 	$tpdefs = defaultRecord('timepenalties');
 	
-	$R = $DB->query('SELECT rowid AS id,TimeSpec,PenaltyStart,PenaltyFinish,PenaltyMethod,PenaltyFactor FROM timepenalties ORDER BY PenaltyStart');
+	$sql = 'SELECT rowid AS id,TimeSpec,PenaltyStart,PenaltyFinish,PenaltyMethod,PenaltyFactor FROM timepenalties ORDER BY PenaltyStart';
+	$R = $DB->query($sql);
 	if ($DB->lastErrorCode() <> 0)
 		echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
 

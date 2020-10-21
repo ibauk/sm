@@ -266,7 +266,7 @@ table#entrants	.FinishPosition,.TotalPoints,.CorrectedMiles	{ text-align: center
 #cat3			{ margin-left: .2em; background-color: inherit; float:left; display: block; padding-left: .1em; padding-right: .5em;  font-size:.8em; }
 
 /* Score explanation */
-.scorex			{  }
+/* .scorex			{  } */
 .scorex table	{ background-color: var(--scorex-background); margin: 0 auto 0 auto; padding: 0 .5em 0 .5em; }
 .scorex	caption	{ background-color: var(--scorex-background); border: solid; padding: .5em; margin: auto auto 0 auto;}
 .scorex	tr:last-of-type td 	{ border-top: solid; }
@@ -368,9 +368,12 @@ table.qdfinishers th {
 
 /* Used to specifically style three bonus states */
 .showbonus		{ white-space: nowrap; display: inline-block; padding-left: 2px; padding-right: 2px; }
-.rejected,.rejected > *		{background-color: var(--rejected-background); color: var(--rejected-text); text-decoration: line-through; border-radius: 10px; padding: 0 0 0 .3em;}
-.checked,.checked > * 		{background-color: var(--checked-background); color: var(--checked-text);  border-radius: 10px; padding: 0 0 0 .3em; }
+.rejected,.rejected > *		{background-color: var(--rejected-background); color: var(--rejected-text); text-decoration: line-through; border-radius: 10px; /*padding: 0 0 0 .3em;*/}
+.checked,.checked > * 		{background-color: var(--checked-background); color: var(--checked-text);  border-radius: 10px; /*padding: 0 0 0 .3em;*/ }
 .unchecked,.unchecked > * 	{background-color: inherited; color: inherited; }
+
+.ScorePoints	{ text-align: right; width: 5em; }
+.ComboBonusList	{ width:30em; }
 
 #setupwiz	{ 
 	background-color: white;

@@ -111,7 +111,7 @@ function showPage($page_number)
 			echo('<h2>'.$TAGS['WizTitle'][0].'</h2>');
 			echo('<div class="wizitem"><p>'.$TAGS['WizRallyTitle'][1].'</p>');
 			echo('<label for="RallyTitle">'.$TAGS['WizRallyTitle'][0].'</label> ');
-			echo('<input autofocus type="text" name="RallyTitle" id="RallyTitle" value="'.$rd['RallyTitle'].'">');
+			echo('<input autofocus type="text" name="RallyTitle" id="RallyTitle" value="'.$rd['RallyTitle'].'" onfocus="this.select();">');
 			echo('</div>');
 			
 			
@@ -206,7 +206,7 @@ function chgregion() {
 			
 			echo('<div class="wizitem"><p>'.$TAGS['WizMaxHours'][1].'</p>');
 			echo('<label for="MaxHours">'.$TAGS['WizMaxHours'][0].'</label> ');
-			echo('<input type="number" autofocus max="'.$hours.'" class="smallnumber" name="MaxHours" id="MaxHours" value="'.$rd['MaxHours'].'">');
+			echo('<input type="number" autofocus max="'.$hours.'" class="smallnumber" name="MaxHours" id="MaxHours" value="'.$rd['MaxHours'].'" onfocus="this.select();">');
 			echo('</div>');
 			
 			echo('<div class="wizitem"><p>'.$TAGS['MaxMilesUsed'][1].'</p>');
@@ -341,7 +341,12 @@ function showPageHeader($page_number)
 function showPageTrailer($page_number)
 {
 	global $TAGS, $LAST_WIZARD_PAGE;
-	
+
+	echo('<div style="display:flex; flex-direction: row-reverse;">'); 
+	/* This display method means that the desired default button, [Next], can be emitted
+	 * first so that most browsers will choose it but displayed on the right with
+	 * [Previous] to the left, which is the intuitive order.
+	 */
 	//echo("Showing page $page_number of ".$LAST_WIZARD_PAGE."<hr>");
 	if ($page_number < $LAST_WIZARD_PAGE)
 		echo('<input type="submit" class="wizbutton" name="nextpage" title="'.$TAGS['WizNextPage'][1].'" value="'.$TAGS['WizNextPage'][0].'"> ');
@@ -351,7 +356,7 @@ function showPageTrailer($page_number)
 	// Show 'back' button second so that it's not the default button
 	if ($page_number > 1)
 		echo('<input type="submit" class="wizbutton" name="prevpage" title="'.$TAGS['WizPrevPage'][1].'" value="'.$TAGS['WizPrevPage'][0].'"> ');
-
+	echo('</div>');
 		
 ?>
 </div>

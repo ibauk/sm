@@ -103,7 +103,8 @@ function editCertificate()
 	$MC = getValueFromDB("SELECT count(*) As Rex FROM certificates WHERE EntrantID=$EntrantID","Rex",0);
 	if ($MC > 1)
 	{
-		$R = $DB->query("SELECT Class,Title FROM certificates WHERE EntrantID=$EntrantID ORDER BY Class");
+		$sql = "SELECT Class,Title FROM certificates WHERE EntrantID=$EntrantID ORDER BY Class";
+		$R = $DB->query($sql);
 		if ($DB->lastErrorCode() <> 0)
 			echo($DB->lastErrorCode().' == '.$DB->lastErrorMsg().'<br>'.$sql.'<hr>');
 		$pv = "document.getElementById('Class').value=this.value;";

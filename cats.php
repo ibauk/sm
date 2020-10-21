@@ -55,8 +55,8 @@ function listCompoundCalcs() {
 		if (isset($cats[$i]))
 			$cats[$i][0] = $TAGS['ccApplyToAll'][0];
 
-
-	$R = $DB->query('SELECT rowid as id,Cat,Axis,NMethod,ModBonus,NMin,PointsMults,NPower,Ruletype FROM catcompound ORDER BY Axis,Cat,NMin DESC');
+	$sql = 'SELECT rowid as id,Cat,Axis,NMethod,ModBonus,NMin,PointsMults,NPower,Ruletype FROM catcompound ORDER BY Axis,Cat,NMin DESC';
+	$R = $DB->query($sql);
 	if ($DB->lastErrorCode() <> 0)
 		echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
 

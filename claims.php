@@ -87,6 +87,34 @@ function updateClaimDecision(obj)
 	xhttp.send();
 	
 }
+function updateDD(obj)
+{
+	let val = obj.value;
+	let xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		let ok = new RegExp("\W*ok\W*");
+		if (this.readyState == 4 && this.status == 200) {
+			console.log('{'+this.responseText+'}');
+		}
+	};
+	xhttp.open("GET", "claims.php?c=updatedd&"+'&val='+val, true);
+	xhttp.send();
+	
+}
+function updateDDate(obj)
+{
+	let val = obj.value;
+	let xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		let ok = new RegExp("\W*ok\W*");
+		if (this.readyState == 4 && this.status == 200) {
+			console.log('{'+this.responseText+'}');
+		}
+	};
+	xhttp.open("GET", "claims.php?c=updateddate&"+'&val='+val, true);
+	xhttp.send();
+	
+}
 //-->
 </script>
 <?php	
@@ -96,7 +124,8 @@ function deleteClaim()
 {
 	global $DB,$TAGS,$KONSTANTS;
 		
-	$DB->exec("DELETE FROM claims WHERE rowid=".$_REQUEST['claimid']);
+	$sql = "DELETE FROM claims WHERE rowid=".$_REQUEST['claimid'];
+	$DB->exec($sql);
 	if ($DB->lastErrorCode()<>0) {
 		echo("SQL ERROR: ".$DB->lastErrorMsg().'<hr>'.$sql.'<hr>');
 		exit;
@@ -109,6 +138,10 @@ function listclaims()
 	global $DB,$TAGS,$KONSTANTS;
 	
 	$virtualrally = getValueFromDB("SELECT isvirtual FROM rallyparams","isvirtual",0) != 0;
+	$todaysDate = date('Y-m-d');
+	$rallyStartDate = substr(getValueFromDB("SELECT StartTime FROM rallyparams","StartTime",$todaysDate),0,10);
+	$rallyFinishDate = substr(getValueFromDB("SELECT FinishTime FROM rallyparams","FinishTime",$todaysDate),0,10);
+	$defaultDate = ($todaysDate<$rallyStartDate ? $rallyStartDate : ($todaysDate>$rallyFinishDate ? $rallyFinishDate : $todaysDate));
 	
 	$rr = explode("\n",str_replace("\r","",getValueFromDB("SELECT RejectReasons FROM rallyparams","RejectReasons","1=1")));
 	$decisions = [];
@@ -181,11 +214,11 @@ function listclaims()
 	
 	echo('<span title="'.$TAGS['cl_DDLabel'][1].'" style="font-size:small;">');
 	echo('<label for="decisiondefault">'.$TAGS['cl_DDLabel'][0].'</label>');
-	echo('<select id="decisiondefault" name="dd" style="font-size:small;"> ');
-	echo('<option value="-1" '.(!isset($_REQUEST['dd']) || $_REQUEST['dd']=='-1'?'selected':'').'>'.$TAGS['BonusClaimUndecided'][0].'</option>');
-	echo('<option value="0" '.(isset($_REQUEST['dd']) && $_REQUEST['dd']=='0'?'selected':'').'>'.$TAGS['BonusClaimOK'][0].'</option>');
+	echo('<select id="decisiondefault" name="dd" onchange="updateDD(this);" style="font-size:small;"> ');
+	echo('<option value="-1" '.(isset($_SESSION['dd']) && $_SESSION['dd']=='-1'?'selected':'').'>'.$TAGS['BonusClaimUndecided'][0].'</option>');
+	echo('<option value="0" '.(!isset($_SESSION['dd']) || $_SESSION['dd']=='0'?'selected':'').'>'.$TAGS['BonusClaimOK'][0].'</option>');
 	echo('</select> ');
-	echo('<input type="date" style="font-size:small;" name="ddate" value="'.(isset($_REQUEST['ddate'])?$_REQUEST['ddate']:date('Y-m-d')).'"> ');
+	echo('<input type="date" style="font-size:small;" name="ddate" value="'.(isset($_SESSION['ddate'])?$_SESSION['ddate']:$defaultDate).'" onchange="updateDDate(this);"> ');
 	echo('</span>');
 	echo('<input onclick="document.getElementById(\'refreshc\').value=\'shownew\';" type="submit" title="'.$TAGS['cl_PostNewClaim'][1].'" value="'.$TAGS['cl_PostNewClaim'][0].'"> ');
 	
@@ -355,7 +388,7 @@ function saveNewClaim()
 		if (isset($_REQUEST[$F]))
 			$sql .= ",$F";
 	$sql .= ") VALUES(";
-	$dtn = new DateTime(now,new DateTimeZone($KONSTANTS['LocalTZ']));
+	$dtn = new DateTime(Date('Y-m-d'),new DateTimeZone($KONSTANTS['LocalTZ']));
 	$datenow = $dtn->format('c');
 	$la = (isset($_REQUEST['LoggedAt']) && $_REQUEST['LoggedAt'] != '' ? $_REQUEST['LoggedAt'] : $datenow);
 	$sql .= "'".$la."'";
@@ -671,6 +704,11 @@ function showEntrant(obj) {
 			let thisodo = document.getElementById('OdoReading');
 			if (lastodo && thisodo)
 				thisodo.setAttribute('placeholder',lastodo.value);
+			let lbc = document.getElementById('LastBonusClaimed');
+			let bn = document.getElementById('BonusName');
+			if (lbc && bn) {
+				bn.innerHTML = lbc.innerHTML;
+			}
 		}
 	};
 	xhttp.open("GET", "claims.php?c=entnam&e="+str, true);
@@ -859,15 +897,15 @@ function fetchBonusName($b)
 	}
 	$R = $DB->query("SELECT BriefDesc FROM bonuses WHERE BonusID='".$b."'");
 	if ($rd = $R->fetchArray())
-		echo(htmlspecialchars($rd['BriefDesc']));
+		echo($rd['BriefDesc']);
 	else {
 		$R = $DB->query("SELECT BriefDesc FROM specials WHERE BonusID='".$b."'");
 		if ($rd = $R->fetchArray())
-			echo(htmlspecialchars($rd['BriefDesc']));
+			echo($rd['BriefDesc']);
 		else {
 			$R = $DB->query("SELECT BriefDesc FROM combinations WHERE ComboID='".$b."'");
 			if ($rd = $R->fetchArray())
-				echo(htmlspecialchars($rd['BriefDesc']));
+				echo($rd['BriefDesc']);
 			else
 				echo('***');
 		}
@@ -923,11 +961,15 @@ function fetchEntrantDetail($e)
 		$lastodo = 0;
 		$lastct = '';
 		$nextmins = 0;
+		$lastbonusid = '';
+		$lbcok = 0;
 		if (($rd = $R->fetchArray()) && isset($rd['FuelBalance'])) {
 			$fuelbalance = $rd['FuelBalance'];
 			$lastodo = $rd['OdoReading'];
 			$lastct = $rd['ClaimTime'];
 			$nextmins = $rd['NextTimeMins'];
+			$lastbonusid = $rd['BonusID'];
+			$lbcok = $rd['Decision'];
 		} else
 			$fuelbalance = $tankrange;
 			
@@ -939,7 +981,29 @@ function fetchEntrantDetail($e)
 			echo('  <meter title="'.$fuelbalance.'" id="FuelBalance" low="'.$lo.'" high="'.$hi.'"');
 			echo('min="0" max="'.$tankrange.'" data-value="'.$fuelbalance.'" value="'.$fuelbalance.'"> ['.$fuelbalance.']</meter>');
 			
+		} 
+			
+		if ($lastbonusid <> '') {
+			echo('<span style="display:none" id="LastBonusClaimed">');
+			echo(' <span title="'.$TAGS['cl_LastBonusID'][1].'">'.$TAGS['cl_LastBonusID'][0].' ');
+			$res = '';
+			switch($lbcok) {
+				case -1:
+					$res = $TAGS['BonusClaimUndecided'][0];
+					break;
+				case 0:
+					$res = $TAGS['BonusClaimOK'][0];
+					break;
+				default:
+					$rr = explode("\n",str_replace("\r","",getValueFromDB("SELECT RejectReasons FROM rallyparams","RejectReasons","1=1")));
+					$res = $rr[$lbcok];			
+
+			}
+		
+			echo('<strong>'.$lastbonusid.' - '.$res.'</strong></span> ');
+			echo('</span>');
 		}
+
 		
 		echo('<input type="hidden" id="lastOdoReading" value="'.$lastodo.'">');
 		echo('<input type="hidden" id="lastClaimTime" value="'.$lastct.'">');
@@ -993,6 +1057,7 @@ function applyClaimsForm()
 function applyClaims()
 // One-off for no ride rally April 2020
 // and again May 2020
+// and properly in Jorvik 2020
 {
 	global $DB,$TAGS,$KONSTANTS;
 
@@ -1007,6 +1072,9 @@ function applyClaims()
 	startHtml($TAGS['cl_ClaimsTitle'][0]);
 	emitBreadcrumbs();
 	echo('<h3>'.$TAGS['cl_Applying'][0].'</h3>');
+
+	$isVirtual = getValueFromDB("SELECT isvirtual FROM rallyparams","isvirtual",0);
+
 	$sql = "SELECT claims.*,bonuses.BriefDesc FROM claims JOIN bonuses ON claims.BonusID=bonuses.BonusID WHERE ";
 	
 	// Because of the link to bonuses, only ordinary bonus claims will be processed here.
@@ -1051,6 +1119,7 @@ function applyClaims()
 	foreach($claims as $entrant => $bonuses) {
 		
 		$sql = "SELECT IfNull(FinishTime,'2020-01-01') As FinishTime,IfNull(OdoRallyFinish,0) As OdoRallyFinish,BonusesVisited";
+		$sql .= ",IfNull(StartTime,'') As StartTime";
 		$sql .= ",IfNull(OdoRallyStart,0) As OdoRallyStart,IfNull(OdoScaleFactor,1) As OdoScaleFactor";
 		$sql .= ",IfNull(CorrectedMiles,0) As CorrectedMiles,OdoKms";
 		$sql .= " FROM entrants WHERE EntrantID=".$entrant;
@@ -1065,6 +1134,15 @@ function applyClaims()
 		$bv = explode(',',$rd['BonusesVisited']);
 		foreach($bonuses as $bonus => $stats)  {
 			
+			if (!$isVirtual && $rd['OdoRallyStart']==0)
+				$rd['OdoRallyStart'] = $stats[1];
+
+			// If StartTime has not already been set for this entrant then use the time of the first claim
+			// If fixed rall start time is needed then either open each scorecard in advance or don't use
+			// batch claim updating.
+			if ($rd['StartTime']=='')
+				$rd['StartTime'] = $stats[0];
+
 			if ($stats[0] > $ft)
 				$ft = $stats[0];	// Straight compare of dateTtime
 			if ($stats[1] > $fo) {
@@ -1077,6 +1155,9 @@ function applyClaims()
 		}
 		//print_r($bv);
 		$sql = "UPDATE entrants SET BonusesVisited='".implode(',',$bv)."', Confirmed=".$KONSTANTS['ScorecardIsDirty'];
+		
+		$sql .= ",StartTime='".$rd['StartTime']."'";
+		$sql .= ",OdoRallyStart=".$rd['OdoRallyStart'];
 		$sql .= ",FinishTime='".$ft."',OdoRallyFinish=".$fo;
 		$sql .= ",CorrectedMiles=".$cm;
 		$sql .= " WHERE EntrantID=$entrant";
@@ -1165,7 +1246,8 @@ function triggerNewRow(obj) {
 	echo('</tr>');
 	echo('</thead><tbody>');
 	
-	$R = $DB->query('SELECT rowid AS id,asfrom,magic FROM magicwords ORDER BY asfrom');
+	$sql = 'SELECT rowid AS id,asfrom,magic FROM magicwords ORDER BY asfrom';
+	$R = $DB->query($sql);
 	if ($DB->lastErrorCode() <> 0)
 		echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
 	
@@ -1210,8 +1292,11 @@ if (isset($_REQUEST['savemw'])) {
 }	
 if (isset($_REQUEST['saveclaim'])) {
 	saveClaim();
+	print_R($_REQUEST);
+	//exit;
 	if (isset($_REQUEST['nobc']))
 		unset($_REQUEST['nobc']);
+	//exit;
 	if (retraceBreadcrumb());
 }	
 if (isset($_REQUEST['c'])) {
@@ -1258,9 +1343,22 @@ if (isset($_REQUEST['c'])) {
 		magicWords();
 		exit;
 	}
+	if ($_REQUEST['c']=='updatedd') {
+		$val = $_REQUEST['val'];
+		$_SESSION['dd'] = $val;
+		echo('ok');
+		exit;
+	}
+	if ($_REQUEST['c']=='updateddate') {
+		$val = $_REQUEST['val'];
+		$_SESSION['ddate'] = $val;
+		echo('ok');
+		exit;
+	}
 	
 	// If dropped through then just list the buggers.
-//	echo('dropped through<br>');
+	//echo('dropped through<br>');
+	//print_r($_REQUEST);
 	listclaims();
 }
 else

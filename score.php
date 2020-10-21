@@ -26,7 +26,7 @@
  */
 
 
-$HOME_URL = "score.php";
+$HOME_URL = "score.php".(isset($_REQUEST['mc']) ? '?mc=mc' : '');
 
 /*
  *	2.1	Use update_bonuses/combos/specials to update when nothing ticked
@@ -269,6 +269,8 @@ function putScore()
 		if ($AUTORANK)
 			rankEntrants();
 		
+		updateClass();
+		
 		return true;
 		
 	}
@@ -294,8 +296,7 @@ function putScoreTeam($confirmed)
 	if ($team==0)
 		return true;
 	
-	echo(' Hello sailor ');
-	
+
 	$sql = "UPDATE entrants SET ScoredBy='".$DB->escapeString($_REQUEST['ScorerName'])."'";
 	
 	$sql .= ",ScoringNow=0";	// Score's being saved so probably not continuing to be scored
@@ -409,7 +410,7 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 		$scorex_class = 'hidescorex';
 	}
 	
-	$otherinfo = ($ScorerName=='' ? '' : $TAGS['Scorer'][0].': '.$ScorerName);
+	$otherinfo = ''; // ($ScorerName=='' ? '' : $TAGS['Scorer'][0].': '.$ScorerName);
 	if ($showBlankForm && !$postRallyForm)
 			$otherinfo = '';
 	startHtml($TAGS['ttScoring'][0],$otherinfo,false);
@@ -488,7 +489,7 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 	echo('<input type="hidden" name="ScoreX" id="scorexstore" value=""/>');
 	echo('<input type="hidden" id="bduText" value="'.($KONSTANTS['BasicDistanceUnit']==$KONSTANTS['DistanceIsMiles'] ? $TAGS['OdoKmsM'][0] : $TAGS['OdoKmsK'][0]).'">');
 	
-	emitClasses($rd['Class']);
+	//emitClasses($rd['Class']);
 	
 	// mc offers confirmation
 	if (isset($_REQUEST['mc']) && $DBVERSION >= 4)
@@ -909,7 +910,7 @@ function showPicklist($ord)
 
 	$R = $DB->query('SELECT * FROM entrants ORDER BY '.$ord);
 	
-	if (isset($_REQUEST['ScorerName'])) {
+	if (false && isset($_REQUEST['ScorerName'])) {
 		$lnk = '<a href="'.$HOME_URL.'" onclick="return areYouSure(\'\r\n'.$TAGS['LogoutScorer'][0].' '.$_REQUEST['ScorerName'].' ?\');">';
 		startHtml($TAGS['ttScoring'][0],$lnk.$TAGS['Scorer'][0].': '.$_REQUEST['ScorerName'].'</a>',true);
 	} else {
@@ -984,6 +985,9 @@ function filterByName(x)
 </script>
 <?php	
 	echo('<div id="pickentrant">');
+	if (isset($_REQUEST['mc'])) {
+		echo('<p>'.$TAGS['MarkConfirmedFull'][0].' '.$TAGS['MarkConfirmedFull'][1].'</p>');
+	}
 	echo('<h4>'.$TAGS['PickAnEntrant'][1].'</h4>');
 	echo('<form id="entrantpick" method="get" action="score.php">');
 	echo('<label for="EntrantID">'.$TAGS['EntrantID'][0].'</label> ');
@@ -1154,6 +1158,76 @@ function showSpecials($specials)
 	
 }
 
+function updateClass()
+{
+		global $DB;
+		
+		$sql = "SELECT * FROM classes WHERE AutoAssign=1 and Class > 0 ORDER BY Class";
+		$R = $DB->query($sql);
+		$mp = []; $mb = []; $br = []; $lr = [];
+		while ($rd = $R->fetchArray()) {
+			$mp[$rd['Class']] = $rd['MinPoints'];
+			$mb[$rd['Class']] = $rd['MinBonuses'];
+			$br[$rd['Class']] = explode(',',$rd['BonusesReqd']);
+			$lr[$rd['Class']] = $rd['LowestRank'];
+		}
+		if (count($mp) < 1)
+			return;
+		
+		// There are automatic classes available - don't even think about mixing auto/manual classes
+		
+		$team = getValueFromDB("SELECT TeamID FROM entrants WHERE EntrantID=".$_REQUEST['EntrantID'],"TeamID",0);
+		$sql = "SELECT Class,EntrantID,TotalPoints,BonusesVisited,SpecialsTicked,CombosTicked,FinishPosition FROM entrants WHERE ";
+		if ($team = 0)
+			$sql .= "EntrantID=".$_REQUEST['EntrantID'];
+		else
+			$sql .= "TeamID=".$team;
+		$R = $DB->query($sql);
+		$recs = [];
+		while ($rd = $R->fetchArray()) {
+			$recs[$rd['EntrantID']] = 0; // Default is 0 unless successfully matched this time
+			$nc = 1;
+			while ($nc <= count($mp)) {
+				$ok = $mp[$nc] == 0 || $rd['TotalPoints'] >= $mp[$nc];
+				$ok = $ok && ($mb[$nc] == 0 || count(explode(',',$rd['BonusesVisited'])) >= $mb[$nc]);
+				// Compulsory bonuses not yet implemented
+				if ($ok && count($br[$nc]) > 0) {
+					$ok = updateClassBR($br[$nc],$rd['BonusesVisited'],$rd['SpecialsTicked'],$rd['CombosTicked']); // NIY
+				}
+				$ok = $ok && ($lr[$nc] == 0 || $rd['FinishPosition'] <= $lr[$nc]);
+				if ($ok) {
+					$recs[$rd['EntrantID']] = $nc;
+					break;
+				}
+				$nc++;
+			}
+		}
+		foreach ($recs as $ent => $cls) {
+			$sql = "UPDATE entrants SET Class=".$cls." WHERE EntrantID=".$ent;
+			$DB->exec($sql);
+		}
+
+			
+}
+
+function updateClassBR($br,$bv,$st,$ct)
+/*
+ * I check that every element in $br exists in $bv,$st or $ct
+ * and return true if so
+ *
+ */
+{
+	foreach($br as $B =>$v) {
+		$re = "/\b$v\b/";
+		$ok = (preg_match($re,$bv) || preg_match($re,$st) || preg_match($re,$ct));
+		error_log($re.' == '.$ok);
+		if (!$ok)
+			return false;
+	}
+	return true;		
+	
+}
+
 function updateScoringFlags($EntrantID=0)
 {
 	global $DB;
@@ -1181,8 +1255,8 @@ function prgPicklist()
  */
 {
 	$get = "score.php";
-	if (isset($_REQUEST['ScorerName']))
-		$get .= '?ScorerName='.$_REQUEST['ScorerName'];
+	if (isset($_REQUEST['mc']))
+		$get .= '?mc='.$_REQUEST['mc'];
 	header("Location: ".$get);
 	exit;
 }

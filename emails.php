@@ -26,9 +26,10 @@
 $HOME_URL = 'admin.php';
 
 require_once('common.php');
-require_once("vendor\autoload.php");
+require_once("./vendor/autoload.php");
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
+use PHPMailer\PHPMailer\SMTP;
 require 'vendor/PHPMailer/PHPMailer-master/src/Exception.php';
 require 'vendor/PHPMailer/PHPMailer-master/src/PHPMailer.php';
 require 'vendor/PHPMailer/PHPMailer-master/src/SMTP.php';
@@ -39,7 +40,7 @@ function newMailer()
 {
 	$params = json_decode(getValueFromDB("SELECT EmailParams FROM rallyparams","EmailParams","{}"));
 	
-	$mail = new PHPMailer();
+	$mail = new PHPMailer(true);
 
 	foreach ($params as $key => $val) 
 		switch($key) {
@@ -81,7 +82,7 @@ function setupEmailRun()
 
 ?>
 <script>
-<!--
+//<!--
 function countrecs() {
 	let dns = document.getElementById('EntrantDNS').checked;
 	let ok = document.getElementById('EntrantOK').checked;
@@ -149,7 +150,7 @@ function validate() {
 	}
 	return true;
 }
--->
+//-->
 </script>
 <?php	
 	echo('<h4>'.$TAGS['ttEmails'][1].'</h4>');
@@ -276,6 +277,80 @@ buttons: [
 	echo('</body></html>');
 }
 
+
+
+
+function buildMailQ()
+{
+	global $DB, $KONSTANTS;
+	
+	foreach(['wheresql','Subject','Body'] as $key)
+		if (!isset($_REQUEST[$key]))
+			return;
+	$recipients = getCountWhere($_REQUEST['wheresql']);
+	if ($recipients < 1)
+		return;
+	
+	error_log("Emailing $recipients recipients");
+	
+	$uploads = [];
+	$filenames = [];
+	if (isset($_FILES['Attachment']) && $_FILES['Attachment']['name'][0] != '') {
+		$nfiles = count($_FILES['Attachment']['name']);
+		error_log("Attaching $nfiles files");
+		for ($i = 0; $i < $nfiles; $i++) {
+			$filenames[$i] = cleanFilename($_FILES['Attachment']['name'][$i]); 
+			$uploads[$i] = joinPaths($KONSTANTS['UPLOADS_FOLDER'],$filenames[$i]);
+			error_log("Moving ".$filenames[$i]." to ".$uploads[$i]);
+			if (!move_uploaded_file($_FILES['Attachment']['tmp_name'][$i],$uploads[$i]))
+				die('!!!!!!!!! ['.$_FILES['Attachment']['tmp_name'][$i].']==>['.$uploads[$i].']');
+		}
+	}
+
+
+	$sql = "INSERT OR REPLACE INTO emailtemplates (TemplateID";
+	$sql .= ",EmailSubject,EmailBody,EmailSignature,IncludeScorex,IncludeCertificate,AttachFiles,AttachNames,WhereSQL)";
+	$sql .= " VALUES(0,'".$DB->escapeString(($_REQUEST['Subject']))."'";
+	$sql .= ",'".$DB->escapeString($_REQUEST['Body'])."'";
+	$sql .= ",'".$DB->escapeString($_REQUEST['Signature'])."'";
+	$sql .= ",".(isset($_REQUEST['IncludeScorex']) ? '1' : '0');
+	$sql .= ",".(isset($_REQUEST['IncludeCertificate']) ? '1' : '0');
+	$sql .= ",'".$DB->escapeString(implode('|',$uploads))."'";
+	$sql .= ",'".$DB->escapeString(implode('|',$filenames))."'";
+	$sql .= ",'".$DB->escapeString($_REQUEST['wheresql'])."')";
+	try {
+		$DB->exec("BEGIN");
+		$DB->exec($sql);
+		$sql = "DELETE FROM emailq";
+		$DB->exec($sql);
+	} catch (Exception  $e) {
+
+	}
+
+	$sql = "SELECT EntrantID, RiderName, Email, ScoreX, EntrantStatus FROM entrants WHERE ".$_REQUEST['wheresql'];
+	$R = $DB->query($sql);
+	while ($rd = $R->fetchArray()) {
+		$sql = "INSERT INTO emailq (EntrantID) VALUES(".$rd['EntrantID'].")";
+		try {
+			$DB->exec($sql);
+		} catch (Exception $e) {
+
+		}
+	}
+	try {
+		$DB->exec("COMMIT");
+	} catch (Exception $e) {
+
+	}
+
+	
+}
+
+
+
+
+
+
 function getCountWhere($where)
 {
 
@@ -301,12 +376,31 @@ function getNames($ids)
 	return $res;
 }
 
+
 function echoNames()
 {
 	$ids = $_REQUEST['e'];
 	echo(getNames($ids));
 }
 
+
+function replaceVars($txt,$rd)
+{
+	$res = $txt;
+	$mt = [];
+	preg_match_all("/(#[\\w]*#)/",$res,$mt,PREG_SET_ORDER);
+	foreach ($mt as $fld) {
+		$fldname = substr($fld[0],1,strlen($fld[0])-2);
+		//echo (" [ $fldname ] ");
+		try {
+			$res = str_replace($fld,formattedField($fldname,(isset($rd[$fldname]) ? $rd[$fldname] : '')),$res);
+		} catch(Exception $e) {
+			echo(" Error: ".$e->getMessage()."; ");
+		}
+	}
+	return $res;
+
+}
 
 function sendMail()
 {
@@ -319,12 +413,32 @@ function sendMail()
 	if ($recipients < 1)
 		return;
 	
+	error_log("Emailing $recipients recipients");
 	
-	$mail = newMailer();
+	try {
+		$mail = newMailer();
+	} catch (Exception $e) {
+		error_log("Can't create emailer ".$e->getMessage());
+		return;
+	}
+	
 	$mail->SMTPKeepAlive = true; // SMTP connection will not close after each email sent, reduces SMTP overhead
-	$mail->SMTPDebug = 0;
-	$mail->Subject = $_REQUEST['Subject'];
+	$mail->SMTPDebug = SMTP::DEBUG_OFF;
 
+
+	$uploads = [];
+	$filenames = [];
+	if (isset($_FILES['Attachment']) && $_FILES['Attachment']['name'][0] != '') {
+		$nfiles = count($_FILES['Attachment']['name']);
+		error_log("Attaching $nfiles files");
+		for ($i = 0; $i < $nfiles; $i++) {
+			$filenames[$i] = cleanFilename($_FILES['Attachment']['name'][$i]); 
+			$uploads[$i] = joinPaths($KONSTANTS['UPLOADS_FOLDER'],$filenames[$i]);
+			error_log("Moving ".$filenames[$i]." to ".$uploads[$i]);
+			if (!move_uploaded_file($_FILES['Attachment']['tmp_name'][$i],$uploads[$i]))
+				die('!!!!!!!!! ['.$_FILES['Attachment']['tmp_name'][$i].']==>['.$uploads[$i].']');
+		}
+	}
 
 	$sql = "SELECT EntrantID, RiderName, Email, ScoreX, EntrantStatus FROM entrants WHERE ".$_REQUEST['wheresql'];
 	$R = $DB->query($sql);
@@ -334,38 +448,183 @@ function sendMail()
 		try {
 			$mail->AddAddress($rd['Email'],$rd['RiderName']);
 		} catch (Exception $e) {
+			error_log("AddAddress failed for ".$rd['RiderName']);
 			echo('******* '.htmlspecialchars($rd['Email']).' - '.htmlspecialchars($rd['RiderName']).'<br>');
 			continue;
 		}
-		$msg = '<p>'.$_REQUEST['Body'].'</p>';
+		$mail->Subject = replaceVars($_REQUEST['Subject'],$rd);
+		$msg = '<p>'.replaceVars($_REQUEST['Body'],$rd).'</p>';
 		if (isset($_REQUEST['includeScorex']) && ($rd['EntrantStatus']==$KONSTANTS['EntrantFinisher'] || $rd['EntrantStatus']==$KONSTANTS['EntrantDNF']) )
 			$msg .= '<p>'.$rd['ScoreX'].'</p>';
 		if (isset($_REQUEST['Signature']))
-			$msg .= '<p>'.$_REQUEST['Signature'].'</p>';
+			$msg .= '<p>'.replaceVars($_REQUEST['Signature'],$rd).'</p>';
 		$mail->MsgHTML($msg);
 		if (isset($_REQUEST['includeCertificate']) && $rd['EntrantStatus']==$KONSTANTS['EntrantFinisher'])
 			$mail->addStringAttachment(getViewCertificate($rd['EntrantID']), 'certificate.html');
-		if (isset($_FILES['Attachment']) && $_FILES['Attachment']['name'][0] != '') {
-			$nfiles = count($_FILES['Attachment']['name']);
-			error_log("Attaching $nfiles files");
-			for ($i = 0; $i < $nfiles; $i++) {
-				$filename = cleanFilename($_FILES['Attachment']['name'][$i]); 
-				$uploaded = joinPaths($KONSTANTS['UPLOADS_FOLDER'],$filename);
-				error_log("Moving $filename to $uploaded");
-				if (!move_uploaded_file($_FILES['Attachment']['tmp_name'][$i],$uploaded))
-					die('!!!!!!!!! ['.$_FILES['Attachment']['tmp_name'][$i].']==>['.$uploaded.']');
-				$mail->addAttachment($uploaded,$filename);
-			}
-		}
+
+		$nfiles = count($uploads);
+		for ($i = 0; $i < $nfiles; $i++)
+			$mail->addAttachment($uploads[$i],$filenames[$i]);
+
 		try {
-			//$mail->Send();
+			error_log("Emailing ".htmlspecialchars($rd['Email']).' - '.htmlspecialchars($rd['RiderName']));
+			$mail->Send();
 			echo(htmlspecialchars($rd['Email']).' - '.htmlspecialchars($rd['RiderName']).'<br>');
 		} catch (Exception $e) {
+			error_log("Email failed!");
+			error_log($e->getMessage());
+			error_log('******* '.htmlspecialchars($rd['Email']).' - '.htmlspecialchars($rd['RiderName']).' ('.$mail->ErrorInfo.')');
 			echo('******* '.htmlspecialchars($rd['Email']).' - '.htmlspecialchars($rd['RiderName']).' ('.$mail->ErrorInfo.')<br>');
 			$mail->getSMTPInstance()->reset();
 		}
 	}
 
+	
+}
+
+
+function sendNextMail()
+/*
+ * This is called by AJAX and returns a 0 or 1 indicating no record/record followed by suitable text
+ * 
+ */
+{
+	global $DB, $KONSTANTS, $TAGS;
+	
+	$sql = "SELECT * FROM emailtemplates WHERE TemplateID=0";
+	$R = $DB->query($sql);
+	$et = $R->fetchArray();
+
+	$sql = "SELECT EntrantID FROM emailq WHERE EmailSent=0";
+	$entrant = getValueFromDB($sql,"EntrantID",0);
+	if ($entrant < 1) {
+		echo('0:'.$TAGS['snm_QEmpty'][0]);
+		return;
+	}
+	
+	try {
+		$mail = newMailer();
+	} catch (Exception $e) {
+		error_log("Can't create emailer ".$e->getMessage());
+		return;
+	}
+	
+	$mail->SMTPKeepAlive = true; // SMTP connection will not close after each email sent, reduces SMTP overhead
+	$mail->SMTPDebug = SMTP::DEBUG_OFF;
+
+	$uploads = explode('|',$et['AttachFiles']);
+	$filenames = explode('|',$et['AttachNames']);
+	$sql = "SELECT EntrantID, RiderName, Email, ScoreX, EntrantStatus FROM entrants WHERE EntrantID=".$entrant;
+	$R = $DB->query($sql);
+	if ($rd = $R->fetchArray()) {
+		$mail->clearAddresses();
+		$mail->clearAttachments();		
+		try {
+			$mail->AddAddress($rd['Email'],$rd['RiderName']);
+		} catch (Exception $e) {
+			error_log("AddAddress failed for ".$rd['RiderName']);
+			echo('1:******* '.htmlspecialchars($rd['Email']).' - '.htmlspecialchars($rd['RiderName']));
+			return;
+		}
+		$mail->Subject = replaceVars($et['EmailSubject'],$rd);
+		$msg = '<p>'.replaceVars($et['EmailBody'],$rd).'</p>';
+		if ($et['IncludeScorex']==1 && ($rd['EntrantStatus']==$KONSTANTS['EntrantFinisher'] || $rd['EntrantStatus']==$KONSTANTS['EntrantDNF']) )
+			$msg .= '<p>'.$rd['ScoreX'].'</p>';
+		if (!is_null($et['EmailSignature']))
+			$msg .= '<p>'.replaceVars($et['EmailSignature'],$rd).'</p>';
+		$mail->MsgHTML($msg);
+		if ($et['IncludeCertificate']==1 && $rd['EntrantStatus']==$KONSTANTS['EntrantFinisher'])
+			$mail->addStringAttachment(getViewCertificate($rd['EntrantID']), 'certificate.html');
+
+		$nfiles = count($uploads);
+		for ($i = 0; $i < $nfiles; $i++)
+			if ($uploads[$i] != '' && $filenames[$i] != '')
+				$mail->addAttachment($uploads[$i],$filenames[$i]);
+
+		try {
+			error_log("Emailing ".htmlspecialchars($rd['Email']).' - '.htmlspecialchars($rd['RiderName']));
+			$mail->Send();
+			echo('1:'.htmlspecialchars($rd['Email']).' - '.htmlspecialchars($rd['RiderName']));
+
+			$dtn = new DateTime(Date('Y-m-d'),new DateTimeZone($KONSTANTS['LocalTZ']));
+			$datenow = $dtn->format('c');
+		
+			$sql = "UPDATE emailq SET EmailSent=1,SentAt='".$datenow."' WHERE EntrantID=".$rd['EntrantID'];
+			$DB->exec($sql);
+		} catch (Exception $e) {
+			error_log("Email failed!");
+			error_log($e->getMessage());
+			error_log('******* '.htmlspecialchars($rd['Email']).' - '.htmlspecialchars($rd['RiderName']).' ('.$mail->ErrorInfo.')');
+			echo('0:******* '.htmlspecialchars($rd['Email']).' - '.htmlspecialchars($rd['RiderName']).' ('.$mail->ErrorInfo.')');
+			$mail->getSMTPInstance()->reset();
+		}
+	} else
+		echo('0:'.$TAGS['snm_QEmpty'][0]);
+
+	
+}
+
+function showProcessEmailQ()
+{
+	global $TAGS;
+
+	startHtml(($TAGS['ttEmails'][0]));
+
+	$sql = "SELECT count(*) As Rex FROM emailq WHERE EmailSent=0";
+	$rex = getValueFromDB($sql,"Rex",0);
+	$sql = "SELECT EmailSubject FROM emailtemplates WHERE TemplateID=0";
+	$subject = getValueFromDB($sql,"EmailSubject",'**************');
+
+	echo('<h4>'.$TAGS['snm_Processing'][0].'</h4>');
+	echo('<h5>'.$TAGS['snm_Subject'][0].' '.$subject.'</h5>');
+	echo('<h5>'.$TAGS['snm_Number'][0].' <span id="numleft">'.$rex.'</span></h5>');
+
+	echo('<p id="log"></p>')
+	?>
+	<script>
+	// <!--
+	function sendNext()
+	{
+		console.log('Sending next');
+		let xhttp = new XMLHttpRequest();
+		xhttp.onreadystatechange = function() {
+			let alldone = new RegExp("\W*0:");
+			if (this.readyState == 4 && this.status == 200) {
+				console.log('{'+this.responseText+'}');
+				let log = document.getElementById('log');
+				let num = document.getElementById('numleft');
+				let p = this.responseText.indexOf(':');
+				if (p > 0 && this.responseText.substring(p-1,1)=='0') {
+					num.innerHTML = '0';
+				} else {
+					let numleft = parseInt(num.innerHTML);
+					if (numleft > 0)
+						numleft--;
+					num.innerHTML = numleft;
+				}
+				log.innerHTML = this.responseText.substring(p+1) + '<br>' + log.innerHTML;
+			}
+		};
+		xhttp.open("GET", "emails.php?c=pumpq", true);
+		xhttp.send();
+	
+	}
+	
+	function pumpq()
+	{
+		let num = parseInt(document.getElementById('numleft').innerHTML);
+		while (num-- > 0) {
+			console.log('Next!!');
+			sendNext();
+		}
+	}
+
+	pumpq();
+	// -->
+	</script>
+	</body>
+	</html>
+	<?php
 	
 }
 
@@ -396,9 +655,15 @@ if (isset($_REQUEST['c'])) {
 			echoNames();
 			exit;
 		case 'email':
-			sendMail();
-			if (!retraceBreadcrumb())
-				prgCleanForm();
+			//sendMail();
+			buildMailQ();
+			showProcessEmailQ();
+			exit;
+			//if (!retraceBreadcrumb())
+			//	prgCleanForm();
+		case 'pumpq':
+			sendNextMail();
+			exit;
 			
 			
 	}

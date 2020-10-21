@@ -81,7 +81,7 @@ $KONSTANTS['ComboScoreMethodMults'] = 1;
 
 
 $KONSTANTS['DefaultOdoScaleFactor'] = 1;
-$KONSTANTS['DefaultEntrantStatus'] = $KONSTANTS['EntrantOK'];
+$KONSTANTS['DefaultEntrantStatus'] = $KONSTANTS['EntrantDNS'];
 
 $KONSTANTS['ConfirmedBonusMarker'] = '++';
 $KONSTANTS['ConfirmedBonusTick'] = '<span class="ConfirmedBonusTick" title="'.$TAGS['ConfirmedBonusTick'][1].'">'.$TAGS['ConfirmedBonusTick'][0].'</span>';
@@ -161,8 +161,8 @@ function calcCorrectedMiles($entrantOdoKms,$entrantOdoStart,$entrantOdoFinish,$e
 
 	if ($entrantOdoKms && !$rallyUsesKms)
 		$odoDistance = $odoDistance / $KONSTANTS['KmsPerMile'];
-	if (!$entrantKms && $rallyUsesKms)
-		$odoDistance = $odoDistance * KmsPerMile;
+	if (!$entrantOdoKms && $rallyUsesKms)
+		$odoDistance = $odoDistance * $KONSTANTS['KmsPerMile'];
 	
 	return intval($odoDistance);
 	
@@ -280,10 +280,11 @@ function popBreadcrumb()
 
 function pushBreadcrumb($alink)
 {
+	global $TAGS;
 	
 	if (!isset($_SESSION['bc']) || $alink=='') {
 		$_SESSION['bc'] = [];
-		$_SESSION['bc'][0] = ['admin.php','/'];
+		$_SESSION['bc'][0] = ['admin.php',$TAGS['BCHOME'][0]];
 		$steps = -1;
 	} else {
 		$steps = count($_SESSION['bc']);
@@ -306,9 +307,14 @@ function pushBreadcrumb($alink)
 
 function emitBreadcrumbs()
 {
+	global $TAGS;
+	
 	$bc = '';
-	foreach ($_SESSION['bc'] as $s => $a) 
-		$bc .= "<a href='admin.php?step=".$s."'>".$a[1]."</a>;";
+	$tit = " title='".$TAGS['BCHOME'][1]."' ";
+	foreach ($_SESSION['bc'] as $s => $a) {
+		$bc .= "<a $tit href='admin.php?step=".$s."'>".$a[1]."</a>;";
+		$tit = '';
+	}
 	echo('<input type="hidden" name="breadcrumbs" id="breadcrumbs" value="'.$bc.'">');
 }
 
@@ -544,7 +550,7 @@ function retraceBreadcrumb()
 		$lnka[1] .= 'nobc';
 		
 		echo("<hr>".htmlentities($lnka[1])."<hr>");
-		//exit;
+		error_log('Returning to '.$lnka[1]);
 		header('Location: '.$lnka[1]);
 	}
 	return true;
@@ -594,8 +600,8 @@ function showNav()
 	echo(' <span title="'.$TAGS['UtlFindEntrant'][1].'">');
 	echo('<input type="hidden" name="c" value="entrants">');
 	echo('<input type="hidden" name="mode" value="find">');
-	echo('<input type="text" name="x" id="EntrantSearchKey" placeholder="'.$TAGS['UtlFindEntrant'][0].'">');
-	echo('<input type="submit" value="?"> ');
+	echo('<input type="text" name="x" id="EntrantSearchKey" oninput="document.getElementById(\'LookupEntrant\').disabled = this.value.length==0;" placeholder="'.$TAGS['UtlFindEntrant'][0].'">');
+	echo('<input type="submit" disabled id="LookupEntrant" value="?"> ');
 	echo('</span> ');
 	echo('</form>');
 	
@@ -657,8 +663,8 @@ echo('<title>'.$pagetitle.'</title>');
 function showFooter()
 {
 	global $DB, $TAGS;
-	echo('<div id="footer">');
-	echo('<span id="ftrAdminMenu" title="'.$TAGS['AdminMenu'][1].'"><a href="admin.php">'.$TAGS['AdminMenu'][0].'</a></span></div>');
+	//echo('<div id="footer">');
+	//echo('<span id="ftrAdminMenu" title="'.$TAGS['AdminMenu'][1].'"><a href="admin.php">'.$TAGS['AdminMenu'][0].'</a></span></div>');
 	echo('</body></html>');
 }
 

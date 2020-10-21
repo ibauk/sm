@@ -24,7 +24,7 @@
  */
 
 
-$PROGRAM = array("version" => "2.6.1",	"title"	=> "ScoreMaster");
+$PROGRAM = array("version" => "2.6.2b",	"title"	=> "ScoreMaster");
 /*
  *	2.0	25May18	Used live at BBR18
  *
@@ -67,6 +67,10 @@ $PROGRAM = array("version" => "2.6.1",	"title"	=> "ScoreMaster");
  *	2.6	May20	Virtual rallies, claims capture, claims posting, 'must not' specials
  *
  *	2.6.1		First beta after refactor. Checklists not implemented, automated classes not implemented.
+ *	2.6.1a		Plus classes maintenance
+ *	2.6.2		Sent to Rick
+ *	2.6.2a		First Rick update: scorecards/import/wizard buttons
+ *	2.6.2b		Pre Jorvik mods
  */
 
 $MIT = <<<'EOT'
