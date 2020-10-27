@@ -1089,7 +1089,7 @@ function applyClaims()
 	$sqlW .= "ClaimTime<='".$hiclaimtime."' AND ";
 	$sqlW .= "Decision IN (".$_REQUEST['decisions'].") ";
 	
-	$sqlW .= " AND SpeedPenalty=0 AND FuelPenalty=0 AND MagicPenalty=0"; // Penalties applied by hand
+	// $sqlW .= " AND SpeedPenalty=0 AND FuelPenalty=0 AND MagicPenalty=0"; // Penalties applied by hand
 	
 	if (isset($_REQUEST['entrants']))
 		$sqlW .= " AND EntrantID IN (".$_REQUEST['entrants'].")";

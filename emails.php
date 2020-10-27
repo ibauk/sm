@@ -313,8 +313,8 @@ function buildMailQ()
 	$sql .= " VALUES(0,'".$DB->escapeString(($_REQUEST['Subject']))."'";
 	$sql .= ",'".$DB->escapeString($_REQUEST['Body'])."'";
 	$sql .= ",'".$DB->escapeString($_REQUEST['Signature'])."'";
-	$sql .= ",".(isset($_REQUEST['IncludeScorex']) ? '1' : '0');
-	$sql .= ",".(isset($_REQUEST['IncludeCertificate']) ? '1' : '0');
+	$sql .= ",".(isset($_REQUEST['includeScorex']) ? '1' : '0');
+	$sql .= ",".(isset($_REQUEST['includeCertificate']) ? '1' : '0');
 	$sql .= ",'".$DB->escapeString(implode('|',$uploads))."'";
 	$sql .= ",'".$DB->escapeString(implode('|',$filenames))."'";
 	$sql .= ",'".$DB->escapeString($_REQUEST['wheresql'])."')";

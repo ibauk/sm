@@ -35,12 +35,7 @@ if (!rally_params_established()) {
 	exit;
 }
 
-if (entrantsPresent() < 1) {
-	include "admin.php";
-	exit;
-}
- 
-include "score.php";
+include "admin.php";
 ?>
 <!DOCTYPE html>
 <html>

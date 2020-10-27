@@ -816,7 +816,7 @@ function showBonuses($bonusesTicked,$showBlankForm,$postRallyForm)
 			echo(' oncontextmenu="showPopup(this);"');
 		
 		
-		echo(' title="'.htmlspecialchars($bd).' [ '.$rd['Points'].' ]">');
+		echo(' title="'.strip_tags($bd).' [ '.$rd['Points'].' ]">');
 		echo('<label for="B'.$bk.'">'.$bk.'-</label>');
 		echo('<input type="checkbox"'.$chk.' name="BonusID[]" id="B'.$bk.'" value="'.$bk.'" onchange="tickBonus(this)"');
 		echo(' data-points="'.$rd['Points'].'" ');

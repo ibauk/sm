@@ -35,6 +35,7 @@
  *	2.3	OdoScaleFactor SanityCheck
  *	2.4	Variable combos, flexible axes
  *	2.5	Reorder ordinary bonus visits, speeding
+ *	2.7 Report rejected status on scorex for ordinary, special and combo bonuses
  *
  */
  
@@ -279,6 +280,23 @@ function bonusScoredOk(B)
 }
 
 
+function calcAvgEfficiency()
+/*
+ * Calculate points per mile/km
+ *
+ */
+{
+	// NOT IMPLEMENTED YET
+	
+	let distance = document.getElementById('CorrectedMiles').value;
+	let points = document.getElementById('TotalPoints').value;
+	let ppm = 0;
+	if (distance > 0 && points > 0) {
+		ppm = (points / distance).toFixed(0);
+	}
+	return ppm;
+
+}
 
 function calcAvgSpeed()
 {
@@ -299,7 +317,7 @@ function calcAvgSpeed()
 	{
 		restMins.value = 0;
 		for (let i = 0; i < specials.length; i++)
-			if (specials[i].checked)
+			if (bonusScoredOk(specials[i]))
 				restMins.value = parseInt(restMins.value) + parseInt(specials[i].getAttribute('data-mins'));
 		minsDuration -= restMins.value;
 		console.log('cas: '+restMins.value+' ('+specials.length+')');
@@ -706,16 +724,17 @@ function calcComplexScore(res)
 				sbonuses = document.getElementsByName("SpecialID_"+sg[j]+"[]");
 				for (var i = 0, bps = 0, mults = 0; i < sbonuses.length; i++ )
 				{
-					if (!bonusScoredOk(sbonuses[i]))
-						continue;
-				
-					bps = parseInt(sbonuses[i].getAttribute('data-points'));
-					totalBonusPoints += bps;
-					mults = parseInt(sbonuses[i].getAttribute('data-mult'));
-					totalMultipliers += mults;
-					let rm = sbonuses[i].getAttribute('data-mins');
-					let x = (rm > 0 ? ' ['+formatMinutes(rm)+']' : '');
-					sxappend(sbonuses[i].getAttribute('id'),sbonuses[i].parentNode.firstChild.innerHTML+x,sbonuses[i].getAttribute('data-points'),sbonuses[i].getAttribute('data-mult'),totalBonusPoints);
+					if (bonusScoredOk(sbonuses[i])) {
+						bps = parseInt(sbonuses[i].getAttribute('data-points'));
+						totalBonusPoints += bps;
+						mults = parseInt(sbonuses[i].getAttribute('data-mult'));
+						totalMultipliers += mults;
+						let rm = sbonuses[i].getAttribute('data-mins');
+						let x = (rm > 0 ? ' ['+formatMinutes(rm)+']' : '');
+						sxappend(sbonuses[i].getAttribute('id'),sbonuses[i].parentNode.firstChild.innerHTML+x,sbonuses[i].getAttribute('data-points'),sbonuses[i].getAttribute('data-mult'),totalBonusPoints);
+					} else if (sbonuses[i].checked) {
+						reportRejectedClaim(sbonuses[i].getAttribute('id'),sbonuses[i].getAttribute('data-rejected'));
+					}
 				}
 			}
 		}
@@ -725,15 +744,17 @@ function calcComplexScore(res)
 		sbonuses = document.getElementsByName("SpecialID[]");
 		for (var i = 0, bps = 0, mults = 0; i < sbonuses.length; i++ )
 		{
-			if (!bonusScoredOk(sbonuses[i]))
-				continue;
-			bps = parseInt(sbonuses[i].getAttribute('data-points'));
-			totalBonusPoints += bps;
-			mults = parseInt(sbonuses[i].getAttribute('data-mult'));
-			totalMultipliers += mults;
-			let rm = sbonuses[i].getAttribute('data-mins');
-			let x = (rm > 0 ? ' ['+formatMinutes(rm)+']' : '');
-			sxappend(sbonuses[i].getAttribute('id'),sbonuses[i].parentNode.firstChild.innerHTML+x,sbonuses[i].getAttribute('data-points'),sbonuses[i].getAttribute('data-mult'),totalBonusPoints);			
+			if (bonusScoredOk(sbonuses[i])) {
+				bps = parseInt(sbonuses[i].getAttribute('data-points'));
+				totalBonusPoints += bps;
+				mults = parseInt(sbonuses[i].getAttribute('data-mult'));
+				totalMultipliers += mults;
+				let rm = sbonuses[i].getAttribute('data-mins');
+				let x = (rm > 0 ? ' ['+formatMinutes(rm)+']' : '');
+				sxappend(sbonuses[i].getAttribute('id'),sbonuses[i].parentNode.firstChild.innerHTML+x,sbonuses[i].getAttribute('data-points'),sbonuses[i].getAttribute('data-mult'),totalBonusPoints);			
+			} else if (sbonuses[i].checked) {
+				reportRejectedClaim(sbonuses[i].getAttribute('id'),sbonuses[i].getAttribute('data-rejected'));
+			}
 		}
 
 	
@@ -751,8 +772,11 @@ function calcComplexScore(res)
 		var bonuses = document.getElementsByName("ComboID[]");
 		for (var i = 0, bps = 0, mults = 0; i < bonuses.length; i++ )
 		{
-			if (!bonusScoredOk(bonuses[i]))
+			if (!bonusScoredOk(bonuses[i])) {
+				if (bonuses[i].checked)
+					reportRejectedClaim(bonuses[i].getAttribute('id'),bonuses[i].getAttribute('data-rejected'));
 				continue;
+			}
 		
 			//console.log(bonuses[i].getAttribute('id')+' checked = '+bonuses[i].getAttribute('data-points'));
 			if (parseInt(bonuses[i].getAttribute('data-method')) == CMB_ScoreMults)
@@ -935,6 +959,7 @@ function calcScore(enableSave)
 	sxstart();
 	
 	if (sm != SM_Manual) 	{
+		markRejectedClaims();
 		tickCombos();
 		if (debug) console.log("calcScore[0][2]");
 		repaintBonuses();
@@ -945,7 +970,6 @@ function calcScore(enableSave)
 		else
 			TPS = calcSimpleScore(res);
 		if (debug) console.log("calcScore[2]");
-		reportRejectedClaims();
 		sxappend('',RPT_Total,'',0,TPS);
 		document.getElementById('TotalPoints').value = formatNumberScore(TPS);
 		document.getElementById('TotalPoints').setAttribute('title',res.reason);
@@ -998,13 +1022,14 @@ function calcSimpleScore(res)
 		{
 			bp = document.getElementsByName("SpecialID_"+sg[j]+"[]");
 			for (var i = 0, bps = 0; i < bp.length; i++ )
-				if (bonusScoredOk(bp[i]))
-				{
+				if (bonusScoredOk(bp[i])) {
 					bps = parseInt(bp[i].getAttribute('data-points'));
 					TS += bps;
 					let rm = bp[i].getAttribute('data-mins');
 					let x = (rm > 0 ? ' ['+formatMinutes(rm)+']' : '');
 					sxappend(bp[i].getAttribute('id'),bp[i].parentNode.firstChild.innerHTML+x,bp[i].getAttribute('data-points'),0,TS);
+				} else if (bp[i].checked) {
+					reportRejectedClaim(bp[i].getAttribute('id'),bp[i].getAttribute('data-rejected'));
 				}
 		
 		}
@@ -1012,13 +1037,13 @@ function calcSimpleScore(res)
 	
 	bp = document.getElementsByName("SpecialID[]");
 	for (var i = 0, bps = 0; i < bp.length; i++ )
-		if (bonusScoredOk(bp[i]))
-		{
+		if (bonusScoredOk(bp[i])) {
 			bps += parseInt(bp[i].getAttribute('data-points'));
 			let rm = bp[i].getAttribute('data-mins');
 			let x = (rm > 0 ? ' ['+formatMinutes(rm)+']' : '');
 			sxappend(bp[i].getAttribute('id'),bp[i].parentNode.firstChild.innerHTML+x,bp[i].getAttribute('data-points'),0,TS + bps);
-
+		} else if (bp[i].checked) {
+			reportRejectedClaim(bp[i].getAttribute('id'),bp[i].getAttribute('data-rejected'));
 		}
 		
 	TS += bps;
@@ -1026,11 +1051,11 @@ function calcSimpleScore(res)
 
 	bp = document.getElementsByName("ComboID[]");
 	for (var i = 0, bps = 0; i < bp.length; i++ )
-		if (bonusScoredOk(bp[i]))
-		{
+		if (bonusScoredOk(bp[i])) {
 			bps += parseInt(bp[i].getAttribute('data-points'));
 			sxappend(bp[i].getAttribute('id'),bp[i].parentNode.firstChild.innerHTML,bp[i].getAttribute('data-points'),0,TS + bps);
-
+		} else if (bp[i].checked) {
+			reportRejectedClaim(bp[i].getAttribute('id'),bp[i].getAttribute('data-rejected'));
 		}
 		
 	TS += bps;
@@ -1436,6 +1461,33 @@ function markAsConfirmed()
 }
 
 
+function markRejectedClaims()
+/*
+ * I'm called on page load to mark individual bonuses as being rejected
+ *
+ */
+{
+	let RC = document.getElementById('RejectedClaims');
+	console.log('rca ['+RC.value+']');
+	let rca = RC.value.split(',');
+	console.log(rca.length);
+	for (let i = 0; i < rca.length; i++ )
+	{
+		let cr = rca[i].split('=');
+		let bonusid = cr[0];
+		let reason = cr[1];
+		console.log('mRC: '+bonusid+','+reason);
+		if (bonusid=='')
+			continue;
+		let B = document.getElementById(bonusid);
+		if (B == null)
+			continue;
+		B.setAttribute('data-rejected',reason);
+		setRejectedTooltip(B.parentNode,reason);
+
+	}
+}
+
 function reflectBonusCheckedState(B)
 {
 	//if (B.id == 'CLinked1')
@@ -1499,43 +1551,17 @@ function reportRejectedClaim(bonusid,reason)
 	//console.log("Reporting reason " + reason + " for bonus " + bonusid);
 }
 
-function reportRejectedClaims()
-/*
- * I'm called on page load to mark individual bonuses as being rejected and to
- * report those rejections to the score explanation.
- *
- */
+function SFS(status,x)
 {
-	var RC = document.getElementById('RejectedClaims');
-	console.log('rca ['+RC.value+']');
-	var rca = RC.value.split(',');
-	console.log(rca.length);
-	for (var i = 0; i < rca.length; i++ )
-	{
-		var cr = rca[i].split('=');
-		if (cr[0].substr(0,1) != ORDINARY_BONUS_PREFIX)
-			reportRejectedClaim(cr[0],cr[1]);
-	}
+	var es = document.getElementById('EntrantStatus');
+	es.value = status;
+	es.setAttribute('title',x);
+	if (x != '')
+		sxappend(' '+es.options[status].text,x,'','',0);
+	var sxsfs = document.getElementById('sxsfs');
+	if (sxsfs)
+		sxsfs.innerHTML = es.options[es.selectedIndex].text;
 }
-
-	function sfs(status)
-	{
-		var es = document.getElementById('EntrantStatus');
-		var sxsfs = document.getElementById('sxsfs');
-		if (sxsfs)
-			sxsfs.innerHTML = es.options[es.selectedIndex].text;
-	}
-	function SFS(status,x)
-	{
-		var es = document.getElementById('EntrantStatus');
-		es.value = status;
-		es.setAttribute('title',x);
-		if (x != '')
-			sxappend(' '+es.options[status].text,x,'','',0);
-		var sxsfs = document.getElementById('sxsfs');
-		if (sxsfs)
-			sxsfs.innerHTML = es.options[es.selectedIndex].text;
-	}
 
 function setFinisherStatus()
 /*
@@ -1571,14 +1597,14 @@ function setFinisherStatus()
 	var BL = document.getElementsByName('BonusID[]');
 	for (var i = 0 ; i < BL.length; i++ )
 		if (BL[i].getAttribute('data-reqd')==COMPULSORYBONUS && !bonusScoredOk(BL[i]))
-			return SFS(EntrantDNF,DNF_MISSEDCOMPULSORY);
+			return SFS(EntrantDNF,DNF_MISSEDCOMPULSORY+' [ '+BL[i].getAttribute('id')+' ]');
 	
 	BL = document.getElementsByName('SpecialID[]');
 	for (var i = 0 ; i < BL.length; i++ )
 		if (BL[i].getAttribute('data-reqd')==COMPULSORYBONUS && !bonusScoredOk(BL[i]))
-			return SFS(EntrantDNF,DNF_MISSEDCOMPULSORY);
+			return SFS(EntrantDNF,DNF_MISSEDCOMPULSORY+' [ '+BL[i].getAttribute('id')+' ]');
 		else if (BL[i].getAttribute('data-reqd')==MUSTNOTMATCH && bonusScoredOk(BL[i]))
-			return SFS(EntrantDNF,DNF_HITMUSTNOT);
+			return SFS(EntrantDNF,DNF_HITMUSTNOT+' [ '+BL[i].getAttribute('id')+' ]');
 	
 	var sgObj = document.getElementById('SGroupsUsed');
 	if (sgObj != null)
@@ -1588,15 +1614,15 @@ function setFinisherStatus()
 			BL = document.getElementsByName('SpecialID_' + sg[i] + '[]');
 			for (var i = 0 ; i < BL.length; i++ )
 				if (BL[i].getAttribute('data-reqd')==COMPULSORYBONUS && !bonusScoredOk(!BL[i]))
-					return SFS(EntrantDNF,DNF_MISSEDCOMPULSORY);
+					return SFS(EntrantDNF,DNF_MISSEDCOMPULSORY+' [ '+BL[i].getAttribute('id')+' ]');
 				else if (BL[i].getAttribute('data-reqd')==MUSTNOTMATCH && bonusScoredOk(BL[i]))
-					return SFS(EntrantDNF,DNF_HITMUSTNOT);
+					return SFS(EntrantDNF,DNF_HITMUSTNOT+' [ '+BL[i].getAttribute('id')+' ]');
 	}
 	
 	BL = document.getElementsByName('ComboID[]');
 	for (var i = 0 ; i < BL.length; i++ )
 		if (BL[i].getAttribute('data-reqd')==COMPULSORYBONUS && !bonusScoredOk(BL[i]))
-			return SFS(EntrantDNF,DNF_MISSEDCOMPULSORY);
+			return SFS(EntrantDNF,DNF_MISSEDCOMPULSORY+' [ '+BL[i].getAttribute('id')+' ]');
 	
 	BL = document.getElementsByName('catcompound[]');
 	for (var i = 0 ; i < BL.length; i++ )
@@ -2139,7 +2165,7 @@ function tickCombos()
 	for (var i = 0; i < cmbs.length; i++ )
 	{
 		var tick = true;
-		if (cmbs[i].hasAttribute('data-rejected') && cmbs[i].getAttribute('data-rejected') > '0')
+		if (false && cmbs[i].hasAttribute('data-rejected') && cmbs[i].getAttribute('data-rejected') > '0')
 			tick = false;
 		else
 		{
@@ -2178,7 +2204,7 @@ function tickCombos()
 				document.getElementById(cmbs[i].getAttribute('id')).setAttribute('data-points',pts);
 		}
 		let bonus = document.getElementById(cmbs[i].getAttribute('id'));
-		bonus.checked = tick && (!bonus.hasAttribute('data-rejected') || bonus.getAttribute('data-rejected')=='0');
+		bonus.checked = tick; // && (!bonus.hasAttribute('data-rejected') || bonus.getAttribute('data-rejected')=='0');
 	}
 }
 
