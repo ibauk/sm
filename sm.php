@@ -44,7 +44,10 @@ function deleteSpecial($bonusid)
 	global $DB;
 
 	$sql = "DELETE FROM specials WHERE BonusID='".$DB->escapeString($bonusid)."'";
-	$DB->exec($sql);
+	if (!$DB->exec($sql)) {
+		dberror();
+		exit;
+	}
 	if ($DB->lastErrorCode()<>0) 
 		return dberror();
 	
@@ -73,7 +76,10 @@ function saveCombinations()
 
 	//var_dump($_REQUEST); echo('<br>');
 	$arr = $_REQUEST['ComboID'];
-	$DB->exec('BEGIN TRANSACTION');
+	if (!$DB->exec('BEGIN IMMEDIATE TRANSACTION')) {
+		dberror();
+		exit;
+	}
 	if ($DB->lastErrorCode()<>0) 
 		return dberror();			
 	
@@ -150,7 +156,10 @@ function saveSGroups()
 
 	//var_dump($_REQUEST);
 	$arr = $_REQUEST['GroupName'];
-	$DB->query('BEGIN TRANSACTION');
+	if ($DB->exec('BEGIN IMMEDIATE TRANSACTION')) {
+		dberror();
+		exit;
+	}
 	for ($i=0; $i < count($arr); $i++)
 	{
 		if (isset($_REQUEST['GroupName'][$i]) && isset($_REQUEST['GroupType'][$i]))
@@ -179,7 +188,7 @@ function saveSGroups()
 				return dberror();			
 		}
 	}
-	$DB->query('COMMIT TRANSACTION');
+	$DB->exec('COMMIT TRANSACTION');
 	if (retraceBreadcrumb())
 		exit;
 	if (isset($_REQUEST['menu'])) 
@@ -257,7 +266,10 @@ function saveRallyConfig()
 
 	$sql .= ",RejectReasons='".$DB->escapeString($RejectReasons)."'";
 	//echo($sql.'<hr>');
-	$DB->exec($sql);
+	if (!$DB->exec($sql)) {
+		dberror();
+		exit;
+	}
 	if ($DB->lastErrorCode()<>0) 
 		return dberror();			
 	//echo("Rally configuration saved ".$DB->lastErrorCode().' ['.$DB->lastErrorMsg().']<hr>');
@@ -268,7 +280,10 @@ function saveRallyConfig()
 	$sql .= ", tankrange=".intval($_REQUEST['tankrange']);
 	$sql .= ", stopmins=".intval($_REQUEST['stopmins']);
 	$sql .= ", refuelstops='".$DB->escapeString($_REQUEST['refuelstops'])."'";
-	$DB->exec($sql);
+	if (!$DB->exec($sql)) {
+		dberror();
+		exit;
+	}
 	if ($DB->lastErrorCode()<>0) 
 		return dberror();			
 	
@@ -294,7 +309,10 @@ function saveSingleCombo()
 		if (!isset($_REQUEST['comboid']) || $_REQUEST['comboid'] == '')
 			return;
 		$sql = "DELETE FROM combinations WHERE ComboID='".$DB->escapeString($_REQUEST['comboid'])."'";
-		$DB->exec($sql);
+		if (!$DB->exec($sql)) {
+			dberror();
+			exit;
+		}
 		if ($DB->lastErrorCode()<>0) 
 			return dberror();			
 		return;
@@ -322,7 +340,10 @@ function saveSingleCombo()
 	if ($_REQUEST['comboid']<>'')
 	{
 		//echo($sql.'<br>');			
-		$DB->exec($sql);
+		if (!$DB->exec($sql)) {
+			dberror();
+			exit;
+		}
 		if ($DB->lastErrorCode()<>0) 
 			return dberror();			
 	}
@@ -376,7 +397,10 @@ function saveSpecials()
 
 	//var_dump($_REQUEST);
 	$arr = $_REQUEST['BonusID'];
-	$DB->query('BEGIN TRANSACTION');
+	if (!$DB->exec('BEGIN IMMEDIATE TRANSACTION')) {
+		dberror();
+		exit;
+	}
 	for ($i=0; $i < count($arr); $i++)
 	{
 		$sql = "INSERT OR REPLACE INTO specials (BonusID,BriefDesc,GroupName,Points,MultFactor) VALUES(";
@@ -427,7 +451,7 @@ function saveSpecials()
 				return dberror();			
 		}
 	}
-	$DB->query('COMMIT TRANSACTION');
+	$DB->exec('COMMIT TRANSACTION');
 	if (retraceBreadcrumb())
 		exit;
 	if (isset($_REQUEST['menu'])) 

@@ -125,7 +125,10 @@ function deleteClaim()
 	global $DB,$TAGS,$KONSTANTS;
 		
 	$sql = "DELETE FROM claims WHERE rowid=".$_REQUEST['claimid'];
-	$DB->exec($sql);
+	if (!$DB->exec($sql)) {
+		dberror();
+		exit;
+	}
 	if ($DB->lastErrorCode()<>0) {
 		echo("SQL ERROR: ".$DB->lastErrorMsg().'<hr>'.$sql.'<hr>');
 		exit;
@@ -185,10 +188,21 @@ function listclaims()
 	
 	echo('<div id="listctrl">');
 	echo('<form method="get" action="claims.php">');
-	echo('<span title="'.$TAGS['cl_NumClaims'][1].'">'.$rex.' </span>');
 	echo('<input id="refreshc" type="hidden" name="c" value="listclaims">');
 	echo('<input type="hidden" name="nobc" value="1">');
-	echo('<input type="submit" id="refreshlist" onclick="document.getElementById(\'refreshc\').value=\'listclaims\';" title="'.$TAGS['cl_RefreshList'][1].'" value="'.$TAGS['cl_RefreshList'][0].'"> ');
+
+	echo('<span title="'.$TAGS['cl_DDLabel'][1].'" style="font-size:small;">');
+	echo('<label for="decisiondefault">'.$TAGS['cl_DDLabel'][0].'</label>');
+	echo('<select id="decisiondefault" name="dd" onchange="updateDD(this);" style="font-size:small;"> ');
+	echo('<option value="-1" '.(isset($_SESSION['dd']) && $_SESSION['dd']=='-1'?'selected':'').'>'.$TAGS['BonusClaimUndecided'][0].'</option>');
+	echo('<option value="0" '.(!isset($_SESSION['dd']) || $_SESSION['dd']=='0'?'selected':'').'>'.$TAGS['BonusClaimOK'][0].'</option>');
+	echo('</select> ');
+	echo('<input type="date" style="font-size:small;" name="ddate" value="'.(isset($_SESSION['ddate'])?$_SESSION['ddate']:$defaultDate).'" onchange="updateDDate(this);"> ');
+	echo('</span>');
+	echo('<input autofocus style="font-size:large;padding:1em;" onclick="document.getElementById(\'refreshc\').value=\'shownew\';" type="submit" title="'.$TAGS['cl_PostNewClaim'][1].'" value="'.$TAGS['cl_PostNewClaim'][0].'"> ');
+
+
+	echo('<span>'.$TAGS['cl_FilterLabel'][0].'</span> ');
 	echo('<input type="number" placeholder1="'.$TAGS['cl_FilterEntrant'][0].'" title="'.$TAGS['cl_FilterEntrant'][1].'" id="showe" name="showe" value="'.(isset($_REQUEST['showe'])? $_REQUEST['showe']:'').'"> ');
 	echo('<input type="text" placeholder1="'.$TAGS['cl_FilterBonus'][0].'" title="'.$TAGS['cl_FilterBonus'][1].'" id="showb" name="showb" value="'.(isset($_REQUEST['showb'])? $_REQUEST['showb']:'').'"> ');
 	
@@ -211,19 +225,15 @@ function listclaims()
 	echo('<option value="'.$KONSTANTS['showNot'].'" '.($applied==$KONSTANTS['showNot'] ? 'selected' : '').'>'.$TAGS['cl_showNotA'][0].'</option>');
 	echo('</select> ');
 	
+	echo('<span title="'.$TAGS['cl_NumClaims'][1].'">'.$rex.' </span> ');
 	
-	echo('<span title="'.$TAGS['cl_DDLabel'][1].'" style="font-size:small;">');
-	echo('<label for="decisiondefault">'.$TAGS['cl_DDLabel'][0].'</label>');
-	echo('<select id="decisiondefault" name="dd" onchange="updateDD(this);" style="font-size:small;"> ');
-	echo('<option value="-1" '.(isset($_SESSION['dd']) && $_SESSION['dd']=='-1'?'selected':'').'>'.$TAGS['BonusClaimUndecided'][0].'</option>');
-	echo('<option value="0" '.(!isset($_SESSION['dd']) || $_SESSION['dd']=='0'?'selected':'').'>'.$TAGS['BonusClaimOK'][0].'</option>');
-	echo('</select> ');
-	echo('<input type="date" style="font-size:small;" name="ddate" value="'.(isset($_SESSION['ddate'])?$_SESSION['ddate']:$defaultDate).'" onchange="updateDDate(this);"> ');
-	echo('</span>');
-	echo('<input onclick="document.getElementById(\'refreshc\').value=\'shownew\';" type="submit" title="'.$TAGS['cl_PostNewClaim'][1].'" value="'.$TAGS['cl_PostNewClaim'][0].'"> ');
+	echo('<input type="submit" id="refreshlist" onclick="document.getElementById(\'refreshc\').value=\'listclaims\';" title="'.$TAGS['cl_RefreshList'][1].'" value="'.$TAGS['cl_RefreshList'][0].'"> ');
 	
 	echo('</form>');
 	echo('</div>');
+
+
+
 	echo('<table><thead class="listhead">');
 	echo('<tr><th>'.$TAGS['cl_EntrantHdr'][0].'</th><th>'.$TAGS['cl_BonusHdr'][0].'</th><th>'.$TAGS['cl_OdoHdr'][0].'<th>'.$TAGS['cl_ClaimedHdr'][0].'</th>');
 	echo('<th>'.$TAGS['cl_DecisionHdr'][0].'</th>');
@@ -356,7 +366,10 @@ function saveClaim()
 	
 	//echo('<br>'.$sql.'<br>');
 	
-	$DB->exec("UPDATE claims SET ".$sql);
+	if (!$DB->exec("UPDATE claims SET ".$sql)) {
+		dberror();
+		exit;
+	}
 	if ($DB->lastErrorCode()<>0) {
 		echo("SQL ERROR: ".$DB->lastErrorMsg().'<hr>'.$sql.'<hr>');
 		exit;
@@ -388,7 +401,7 @@ function saveNewClaim()
 		if (isset($_REQUEST[$F]))
 			$sql .= ",$F";
 	$sql .= ") VALUES(";
-	$dtn = new DateTime(Date('Y-m-d'),new DateTimeZone($KONSTANTS['LocalTZ']));
+	$dtn = new DateTime(Date('Y-m-dTH:i:s'),new DateTimeZone($KONSTANTS['LocalTZ']));
 	$datenow = $dtn->format('c');
 	$la = (isset($_REQUEST['LoggedAt']) && $_REQUEST['LoggedAt'] != '' ? $_REQUEST['LoggedAt'] : $datenow);
 	$sql .= "'".$la."'";
@@ -417,7 +430,10 @@ function saveNewClaim()
 	
 	$sql .= ")";
 	//echo('<br>'.$sql.'<br>');
-	$DB->exec($sql);
+	if (!$DB->exec($sql)) {
+		dberror();
+		exit;
+	}
 	
 }
 
@@ -538,7 +554,7 @@ function checkDateTime() {
 	let rf = document.getElementById('rallyFinish');
 	let lc = document.getElementById('lastClaimTime');
 	let ct = cdt.value+'T'+ctm.value;
-	console.log(rs.value+'  '+rf.value+' '+lc.value+' '+ct);
+	//console.log(rs.value+'  '+rf.value+' '+lc.value+' '+ct);
 	let ok = (!lc || ct > lc.value) && (!rs || ct >= rs.value) && (!rf || ct <= rf.value);
 	console.log('Decided it was ok = '+ok);
 	if (ok) {
@@ -572,7 +588,13 @@ function formatDatetime(dt) {
 	
 }
 
-function checkSpeeding() {
+function checkEnableSave()
+{
+	if (validateClaim(false))
+		enableSaveButton();
+}
+
+function checkSpeeding($penalise) {
 
 	checkDateTime();  // Is the current claim time reasonable ?
 	
@@ -588,7 +610,10 @@ function checkSpeeding() {
 		speedok.innerHTML = '';
 	}
 	console.log('Warning cleared');
-	let lct = document.getElementById('lastClaimTime').value;
+	let lc = document.getElementById('lastClaimTime');
+	if (!lc)
+		return;
+	let lct = lc.value;
 	if (lct=='')
 		return;
 	console.log('Fetched last claim: t='+lct);
@@ -600,7 +625,7 @@ function checkSpeeding() {
 	console.log('earliest+'+nm+'='+ed+' == '+edate+' ??? '+(ct < edate));
 	if (speedok && ct < edate) {
 		console.log('OMG!');
-		let tickspeed = ' <input type="checkbox" value="1" name="SpeedPenalty" checked>';
+		let tickspeed = $penalise ? ' <input type="checkbox" value="1" name="SpeedPenalty" checked>' : '';
 		speedok.innerHTML = ' < ' + edate.replace('T',' ') + tickspeed;
 		speedok.style.display = 'inline';
 	}
@@ -661,6 +686,41 @@ function odoChanged(odo,emptyok) {
 		
 }
 
+function pasteNewClaim()
+{
+	event.stopPropagation();
+	event.preventDefault();
+	let clipboardData = event.clipboardData || window.clipboardData;
+	let txt = clipboardData.getData('Text');
+	let re = new RegExp(EBC_SUBJECT_LINE);
+	let matches = re.exec(txt);
+	if (!matches)
+		return;
+	let mlen = matches.length;
+	let echg = new Event('change');
+
+	let e = document.getElementById('EntrantID');
+	e.value = matches[1];
+	e.dispatchEvent(echg);
+	if (mlen > 1) {
+		let b = document.getElementById('BonusID');
+		b.value = matches[2];
+		b.dispatchEvent(echg);
+	}
+	if (mlen > 2) {
+		let o = document.getElementById('OdoReading');
+		o.value = matches[3];
+		o.dispatchEvent(echg);
+	}
+	if (mlen > 3) {
+		let t = document.getElementById('ClaimTime');
+		t.value = matches[4];
+		t.dispatchEvent(echg);
+	}
+	console.log(matches);
+	checkEnableSave();
+}
+
 function showBonus(obj) {
 	let str = obj.value
 	let xhttp;
@@ -715,23 +775,23 @@ function showEntrant(obj) {
 	xhttp.send();
 }
 
-function validateClaim() {
+function validateClaim(final) {
 	
 	console.log('Validating form ... ');
 	if (document.getElementById('EntrantID').value == '') {
-		document.getElementById('EntrantID').focus();
+		if (final) document.getElementById('EntrantID').focus();
 		return false;
 	}
 	if (document.getElementById('BonusID').value == '') {
-		document.getElementById('BonusID').focus();
+		if (final) document.getElementById('BonusID').focus();
 		return false;
 	}
 	if (document.getElementById('OdoReading').value == '') {
-		document.getElementById('OdoReading').focus();
+		if (final) document.getElementById('OdoReading').focus();
 		return false;
 	}
 	if (document.getElementById('ClaimTime').value == '') {
-		document.getElementById('ClaimTime').focus();
+		if (final) document.getElementById('ClaimTime').focus();
 		return false;
 	}
 	let claimid = parseInt(document.getElementById('claimid').value);
@@ -742,14 +802,14 @@ function validateClaim() {
 	
 	let ntm = document.getElementById('NextTimeMins');
 	if (ntm && ntm.value == '') {
-		ntm.focus();
+		if (final) ntm.focus();
 		return false;
 	}
 	let mw = document.getElementById('magicword');
 	if (mw && mw.value == '') {
 		let wms = document.getElementsByName('mw');
 		if (wms.length > 0) {
-			mw.focus();
+			if (final) mw.focus();
 			return false;
 		}
 	}
@@ -768,7 +828,7 @@ function validateClaim() {
 }
 </script>
 <?php	
-	echo('<form method="post" action="claims.php" onsubmit="return validateClaim();">');
+	echo('<form method="post" action="claims.php" onsubmit="return validateClaim(true);">');
 	echo('<input type="hidden" name="c" value="newclaim">');
 	echo('<input type="hidden" name="nobc" value="1">');
 	echo('<input type="hidden" name="LoggedAt" value="">');
@@ -788,7 +848,7 @@ function validateClaim() {
 	echo('<div class="frmContent" style="max-width: 45em;">');
 	
 	echo('<span class="vlabel" title="'.$TAGS['EntrantID'][1].'"><label for="EntrantID">'.$TAGS['EntrantID'][0].'</label> ');
-	echo('<input autofocus type="number" name="EntrantID" id="EntrantID" tabindex="1" oninput="enableSaveButton();" onchange="showEntrant(this);"');
+	echo('<input onpaste="pasteNewClaim();" autofocus type="text" name="EntrantID" id="EntrantID" tabindex="1" oninput="checkEnableSave();" onchange="showEntrant(this);"');
 	echo(' value="'.($claimid > 0 ? $rd['EntrantID'] : '').'"> ');
 	echo('<span id="EntrantName" style="display:inline-block; vertical-align: top;">');
 	if ($claimid > 0)
@@ -797,7 +857,7 @@ function validateClaim() {
 	echo('</span>');
 	
 	echo('<span class="vlabel" title="'.$TAGS['BonusIDLit'][1].'"><label for="BonusID">'.$TAGS['BonusIDLit'][0].'</label> ');
-	echo('<input type="text" name="BonusID" id="BonusID" tabindex="2" oninput="enableSaveButton();" onchange="showBonus(this);"');
+	echo('<input type="text" name="BonusID" id="BonusID" tabindex="2" oninput="checkEnableSave();" onchange="showBonus(this);"');
 	echo(' value="'.($claimid> 0 ? $rd['BonusID'] : '').'"> ');
 	echo('<span id="BonusName">');
 	if ($claimid > 0)
@@ -806,7 +866,7 @@ function validateClaim() {
 	echo('</span>');
 	
 	echo('<span class="vlabel" title="'.$TAGS['OdoReadingLit'][1].'"><label for="OdoReading">'.$TAGS['OdoReadingLit'][0].'</label> ');
-	echo('<input type="number" class="bignumber" name="OdoReading" oninput="enableSaveButton();" id="OdoReading"');
+	echo('<input type="number" class="bignumber" name="OdoReading" oninput="checkEnableSave();" id="OdoReading"');
 	if ($claimid==0)
 		echo(' onchange="odoChanged(this.value,false);"');
 	echo(' tabindex="3"');
@@ -814,37 +874,37 @@ function validateClaim() {
 	$ck = ($claimid > 0 && $rd['FuelPenalty'] != 0 ? ' checked ' : '');
 	$ds = ($claimid > 0 && $rd['FuelPenalty'] != 0 ? 'inline' : 'none');
 	echo('<span id="FuelWarning" style="display:'.$ds.';" title="'.$TAGS['FuelWarning'][1].'"> ');
-	$fw = $TAGS['FuelWarning'][0].' <input type="checkbox" name="FuelPenalty" value="1"  oninput="enableSaveButton();" id="TickFW" '.$ck.'>';
+	$fw = $TAGS['FuelWarning'][0].' <input type="checkbox" name="FuelPenalty" value="1"  oninput="checkEnableSave();" id="TickFW" '.$ck.'>';
 	echo($fw);
 	echo(' </span>');
 	echo('</span> ');
 
 	$ct = splitDatetime($claimid > 0 ? $rd['ClaimTime'] : (isset($_REQUEST['ddate'])?$_REQUEST['ddate']:date('Y-m-d')).'T ');
 	echo('<span class="vlabel" title="'.$TAGS['BonusClaimTime'][1].'"><label for="ClaimTime">'.$TAGS['BonusClaimTime'][0].'</label> ');
-	$oc = ($claimid == 0 ? ' onchange="checkSpeeding();"' : '');
-	echo('<input type="date" name="ClaimDate" id="ClaimDate" value="'.$ct[0].'" oninput="enableSaveButton();" tabindex="8"'.$oc.'> ');
-	echo('<input type="time" name="ClaimTime" id="ClaimTime" value="'.trim($ct[1]).'" oninput="enableSaveButton();" tabindex="4"'.$oc.'> ');
+	$oc = ($claimid == 0 ? ' onchange="checkSpeeding('.$virtualrally.');"' : '');
+	echo('<input type="date" name="ClaimDate" id="ClaimDate" value="'.$ct[0].'" oninput="checkEnableSave();" tabindex="8"'.$oc.'> ');
+	echo('<input type="time" name="ClaimTime" id="ClaimTime" value="'.trim($ct[1]).'" oninput="checkEnableSave();" tabindex="4"'.$oc.'> ');
 	$ds = ($claimid > 0 && $rd['SpeedPenalty'] != 0 ? 'inline' : 'none');
-	$oc = ($claimid > 0 && $rd['SpeedPenalty'] != 0 ? '&dzigrarr; <input type="checkbox" value="1" name="SpeedPenalty" oninput="enableSaveButton();" checked>' : '');
+	$oc = ($claimid > 0 && $rd['SpeedPenalty'] != 0 ? '&dzigrarr; <input type="checkbox" value="1" name="SpeedPenalty" oninput="checkEnableSave();" checked>' : '');
 	echo('<span id="SpeedWarning" style="display:'.$ds.';">'.$oc.'</span>');
 	echo('</span>');
 	
 	if ($virtualrally) {
 		echo('<span class="vlabel" title="'.$TAGS['NextTimeMins'][1].'"><label for="NextTimeMins">'.$TAGS['NextTimeMins'][0].'</label> ');
-		echo('<input type="text" class="bignumber" name="NextTimeMins" id="NextTimeMins" value="'.($claimid>0?showTimeMins($rd['NextTimeMins']):'').'" oninput="enableSaveButton();" tabindex="5">');
+		echo('<input type="text" class="bignumber" name="NextTimeMins" id="NextTimeMins" value="'.($claimid>0?showTimeMins($rd['NextTimeMins']):'').'" oninput="checkEnableSave();" tabindex="5">');
 		echo('</span>');
 		
 		echo('<span class="vlabel" id="magicspan" title="'.$TAGS['magicword'][1].'">');
 		echo('<label for="magicword">'.$TAGS['magicword'][0].'</label> ');
 		$oc =  ($claimid == 0 ? ' oninput="checkMagicWord();"' : '');
-		echo('<input type="text" style="width:10em;" id="magicword" name="MagicWord"'.$oc.' value="'.($claimid > 0 ? $rd['MagicWord'] : '').'" oninput="enableSaveButton();" tabindex="5"> ');
+		echo('<input type="text" style="width:10em;" id="magicword" name="MagicWord"'.$oc.' value="'.($claimid > 0 ? $rd['MagicWord'] : '').'" oninput="checkEnableSave();" tabindex="5"> ');
 		$oc = ($claimid > 0 && $rd['MagicPenalty'] != 0 ? ' &cross;  <input type="checkbox" value="1" name="MagicPenalty" checked>' : '');
 		$cl = ($oc != '' ? ' class="yellow"' : '');
 		echo('<span id="mwok"'.$cl.'>'.$oc.'</span>');
 		echo('</span>');
 	}
 	echo('<span class="vlabel" title="'.$TAGS['BonusClaimDecision'][1].'"><label for="Decision">'.$TAGS['BonusClaimDecision'][0].'</label> ');
-	echo('<select name="Decision" id="Decision" tabindex="5" style="font-size:smaller;" oninput="enableSaveButton();">');
+	echo('<select name="Decision" id="Decision" tabindex="5" style="font-size:smaller;" oninput="checkEnableSave();">');
 	//$dnum = $claimid > 0 ? ($rd['Judged']!=0 ? $rd['Decision'] : -1) : (isset($_REQUEST['dd']) && $_REQUEST['dd']=='0' ? 0 : -1);
 	$dnum = $claimid > 0 ? $rd['Decision'] : (isset($_REQUEST['dd']) ? $_REQUEST['dd'] : $KONSTANTS['UNDECIDED_CLAIM']);
 	echo('<option value="-1" '.($dnum==-1 ? 'selected' : '').'>'.$TAGS['BonusClaimUndecided'][0].'</option>');
@@ -1015,25 +1075,6 @@ function fetchEntrantDetail($e)
 }
 
 
-function extractClaims()
-// One-off for no ride rally April 2020
-{
-	global $DB,$TAGS,$KONSTANTS;
-
-	echo('Extracting claims ... ');
-	$R = $DB->query("SELECT EntrantID,BonusesVisited FROM entrants");
-	$DB->exec('BEGIN TRANSACTION');
-	while($rd = $R->fetchArray()) {
-		$B = explode(',',$rd['BonusesVisited']);
-		foreach($B as $bns) {
-			if ($bns != '')
-				$DB->exec("INSERT INTO eclaims(EntrantID,BonusID) VALUES(".$rd['EntrantID'].",'".$bns."')");
-		}
-	}
-	$DB->exec('COMMIT');
-	echo('done');
-
-}
 function applyClaimsForm()
 {
 	global $TAGS;
@@ -1045,8 +1086,12 @@ function applyClaimsForm()
 	emitBreadcrumbs();
 	echo('<form action="claims.php" method="post">');
 	echo('<input type="hidden" name="c" value="applyclaims">');
-	echo('<span class="vlabel" title="'.$TAGS['cl_DateFrom'][1].'"><label for="lodate">'.$TAGS['cl_DateFrom'][0].'</label> <input type="date" id="lodate" name="lodate" value="'.date("Y-m-d").'"></span>');
-	echo('<span class="vlabel" title="'.$TAGS['cl_DateTo'][1].'"><label for="hidate">'.$TAGS['cl_DateTo'][0].'</label> <input type="date" id="hidate" name="hidate" value="'.date("Y-m-d").'"></span>');
+	$lodate = date("Y-m-d");
+	$lodate = substr(getValueFromDB("SELECT StartTime FROM rallyparams","StartTime",$lodate),0,10);
+
+	$hidate = date("Y-m-d");
+	echo('<span class="vlabel" title="'.$TAGS['cl_DateFrom'][1].'"><label for="lodate">'.$TAGS['cl_DateFrom'][0].'</label> <input type="date" id="lodate" name="lodate" value="'.$lodate.'"></span>');
+	echo('<span class="vlabel" title="'.$TAGS['cl_DateTo'][1].'"><label for="hidate">'.$TAGS['cl_DateTo'][0].'</label> <input type="date" id="hidate" name="hidate" value="'.$hidate.'"></span>');
 	echo('<span class="vlabel" title="'.$TAGS['cl_TimeFrom'][1].'"><label for="lotime">'.$TAGS['cl_TimeFrom'][0].'</label> <input type="time" id="lotime" name="lotime" value="00:00"></span>');
 	echo('<span class="vlabel" title="'.$TAGS['cl_TimeTo'][1].'"><label for="hitime">'.$TAGS['cl_TimeTo'][0].'</label> <input type="time" id="hitime" name="hitime" value="23:59"></span>');
 	echo('<input type="hidden" name="decisions" value="0">'); // Only process good claims
@@ -1069,7 +1114,23 @@ function applyClaims()
 		exit;
 	}
 	
+
+	if (!$DB->exec('BEGIN IMMEDIATE TRANSACTION')) {
+		dberror();
+		exit;
+	}
+
+
 	startHtml($TAGS['cl_ClaimsTitle'][0]);
+
+	$sql = "SELECT count(*) As Rex FROM entrants WHERE ScoringNow<>0";
+	if (getValueFromDB($sql,"Rex",0) > 0) {
+		$DB->exec('ROLLBACK');
+		echo('<h3>'.$TAGS['ExclusiveAccessNeeded'][0].'</h3>');
+		echo('<p>'.$TAGS['ExclusiveAccessNeeded'][1].'</p>');
+		exit;
+	}
+
 	emitBreadcrumbs();
 	echo('<h3>'.$TAGS['cl_Applying'][0].'</h3>');
 
@@ -1089,7 +1150,7 @@ function applyClaims()
 	$sqlW .= "ClaimTime<='".$hiclaimtime."' AND ";
 	$sqlW .= "Decision IN (".$_REQUEST['decisions'].") ";
 	
-	// $sqlW .= " AND SpeedPenalty=0 AND FuelPenalty=0 AND MagicPenalty=0"; // Penalties applied by hand
+	$sqlW .= " AND SpeedPenalty=0 AND FuelPenalty=0 AND MagicPenalty=0"; // Penalties applied by hand
 	
 	if (isset($_REQUEST['entrants']))
 		$sqlW .= " AND EntrantID IN (".$_REQUEST['entrants'].")";
@@ -1115,7 +1176,7 @@ function applyClaims()
 	//print_r($claims);
 	//return;
 	
-	$DB->exec('BEGIN TRANSACTION');
+	
 	foreach($claims as $entrant => $bonuses) {
 		
 		$sql = "SELECT IfNull(FinishTime,'2020-01-01') As FinishTime,IfNull(OdoRallyFinish,0) As OdoRallyFinish,BonusesVisited";
@@ -1191,7 +1252,10 @@ function saveMagicWords()
 	global $DB,$TAGS,$KONSTANTS;
 	
 	$arr = $_REQUEST['id'];
-	$DB->exec('BEGIN');
+	if (!$DB->exec('BEGIN IMMEDIATE TRANSACTION')) {
+		dberror();
+		exit;
+	}
 	$DB->exec('DELETE FROM magicwords');
 	for ($i = 0; $i < count($arr); $i++) {
 		if ($_REQUEST['magic'][$i] != '') {
@@ -1300,11 +1364,6 @@ if (isset($_REQUEST['saveclaim'])) {
 	if (retraceBreadcrumb());
 }	
 if (isset($_REQUEST['c'])) {
-	
-	if ($_REQUEST['c']=='extractclaims') {
-		extractClaims();
-		exit;
-	}
 	
 	if ($_REQUEST['c']=='applyclaims') {
 		applyClaims();

@@ -9,7 +9,7 @@
  * I am written for readability rather than efficiency, please keep me that way.
  *
  *
- * Copyright (c) 2019 Bob Stammers
+ * Copyright (c) 2020 Bob Stammers
  *
  *
  * This file is part of IBAUK-SCOREMASTER.
@@ -60,4 +60,9 @@ const APPLYCLOSE = "Apply changes/close";
 
 const UPDATE_FAILED = "UPDATE FAILED!";
 
+const CANT_LOCK = "USER CONFLICT\n\nCannot acquire record lock - someone else is updating!";
+
 const MY_LOCALE	= "en-GB";
+
+// Regular expression for parsing subject line from emails
+const EBC_SUBJECT_LINE = /(\d+)\,*\s*([a-z0-9\-]+)\,*\s*(\d+)\s*\,*\s*(\d\d\:*\d\d)/;

@@ -44,7 +44,10 @@ function deleteEntrant()
 	if ($_POST['rusure'] != $KONSTANTS['AreYouSureYes'])
 		return;
 	$sql = "DELETE FROM entrants WHERE EntrantID=$entrantid";		
-	$DB->exec($sql);
+	if (!$DB->exec($sql)) {
+		dberror();
+		exit;
+	}
 	if ($DB->lastErrorCode()<>0) {
 		echo("SQL ERROR: ".$DB->lastErrorMsg().'<hr>'.$sql.'<hr>');
 		exit;
@@ -405,7 +408,10 @@ function saveEntrantRecord()
 		$sql .= " WHERE EntrantID=".$_REQUEST['EntrantID'];
 	
 //	echo($sql.'<br>');
-	$DB->exec($sql);
+	if (!$DB->exec($sql)) {
+		dberror();
+		exit;
+	}
 	if ($DB->lastErrorCode()<>0) {
 		echo("SQL ERROR: ".$DB->lastErrorMsg().'<hr>'.$sql.'<hr>');
 		exit;
@@ -496,7 +502,10 @@ function renumberAllEntrants()
 	$base = 0;
 	while ($firstnum + $base <= $hinum)
 		$base += 1000; // Should be big enough
-	$DB->exec("BEGIN TRANSACTION");
+	if (!$DB->exec("BEGIN IMMEDIATE TRANSACTION")) {
+		dberror();
+		exit;
+	}
 	foreach ($rex as $k => $v)
 	{
 		$newnumber = $base + $v;
@@ -526,6 +535,7 @@ function renumberEntrant()
 {
 	global $DB, $TAGS, $KONSTANTS;
 
+	error_log('Renumbering entrant');
 	$entrantid = $_POST['entrantid'];
 	if ($entrantid == '')
 		return;
@@ -534,8 +544,12 @@ function renumberEntrant()
 		return;
 	if (getValueFromDB("SELECT EntrantID FROM entrants WHERE EntrantID=$newnumber","EntrantID",0) != 0)
 		return;
-	$sql = "DELETE FROM entrants WHERE EntrantID=$entrantid";
-	$DB->exec($sql);
+	$sql = "UPDATE entrants SET EntrantID=$newnumber WHERE EntrantID=$entrantid";
+	error_log($sql);
+	if (!$DB->exec($sql)) {
+		dberror();
+		exit;
+	}
 	if ($DB->lastErrorCode()<>0) {
 		echo("SQL ERROR: ".$DB->lastErrorMsg().'<hr>'.$sql.'<hr>');
 		exit;
@@ -1540,7 +1554,6 @@ if (isset($_REQUEST['savedata']))
 		;//exit;
 	
 }
-startHtml($TAGS['ttEntrants'][0]);
 
 
 if (isset($_POST['c']) && $_POST['c']=='kill')
@@ -1558,7 +1571,10 @@ else if (isset($_POST['c']) && $_POST['c']=='renumentrant')
 	renumberEntrant();
 	prgListEntrants();
 }
-else if (isset($_REQUEST['c']) && $_REQUEST['c']=='showrae')
+
+startHtml($TAGS['ttEntrants'][0]);
+
+if (isset($_REQUEST['c']) && $_REQUEST['c']=='showrae')
 	showRAE();
 else if (isset($_REQUEST['c']) && $_REQUEST['c']=='moveentrant')
 	showRenumberEntrant();

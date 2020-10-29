@@ -141,7 +141,7 @@ $TAGS = array(
 	'AutoRank'			=> array('Automatic Ranking','Rank automatically recalculated when scorecard updated'),
 	'BasicDetails'		=> array('Basic',''),
 	'BasicRallyConfig'	=> array('Basic','Basic rally configuration fields'),
-	'BCHOME'			=> array('/','Main menu'),
+	'BCHOME'			=> array(' &nbsp;/ ','Main menu'),
 	'BCMethod'			=> array('Bonus claiming','Method of bonus claim: 0=unknown,1=EBC,2=paper/deferred'),
 	'BCMethod0'			=> array('unknown',''),
 	'BCMethod1'			=> array('EBC','Electronic Bonus Claiming'),
@@ -203,11 +203,12 @@ $TAGS = array(
 	'cl_DateFrom'		=> array('From date','Start of date range'),
 	'cl_DateTo'			=> array('To date','End of date range'),
 	
-	'cl_DDLabel'		=> array('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;New defaults:','Default decision/date when posting new claims'),
+	'cl_DDLabel'		=> array('&nbsp;&nbsp;New claim defaults:','Default decision/date when posting new claims'),
 	'cl_DecisionHdr'	=> array('Decision',''),
 	'cl_EntrantHdr'		=> array('Entrant',''),
 	'cl_FilterBonus'	=> array('B#','Filter list by Bonus number'),
 	'cl_FilterEntrant'	=> array('E#','Filter list by Entrant number'),
+	'cl_FilterLabel'	=> array('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;List filters','Use these fields to filter this list'),
 	'cl_Go'				=> array('Go on, go for it!','Go on, go for it!'),
 	'cl_LastBonusID'	=> array('Last bonus claimed:','ID of last bonus claimed by this entrant'),
 	'cl_LoggedHdr'		=> array('Logged',''),
@@ -317,6 +318,9 @@ $TAGS = array(
 	
 	'ExcessMileage'		=> array('Distance',''),						// Miles/Kms
 	
+	'ExclusiveAccessNeeded'
+						=> array('Exclusive use of the database is needed.','Please get everyone else out and try again.'),
+
 	'ExpClasses'		=> array('Class help','Classes are used to produce different certificates for different groups of entrants. Classes may be either static, manually assigned, or dynamically calculated by reference to bonuses visited, points scored or rank achieved.'),
 	'ExpTeams'			=> array('Teams help','A team consists of two or more bikes riding together. They can be scored individually or as a single team.'),
 	'ExtraData'			=> array('ExtraData','Extra data to be passed on to the main database. Format is <i>name</i>=<i>value</i>'),
@@ -527,7 +531,8 @@ $TAGS = array(
 	'sc_Overview'		=> array('Overview','Overall standings'),
 	'sc_Status'			=> array('Status','Status'),
 	
-	'ScorecardIsDirty'	=> array('!!!','Scorecard is dirty'),
+	'ScorecardInUse'	=> array('&Otimes;','Scorecard is being updated'),
+	'ScorecardIsDirty'	=> array('!!!','Scorecard needs to be updated'),
 	'ScoredBy'			=> array('Scored by','Who is (or did) scoring this entrant?'),
 	'ScoreNow'			=> array('Score now','Switch to live scoring this entrant(new tab)'),
 	'ScoreMethodLit'	=> array('Score method',''),

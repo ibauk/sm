@@ -71,6 +71,7 @@ $PROGRAM = array("version" => "2.6.2b",	"title"	=> "ScoreMaster");
  *	2.6.2		Sent to Rick
  *	2.6.2a		First Rick update: scorecards/import/wizard buttons
  *	2.6.2b		Pre Jorvik mods
+ *	2.7			Post Jorvik - claims rebuild, locking conflict traps
  */
 
 $MIT = <<<'EOT'

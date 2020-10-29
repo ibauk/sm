@@ -105,6 +105,8 @@ $KONSTANTS['UPLOADS_FOLDER'] = "./uploads";
 try
 {
 	$DB = new SQLite3($DBFILENAME);
+	$DB->exec("PRAGMA busy_timeout = 5000");  // Set lock timeout to 15 seconds
+	//$DB->exec("PRAGMA journal_mode = wal");
 } catch(Exception $ex) {
 	echo("OMG ".$ex->getMessage().' file=[ '.$DBFILENAME.' ]');
 }
@@ -407,13 +409,17 @@ function rankEntrants()
 {
 	global $DB, $TAGS, $KONSTANTS;
 
-error_log(' ranking entrants ');
+	//error_log(' ranking entrants ');
 
 	$R = $DB->query('SELECT * FROM rallyparams');
 	$rd = $R->fetchArray();
 	$TiedPointsRanking = $rd['TiedPointsRanking'];
 	$TeamRanking = $rd['TeamRanking'];
 	
+	if (!$DB->exec('BEGIN IMMEDIATE TRANSACTION')) {
+		dberror();
+		exit;
+	}
 	$DB->exec('UPDATE entrants SET FinishPosition=0');
 
 	$sql = 'CREATE TEMPORARY TABLE "_ranking" ';
@@ -430,7 +436,7 @@ error_log(' ranking entrants ');
 	$N = 1;
 	$LastTeam = -1;
 
-	$DB->query('BEGIN TRANSACTION');
+	
 
 	While ($rd = $R->fetchArray()) 
 	{
@@ -471,9 +477,9 @@ error_log(' ranking entrants ');
 		$DB->exec($sql);
 
 	}
-	$DB->query('COMMIT TRANSACTION');
+	$DB->exec('COMMIT TRANSACTION');
 	
-	error_log(' ranking complete ');
+	//error_log(' ranking complete ');
 }
 
 

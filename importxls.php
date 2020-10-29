@@ -241,7 +241,10 @@ function loadSpreadsheet()
 						'Bike','Make','Model','BikeReg'
 					];
 	
-	$DB->exec("BEGIN TRANSACTION");
+	if (!$DB->exec("BEGIN IMMEDIATE TRANSACTION")) {
+		dberror();
+		exit;
+	}
 	$DB->exec("DELETE FROM $tablename");
 
 	$SqlBuilt = FALSE;

@@ -125,7 +125,10 @@ function saveSpeedPenalties()
 	global $DB, $TAGS, $KONSTANTS;
 	
 	
-	$DB->query('BEGIN TRANSACTION');
+	if (!$DB->exec('BEGIN IMMEDIATE TRANSACTION')) {
+		dberror();
+		exit;
+	}
 
 	// Delete all existing rules
 	$sql = "DELETE FROM speedpenalties";
@@ -147,7 +150,7 @@ function saveSpeedPenalties()
 		}
 		
 	}
-	$DB->query('COMMIT TRANSACTION');
+	$DB->exec('COMMIT TRANSACTION');
 	if (retraceBreadcrumb())
 		exit;
 }

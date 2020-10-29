@@ -43,6 +43,40 @@ require_once('common.php');
 
 
 
+function ajaxclearlock()
+// Called using AJAX
+{
+	global $DB;
+
+	if (!isset($_REQUEST['e']))
+		return;
+	$sql = "UPDATE entrants SET ScoringNow=0,ScoredBy='' WHERE EntrantID=".$_REQUEST['e'];
+	if ($DB->exec($sql))
+		echo('ok');
+	else
+		echo('###');
+}
+
+function ajaxsetlock()
+// Called using AJAX
+{
+	global $DB;
+
+	if (!isset($_REQUEST['e']))
+		return;
+	$sql = "UPDATE entrants SET ScoringNow=1";
+	if (isset($_REQUEST['s']))
+		$sql .= ",ScoredBy='".$DB->escapeString($_REQUEST['s'])."'";
+	$sql .= " WHERE EntrantID=".$_REQUEST['e']." AND ScoringNow=0";
+	if ($DB->exec($sql) && $DB->changes()==1)
+		echo('ok');
+	else
+		echo('### '.$sql);
+}
+
+
+
+
 function blankFormRecord()
 // I return a blank entrant record
 {
@@ -109,11 +143,11 @@ function chooseScoringMethod()
 }
 
 
+function defaultFinishTime()
 /* This calculates a 'safe' default finishing time to be used until and
  * entrant has her actual time entered. This time should not affect
  * the entrant's score or finisher status.
  */
-function defaultFinishTime()
 {
 	global $DB, $KONSTANTS, $DBVERSION;
 
@@ -259,7 +293,10 @@ function putScore()
 	$sql .= " WHERE EntrantID=".$_REQUEST['EntrantID'];
 	
 	//echo('<hr>'.$sql.'<hr>');
-	$DB->exec($sql);
+	if (!$DB->exec($sql)) {
+		dberror();
+		exit;
+	}
 	if (($res = $DB->lastErrorCode()) <> 0) {
 		return dberror();
 	}
@@ -339,7 +376,10 @@ function putScoreTeam($confirmed)
 	$sql .= " WHERE TeamID=$team AND EntrantID<>".$_REQUEST['EntrantID'];
 
 	echo('<hr>'.$sql.'<hr>');
-	$DB->exec($sql);
+	if (!$DB->exec($sql)) {
+		dberror();
+		exit;
+	}
 	if (($res = $DB->lastErrorCode()) <> 0) {
 		echo($DB->lastErrorCode().' '.$DB->lastErrorMsg().' ');
 		return dberror();
@@ -477,7 +517,7 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 	echo('<div id="ScoreSheet">'."\r\n");
 	echo("\r\n");
 	echo('<form method="post" action="score.php" onsubmit="submitScore();">');
-	echo('<input type="hidden" name="ScorerName" value="'.htmlspecialchars((isset($_REQUEST['ScorerName']) ? $_REQUEST['ScorerName'] : '')).'">');
+	echo('<input type="hidden" id="ScorerName" name="ScorerName" value="'.htmlspecialchars((isset($_REQUEST['ScorerName']) ? $_REQUEST['ScorerName'] : '')).'">');
 	echo('<input type="hidden" id="MinPoints" value="'.$rd['MinPoints'].'">');
 	echo('<input type="hidden" id="MinMiles" value="'.$rd['MinMiles'].'">');
 	echo('<input type="hidden" id="PenaltyMaxMiles" value="'.$rd['PenaltyMaxMiles'].'">');
@@ -924,6 +964,26 @@ function showPicklist($ord)
 	eval("\$evs = ".$TAGS['EntrantStatusV'][0]);
 ?>
 <script>
+function clearlock(obj)
+// This uses an AJAX call to clear the lock on the specified entrant record
+{
+	event.preventDefault();
+	let entrantid = obj.getAttribute('data-entrantid');
+	let xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		let ok = new RegExp("\W*ok\W*");
+		if (this.readyState == 4 && this.status == 200) {
+			console.log('{'+this.responseText+'}');
+			if (ok.test(this.responseText)) {
+				console.log('cleared ok');
+				obj.innerHTML = '';
+			}
+		}
+	};
+	xhttp.open("GET", "score.php?c=clearlock&e="+entrantid, true);
+	xhttp.send();
+
+}
 function submitMe(obj)
 {
 	var ent = '';
@@ -996,7 +1056,7 @@ function filterByName(x)
 	if (isset($_REQUEST['mc']) && $DBVERSION >= 4)
 		echo('<input type="hidden" name="mc" value="mc">');
 	$sname = (isset($_REQUEST['ScorerName']) ? htmlspecialchars($_REQUEST['ScorerName']) : '');
-	echo('<input type="hidden" name="ScorerName" value="'.$sname.'">');
+	echo('<input type="hidden" id="ScorerName" name="ScorerName" value="'.$sname.'">');
 	echo('<label for="NameFilter">'.$TAGS['NameFilter'][0].' </label>');
 	echo(' <input  type="text" id="NameFilter" title="'.$TAGS['NameFilter'][1].'" onkeyup="filterByName(this.value)">');
 	echo('<input class="button" type="submit" id="savedata" disabled="disabled" value="'.$TAGS['ScoreThis'][0].'" > ');
@@ -1025,9 +1085,13 @@ function filterByName(x)
 			else if ($rd['Confirmed'] != 0)
 				$es .= ' '.$KONSTANTS['ConfirmedBonusTick'];
 		echo('<td class="EntrantStatus">'.$es.'</td>');
-		echo('<td class="ScoredBy">');
-		if ($rd['ScoringNow']<>0 && $rd['ScoredBy']<>'')
-			echo('== '.$rd['ScoredBy']);
+		echo('<td class="ScoredBy" title="'.$TAGS['ScorecardInUse'][1].'"');
+		echo(' oncontextmenu="clearlock(this);" data-entrantid="'.$rd['EntrantID'].'">');
+		if ($rd['ScoringNow']<>0) {
+			echo($TAGS['ScorecardInUse'][0]);
+		 	if ($rd['ScoredBy']<>'')
+				echo(' == '.$rd['ScoredBy']);
+		}
 		echo('</td>');
 		echo('</tr>');
 	}
@@ -1204,7 +1268,10 @@ function updateClass()
 		}
 		foreach ($recs as $ent => $cls) {
 			$sql = "UPDATE entrants SET Class=".$cls." WHERE EntrantID=".$ent;
-			$DB->exec($sql);
+			if (!$DB->exec($sql)) {
+				dberror();
+				exit;
+			}
 		}
 
 			
@@ -1231,18 +1298,21 @@ function updateClassBR($br,$bv,$st,$ct)
 function updateScoringFlags($EntrantID=0)
 {
 	global $DB;
+
+	return; // <<<<<<<<<<<<<<<<<======================
 	
-	$DB->exec('BEGIN TRANSACTION');
-	// Clear records being scored by this scorer
-	$sql = "UPDATE entrants SET ScoringNow=0 WHERE ScoredBy='".$DB->escapeString((isset($_REQUEST['ScorerName']) ? $_REQUEST['ScorerName'] : ''))."'";
-	$DB->exec($sql);
-	if ($EntrantID <> 0)
-	{
-		// Mark this one as being scored now
-		$sql = "UPDATE entrants SET ScoringNow=1, ScoredBy='".$DB->escapeString((isset($_REQUEST['ScorerName']) ? $_REQUEST['ScorerName'] : ''))."' WHERE EntrantID=".$EntrantID;
-		$DB->exec($sql);
+	if ($DB->exec('BEGIN IMMEDIATE TRANSACTION')) {
+		// Clear records being scored by this scorer
+		$sql = "UPDATE entrants SET ScoringNow=0 WHERE ScoredBy='".$DB->escapeString((isset($_REQUEST['ScorerName']) ? $_REQUEST['ScorerName'] : ''))."'";
+		if ($DB->exec($sql)) {
+			if ($EntrantID <> 0) {
+				// Mark this one as being scored now
+				$sql = "UPDATE entrants SET ScoringNow=1, ScoredBy='".$DB->escapeString((isset($_REQUEST['ScorerName']) ? $_REQUEST['ScorerName'] : ''))."' WHERE EntrantID=".$EntrantID;
+				$DB->exec($sql);
+			}
+		}
+		$DB->exec('COMMIT TRANSACTION');
 	}
-	$DB->exec('COMMIT TRANSACTION');
 	
 }
 
@@ -1287,6 +1357,10 @@ if (isset($_REQUEST['savescore']))
 
 if (isset($_REQUEST['login']) && $_REQUEST['ScorerName'] <> '') 
 	loginNewScorer();
+else if (isset($_REQUEST['c']) && $_REQUEST['c'] == 'clearlock')
+	ajaxclearlock();
+else if (isset($_REQUEST['c']) && $_REQUEST['c'] == 'setlock')
+	ajaxsetlock();
 else if (isset($_REQUEST['c']) && $_REQUEST['c'] == 'score')
 	scoreEntrant(FALSE);
 else if (isset($_REQUEST['c']) && $_REQUEST['c'] == 'blank')

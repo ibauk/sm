@@ -33,7 +33,10 @@ function saveTimePenalties()
 {
 	global $DB, $TAGS, $KONSTANTS, $DBVERSION;
 
-	$DB->exec('BEGIN TRANSACTION');
+	if (!$DB->exec('BEGIN IMMEDIATE TRANSACTION')) {
+		dberror();
+		exit;
+	}
 	if ($DB->lastErrorCode()<>0) 
 		return dberror();			
 	$DB->exec('DELETE FROM timepenalties');

@@ -298,7 +298,10 @@ function saveCertificateW() {
 		$sql .= " WHERE EntrantID=".$_REQUEST['EntrantID']." AND Class=".$_REQUEST['Class'];
 	}
 //	echo($sql."<hr>");
-	$DB->exec($sql);
+	if (!$DB->exec($sql)) {
+		dberror();
+		exit;
+	}
 	if ($DB->lastErrorCode() <> 0)
 		echo($DB->lastErrorCode().' == '.$DB->lastErrorMsg().'<br>'.$sql.'<hr>');
 

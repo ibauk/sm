@@ -319,7 +319,10 @@ function buildMailQ()
 	$sql .= ",'".$DB->escapeString(implode('|',$filenames))."'";
 	$sql .= ",'".$DB->escapeString($_REQUEST['wheresql'])."')";
 	try {
-		$DB->exec("BEGIN");
+		if (!$DB->exec("BEGIN IMMEDIATE TRANSACTION")) {
+			dberror();
+			exit;
+		}
 		$DB->exec($sql);
 		$sql = "DELETE FROM emailq";
 		$DB->exec($sql);
@@ -550,7 +553,9 @@ function sendNextMail()
 			$datenow = $dtn->format('c');
 		
 			$sql = "UPDATE emailq SET EmailSent=1,SentAt='".$datenow."' WHERE EntrantID=".$rd['EntrantID'];
-			$DB->exec($sql);
+			if (!$DB->exec($sql)) {
+				echo('0:******* '.htmlspecialchars($rd['Email']).' - '.htmlspecialchars($rd['RiderName']).' ('.$mail->ErrorInfo.')');
+			}
 		} catch (Exception $e) {
 			error_log("Email failed!");
 			error_log($e->getMessage());

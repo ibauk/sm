@@ -287,7 +287,7 @@ function calcAvgEfficiency()
  */
 {
 	// NOT IMPLEMENTED YET
-	
+
 	let distance = document.getElementById('CorrectedMiles').value;
 	let points = document.getElementById('TotalPoints').value;
 	let ppm = 0;
@@ -1230,6 +1230,27 @@ function countNZ(cnts)
 	return res;
 }
 
+function getScoreLock(btn)
+{
+	let entrantid = document.getElementById('EntrantID').value;
+	let scorer = document.getElementById('ScorerName').value;
+
+	let xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		let ok = new RegExp("\W*ok\W*");
+		if (this.readyState == 4 && this.status == 200) {
+			console.log('{'+this.responseText+'}');
+			if (!ok.test(this.responseText)) {
+				console.log('Could not get lock');
+				btn.disabled = true;
+				alert(CANT_LOCK);
+			}
+		}
+	};
+	xhttp.open("GET", encodeURI("score.php?c=setlock&e="+entrantid+"&s="+scorer), true);
+	xhttp.send();
+
+}
 
 function enableSaveButton()
 {
@@ -1240,6 +1261,9 @@ function enableSaveButton()
 		cmd = document.getElementById('savedata'); /* Forms other than scoresheet */
 	if (cmd == null)
 		return;
+	let x = document.getElementById('ScoreSheet');
+	if (x != null)
+		getScoreLock(cmd);
 	cmd.disabled = false;
 	try {
 		var aval = cmd.getAttribute('data-altvalue');
@@ -2211,6 +2235,8 @@ function tickCombos()
 
 function trapDirtyPage()
 {
+
+	// This method does not allow for clearing lock flags when definitely leaving a dirty page
 	
 	window.addEventListener('beforeunload', function(e) {
 	

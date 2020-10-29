@@ -538,7 +538,10 @@ function saveCertificate()
 	$EntrantID = $_REQUEST['EntrantID'];
 	
 	$sql = "INSERT OR REPLACE INTO certificates (EntrantID,html) VALUES(".$EntrantID.",'".$DB->escapeString($page_detail)."')";
-	$DB->exec($sql);
+	if (!$DB->exec($sql)) {
+		dberror();
+		exit;
+	}
 	
 }
 
