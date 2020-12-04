@@ -53,7 +53,7 @@ $KONSTANTS['DecimalPointIsComma']  = 0;
 // Used when setting up new entrants onscreen
 
 $KONSTANTS['DefaultCountry'] = 'UK';
-
+$KONSTANTS['DefaultLocale'] = 'en-GB';
 
 
 // Not this one though <haha>
@@ -61,7 +61,28 @@ $KONSTANTS['DefaultCountry'] = 'UK';
 // Assume this value, which may be blank, if not overridden at run time
 $KONSTANTS['DefaultScorer'] = 'Bob';
 
+// Used for offline score recalculations - check with custom.js
+ 
+$KONSTANTS['DNF_TOOFEWPOINTS'] = "Not enough points";
+$KONSTANTS['DNF_TOOFEWMILES'] = "Not enough miles";
+$KONSTANTS['DNF_TOOMANYMILES'] = "Too many miles";
+$KONSTANTS['DNF_FINISHEDTOOLATE'] = "Finished too late";
+$KONSTANTS['DNF_MISSEDCOMPULSORY'] = "Missed a compulsory bonus";
+$KONSTANTS['DNF_HITMUSTNOT'] = "Breached a special rule";
+$KONSTANTS['DNF_COMPOUNDRULE'] = "Breached a compound rule";
+$KONSTANTS['DNF_SPEEDING'] = "Excessive speed";
 
+// Elements of Score explanation, include trailing space, etc - check with custom.js
+$KONSTANTS['RPT_Tooltip']	= "Click for explanation\rdoubleclick to print";
+$KONSTANTS['RPT_Bonuses']	= "Bonuses ticked";
+$KONSTANTS['RPT_Specials']	= "Specials";
+$KONSTANTS['RPT_Combos']	= "Combos";
+$KONSTANTS['RPT_MPenalty']	= "Mileage penalty";
+$KONSTANTS['RPT_TPenalty']	= "Late penalty";
+$KONSTANTS['RPT_Total'] 	= "TOTAL";
+$KONSTANTS['RPT_SPenalty']	= "Speed penalty";
+
+$KONSTANTS['CLAIM_REJECTED'] = "Claim rejected";
 
 // This array specifies labels and tooltips for each onscreen field to avoid the need for 'literals in the procedure division'.
 // This is in alphabetic order by key. It doesn't need to be but it makes your life easier, doesn't it?
@@ -77,6 +98,7 @@ $TAGS = array(
 	'abtDocTechRef'		=> array('Technical reference','For application developers'),
 	'abtHostname'		=> array('Hostname','Name of the computer hosting this application'),
 	'abtHostOS'			=> array('HostOS','Details of the host\'s operating system'),
+	'abtInspired'		=> array('Inspired by','Creative inpiration sources'),
 	'abtLicence'		=> array('Licence','The licence controlling use of this application'),
 	'abtOnlineDoc'		=> array('Online documentation','Current application manuals available on the web'),
 	'abtPHP'			=> array('PHP version',''),
@@ -85,7 +107,7 @@ $TAGS = array(
 	'AddPoints'			=> array('Add points',''),
 	'AddMults'			=> array('Add multipliers',''),
 	'AdmAdvancedHeader'	=> array('Advanced','Advanced configuration options'),
-	'AdmApplyClaims'	=> array('Process good claims','Auto-post good claims only'),
+	'AdmApplyClaims'	=> array('Process decided claims','Auto-post decided claims'),
 	'AdmBonusHeader'	=> array('Bonuses',''),
 	'AdmBonusTable'		=> array('Ordinary bonuses','View/edit schedule of ordinary bonuses'),
 	'AdmCatTable'		=> array('Categories','View/edit axis categories'),
@@ -159,7 +181,7 @@ $TAGS = array(
 	'BonusMaintHead'	=> array('Ordinary Bonuses','Ordinary bonuses generally represent physical locations that entrants must visit and complete some task, typically take a photo. They are presented on scorecards in <em>BonusID</em> order. Numeric only codes should all have the same number of digits (use leading \'0\' if necessary).'),
 	'BonusPoints'		=> array('Points','The basic points value of this bonus'),
 	'BriefDescLit'		=> array('Description',''),
-	'CalcMaintHead'		=> array('Compound Calculation Rules','Compound score calculations are used in conjunction with category records and bonus classifications to implement powerful scoring logic. Please refer to the Administrator\'s guide for a complete understanding of how these work.'),
+	'CalcMaintHead'		=> array('Compound Calculation Rules','Compound score calculations are used in conjunction with category records and bonus classifications to implement powerful scoring logic. Please click the help button for a complete understanding of how these work.'),
 	'CalculatedAvgSpeed'=> array('','Calculated average speed'),
 	'Cat0Label'			=> array('Total','If summing across axes, use this label'),
 	'Cat1Label'			=> array('Axis 1 is','What do values on this axis represent?'),
@@ -193,20 +215,28 @@ $TAGS = array(
 
 	'cl_Applied'		=> array('Applied?','Has this claim been applied to the entrant\'s scorecard?'),
 	'cl_AppliedHdr'		=> array('Applied',''),
-	'cl_ApplyHdr'		=> array('Process "Good claim" records','Post all claims marked as being "Good claim" with no penalties in one batch. Be careful to ensure single-user access to the database during this process which should only take a minute or so.'),
-	'cl_Applying'		=> array('Applying claims marked as "Good claim"',''),
+	'cl_ApplyBtn'		=> array('&RuleDelayed;','Post decided claims'),
+	'cl_ApplyHdr'		=> array('Process decided claim records','Post decided claims <span style="font-size:small;">(with no virtual rally penalties)</span> in one batch. Single-user access to the database needed during this process which should only take a minute or so.'),
+	'cl_Applying'		=> array('Applying decided claims',''),
 	'cl_BonusHdr'		=> array('Bonus',''),
 	'cl_ClaimedHdr'		=> array('Claimed',''),
 	'cl_ClaimsBumf'		=> array('Claims log','The claims log records individual bonus claims, typically during live bonus claiming. Usually this would be accessed by at least two team members, one recording and possibly judging the claims and another using the logged decisions to update individual scorecards.'),
 	'cl_ClaimsTitle'	=> array('Claims','HTML page title'),
-	'cl_Complete'		=> array('Processing complete &#x1F603;',''),
+	'cl_Complete'		=> array('Processing complete &#x1F603;',
+								'Processing complete &#x1F603; <br><br><span style="font-size:smaller;"><a href="score.php">Updated scorecards need recalculation</a></span>.'),
 	'cl_DateFrom'		=> array('From date','Start of date range'),
 	'cl_DateTo'			=> array('To date','End of date range'),
 	
 	'cl_DDLabel'		=> array('&nbsp;&nbsp;New claim defaults:','Default decision/date when posting new claims'),
+	'cl_DecIncDecided'	=> array('All decided claims',''),
+	'cl_DecIncGoodOnly'	=> array('Good claims only',''),
 	'cl_DecisionHdr'	=> array('Decision',''),
+	'cl_DecisionsIncluded'
+						=> array('Claims included','What decided claims will be included'),
+
+	'cl_EditHeader'		=> array('Full claim details.','New claims: can paste correctly formatted Subject line.'),
 	'cl_EntrantHdr'		=> array('Entrant',''),
-	'cl_FilterBonus'	=> array('B#','Filter list by Bonus number'),
+	'cl_FilterBonus'	=> array('B#','Filter list by Bonus'),
 	'cl_FilterEntrant'	=> array('E#','Filter list by Entrant number'),
 	'cl_FilterLabel'	=> array('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;List filters','Use these fields to filter this list'),
 	'cl_Go'				=> array('Go on, go for it!','Go on, go for it!'),
@@ -217,6 +247,7 @@ $TAGS = array(
 	'cl_PenaltyFuel'	=> array('&nbsp;F&nbsp;','Fuel penalty'),
 	'cl_PenaltyMagic'	=> array('&nbsp;M&nbsp;','Magic word penalty'),
 	'cl_PenaltySpeed'	=> array('&nbsp;S&nbsp;','Speeding penalty'),
+	'cl_ProcessingCC'	=> array('Processing %u decided claims',''),
 	'cl_RefreshList'	=> array('&circlearrowright;','Refresh the claims list'),
 	'cl_PostNewClaim'	=> array('+','Post new claim'),
 	'cl_showAllA'		=> array('show all','Filter list on applied to scorecard status'),
@@ -227,6 +258,7 @@ $TAGS = array(
 	'cl_showOnlyD'		=> array('decided',''),
 	'cl_TimeFrom'		=> array('From time','Start of time range'),
 	'cl_TimeTo'			=> array('To time','End of time range'),
+	'cl_UpdatingSC'		=> array('Updating scorecard for Entrant %u',''),
 	
 	'Class'				=> array('Class #','The certificate class applicable'),
 	'ClassMaintHead'	=> array('Classes','Classes may be used to produce different certificates for different groups or \'classes\' of entrant. Class can be assigned manually, as in the RBLR1000 to distinguish route for example, or can be assigned automatically using entrant scores, bonuses visited and/or rank.<br>Class 0 is the default class for all entrants and may not have any filters applied. Other classes are examined in numeric order starting at 1 until the filter criteria are matched. If no matching class is found, 0 is applied.'),
@@ -371,6 +403,7 @@ $TAGS = array(
 	'LegendPenalties'	=> array('Penalties',''),
 	'LegendScoring'		=> array('Scoring &amp; Ranking',''),
 	'LegendTeams'		=> array('Teams',''),
+	'Locale'			=> array('Locale','ISO Locale string'),
 	'LocalTZ'			=> array('Rally timezone','Timezone (offset from GMT) used in this rally'),
 	
 	'login'				=> array('login','Go on, log me in then!'),
@@ -531,7 +564,7 @@ $TAGS = array(
 	'sc_Overview'		=> array('Overview','Overall standings'),
 	'sc_Status'			=> array('Status','Status'),
 	
-	'ScorecardInUse'	=> array('&Otimes;','Scorecard is being updated'),
+	'ScorecardInUse'	=> array('&Otimes;','Scorecard is being updated; right-click to clear the lock (check first!)'),
 	'ScorecardIsDirty'	=> array('!!!','Scorecard needs to be updated'),
 	'ScoredBy'			=> array('Scored by','Who is (or did) scoring this entrant?'),
 	'ScoreNow'			=> array('Score now','Switch to live scoring this entrant(new tab)'),

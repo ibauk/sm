@@ -28,6 +28,7 @@
  *	2019-11-05	Linux setup; webserver/PHP already available
  *	2020-02-19	Apple Mac setup
  *	2020-06-29	Window title
+ *	2020-12-04	Bumped to v2.7
  *
  */
 
@@ -51,7 +52,7 @@ import (
 	"github.com/pkg/browser"
 )
 
-const myPROGTITLE = "ScoreMaster Server v2.6 [2020-06-29]"
+const myPROGTITLE = "ScoreMaster Server v2.7 [2020-12-04]"
 const myWINTITLE = "IBA ScoreMaster"
 
 var phpcgi = filepath.Join("php", "php-cgi")
@@ -91,7 +92,7 @@ func init() {
 	case "windows":
 
 		phpdbg = "\\php\\php"
-		SetMyWindowTitle(myWINTITLE)
+		setMyWindowTitle(myWINTITLE)
 
 	default:
 		// freebsd, openbsd,

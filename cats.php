@@ -63,7 +63,9 @@ function listCompoundCalcs() {
 	pushBreadcrumb('#');
 	emitBreadcrumbs();
 	
-	echo('<p>'.$TAGS['CalcMaintHead'][1].'</p>');
+	echo('<p>'.$TAGS['CalcMaintHead'][1]);
+	echo(' <input title="Help!" type="button" value=" ? " onclick="showHelp('."'compound'".');">');
+	echo('</p>');
 
 	echo('<table id="catcalcs">');
 //	echo('<caption title="'.htmlentities($TAGS['CalcMaintHead'][1]).'">'.htmlentities($TAGS['CalcMaintHead'][0]).'</caption>');
@@ -407,6 +409,7 @@ function saveAxis(obj) {
 		if (this.readyState == 4 && this.status == 200) {
 			console.log('{'+this.responseText+'}');
 			if (ok.test(this.responseText)) {
+				document.getElementById('addCatButton').disabled = false;
 				if (!sav.disabled) {
 					let val = sav.value;
 					sav.value = sav.getAttribute('data-value');
@@ -556,7 +559,7 @@ function listAxes() {
 		} else
 			$cls = 'hide';
 		$cls = $rd[$lbl] != '' ? 'show' : 'hide';
-		echo('<tr class="'.$cls.'" data-axis="'.$i.'"><td onclick="showAxisCats(this);" style="padding-right:.5em;">'.$TAGS[$lbl][0].'</td><td style="padding-right:.5em;"  title="'.$TAGS[$lbl][1].'" >');
+		echo('<tr class="'.$cls.'" data-axis="'.$i.'"><td onclick="showAxisCats(this);" style="padding-right:.5em; cursor:pointer;">'.$TAGS[$lbl][0].'</td><td style="padding-right:.5em;"  title="'.$TAGS[$lbl][1].'" >');
 		echo('<input oninput="lineHasChanged(this);" type="text" placeholder="'.$TAGS['unset'][0].'" name="Cat'.$i.'Label" value="'.htmlspecialchars($rd[$lbl]).'" onchange="saveAxis(this);">');
 		echo('</td><td><input type="button" disabled data-value="'.$TAGS['SaveRecord'][0].'" value="'.$TAGS['RecordSaved'][0].'" onclick="saveAxis(this);">');
 		echo('</td></tr>');
@@ -573,13 +576,13 @@ function listAxes() {
 	
 	echo('<div id="categories">');
 	if (isset($_REQUEST['a']))
-		echo(listCategories($_REQUEST['a']));
+		echo(listCategories($_REQUEST['a'],$rows < 1));
 	else
-		echo(listCategories(1));
+		echo(listCategories(1,$rows < 1));
 	echo('</div>');
 }
 
-function listCategories($axis) {
+function listCategories($axis,$disabled) {
 
 	global $DB, $TAGS, $KONSTANTS;
 
@@ -596,7 +599,7 @@ function listCategories($axis) {
 	
 	$res .= '</table>';
 	
-	$res .= '<input type="button" value="+" onclick="addCat();">';
+	$res .= '<input type="button" '.($disabled ? ' disabled ' : '').' id="addCatButton" value="+" onclick="addCat();">';
 	return $res;
 }
 
@@ -661,7 +664,7 @@ if (isset($_REQUEST['c']))
 			exit;
 		case 'getcats':
 			if (isset($_REQUEST['a'])) {
-				echo(listCategories($_REQUEST['a']));
+				echo(listCategories($_REQUEST['a'],true));
 				exit;
 			}
 			break;

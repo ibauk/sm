@@ -54,6 +54,7 @@ const ASK_POINTS = "Please enter the points for";
 const LOOKUP_ENTRANT = "Find entrant record matching what?";
 const CLAIM_REJECTED = "Claim rejected";
 const FINISHERS_EXPORTED = "Finishers Exported!";
+const ENTRANTS_EXPORTED = "Full entrant details exported!"
 
 const OBSORTAZ = "Sort into Bonus id order";
 const APPLYCLOSE = "Apply changes/close";
@@ -65,4 +66,6 @@ const CANT_LOCK = "USER CONFLICT\n\nCannot acquire record lock - someone else is
 const MY_LOCALE	= "en-GB";
 
 // Regular expression for parsing subject line from emails
-const EBC_SUBJECT_LINE = /(\d+)\,*\s*([a-z0-9\-]+)\,*\s*(\d+)\s*\,*\s*(\d\d\:*\d\d)/;
+// In English this is rider, bonus, odo, time
+// Odo and time are optional as are the commas
+const EBC_SUBJECT_LINE = /(\d+)\,*\s*([a-z0-9\-]+)\,*\s*(\d+)?\s*\,*\s*(\d\d\:*\d\d)?/i;

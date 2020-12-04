@@ -203,6 +203,9 @@ function saveSGroups()
 function saveEmailConfig()
 {
 	$email = [];
+
+	if (isset($_REQUEST['EmailParams']))
+		return $_REQUEST['EmailParams'];	// Accept as is!
 	
 	foreach ($_REQUEST as $key => $val) {
 		$keyparts = explode(':',$key);
@@ -262,6 +265,10 @@ function saveRallyConfig()
 	$hc = (isset($_REQUEST['HostCountry']) ? $_REQUEST['HostCountry'] : $KONSTANTS['DefaultCountry']);
 	$sql .= ",HostCountry='".$DB->escapeString($hc)."'";
 	$KONSTANTS['DefaultCountry'] = $hc;
+	$hc = (isset($_REQUEST['Locale']) ? $_REQUEST['Locale'] : $KONSTANTS['DefaultLocale']);
+	$sql .= ",Locale='".$DB->escapeString($hc)."'";
+	$KONSTANTS['DefaultLocale'] = $hc;
+
 	$sql .= ",EmailParams='".$DB->escapeString(saveEmailConfig())."'";
 
 	$sql .= ",RejectReasons='".$DB->escapeString($RejectReasons)."'";
@@ -644,6 +651,13 @@ function showSingleCombo($comboid)
 
 	$R = $DB->query('SELECT * FROM rallyparams');
 	$rd = $R->fetchArray();
+	$ScoringMethod = $rd['ScoringMethod'];
+	if ($ScoringMethod == $KONSTANTS['AutoScoring'])
+		$ScoringMethod = chooseScoringMethod();
+	$ShowMults = $rd['ShowMultipliers'];
+	if ($ShowMults == $KONSTANTS['AutoShowMults'])
+		$ShowMults = chooseShowMults($ScoringMethod);
+
 
 	for ($i=1; $i <= $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $i++)
 		$catlabels[$i] = $rd['Cat'.$i.'Label'];
@@ -763,6 +777,9 @@ function checkBonusOk(str) {
 	echo('<input type="hidden" name="menu" value="setup">');
 	pushBreadcrumb('#');
 	emitBreadcrumbs();
+	
+	echo('<p>'.$TAGS['ComboMaintHead'][1].'</p>');
+
 	echo('<input type="submit" name="savedata" value="'.$TAGS['UpdateCombo'][0].'"> ');
 	if ($comboid != '')
 	{
@@ -783,11 +800,17 @@ function checkBonusOk(str) {
 	echo('<option value="0" '.($rd['Compulsory']<>1 ? 'selected ' : '').'>'.$TAGS['optOptional'][0].'</option>');
 	echo('<option value="1" '.($rd['Compulsory']==1 ? 'selected ' : '').'>'.$TAGS['optCompulsory'][0].'</option>');
 	echo('</select></span>');
-	echo('<span class="vlabel" title="'.$TAGS['ComboScoreMethod'][1].'"><label class="wide" for="scoremethod">'.$TAGS['ComboScoreMethod'][0].'</label> ');
-	echo('<select name="ScoreMethod" id="scoremethod">');
-	echo('<option value="0" '.($rd['ScoreMethod']<>1 ? 'selected ' : '').'>'.$TAGS['AddPoints'][0].'</option>');
-	echo('<option value="1" '.($rd['ScoreMethod']==1 ? 'selected ' : '').'>'.$TAGS['AddMults'][0].'</option>');
-	echo('</select></span>');
+
+	if ($ShowMults) {
+		echo('<span class="vlabel" title="'.$TAGS['ComboScoreMethod'][1].'"><label class="wide" for="scoremethod">'.$TAGS['ComboScoreMethod'][0].'</label> ');
+		echo('<select name="ScoreMethod" id="scoremethod">');
+		echo('<option value="0" '.($rd['ScoreMethod']<>1 ? 'selected ' : '').'>'.$TAGS['AddPoints'][0].'</option>');
+		echo('<option value="1" '.($rd['ScoreMethod']==1 ? 'selected ' : '').'>'.$TAGS['AddMults'][0].'</option>');
+		echo('</select></span>');
+	} else {
+		echo('<br><input type="hidden" name="ScoreMethod" id="scoremethod" value="0">'); // Must be points
+	}
+
 	echo('<span class="vlabel" title="'.$TAGS['BonusListLit'][1].'"><label class="wide" for="bonuses">'.$TAGS['BonusListLit'][0].'</label> ');
 	echo('<input type="text" name="Bonuses" id="bonuses" class="ComboBonusList" value="'.$rd['Bonuses'].'" oninput="checkComponentList();"> </span>');
 	echo('<span class="vlabel" title="'.$TAGS['MinimumTicks'][1].'"><label class="wide" for="minimumticks">'.$TAGS['MinimumTicks'][0].'</label> ');
@@ -966,6 +989,11 @@ function calcMaxHours() {
 	echo('<input type="text" name="HostCountry" id="HostCountry" value="'.$rd['HostCountry'].'" oninput="enableSaveButton();">');
 	echo('</span>');
 
+	echo('<span class="vlabel" title="'.$TAGS['Locale'][1].'">');
+	echo('<label for="Locale">'.$TAGS['Locale'][0].' </label> ');
+	echo('<input type="text" name="Locale" id="Locale" value="'.$rd['Locale'].'" oninput="enableSaveButton();">');
+	echo('</span>');
+
 	echo('</fieldset>'); // tab_regional
 
 	$dn = $showAdvanced ? '' : ' style="display:none;" ';
@@ -1128,20 +1156,31 @@ function switchv(sel) {
 	echo('<fieldset id="tab_email" class="tabContent"><legend>'.$TAGS['EmailParams'][0].'</legend>');
 	
 	$email = json_decode($rd['EmailParams'],true);
-	echo('<p>'.$TAGS['EmailParams'][1].'</p>');
+	echo('<p>'.$TAGS['EmailParams'][1]);
+	echo(' <input title="Help!" type="button" value=" ? " onclick="showHelp('."'emailsetup'".');">');
+	echo('</p>');
 	
-	foreach ($email as $key => $val) {
-		$arrayParam = is_array($val);
-		echo('<span class="vlabel" title="'.$TAGS['email:'.$key][1].'"><label for="email:'.$key.'">'.$TAGS['email:'.$key][0].'</label> ');
-		$id = ' id="email:'.$key.'" ';
-		if ($arrayParam) 
-			foreach($val as $thisval) {
-				echo('<input type="text" '.$id.' name="email:'.$key.'[]" value="'.htmlspecialchars($thisval).'" oninput="enableSaveButton();"> ');
-				$id = '';
-			}
-		else
-			echo('<input type="text" '.$id.' name="email:'.$key.'" value="'.htmlspecialchars($val).'" oninput="enableSaveButton();">');
-		echo('</span>');
+	echo('<span class="vlabel"><label for="EmailParams"> </label> '); // Label merely to maintain spacing
+	echo('<textarea id="EmailParams" name="EmailParams" cols="60" rows="15" oninput="enableSaveButton();">');
+	//echo($rd['EmailParams']);
+	echo(json_encode($email,JSON_PRETTY_PRINT));  // Make sure it's legible
+	echo('</textarea></span>');
+
+
+	if (false) {
+		foreach ($email as $key => $val) {
+			$arrayParam = is_array($val);
+			echo('<span class="vlabel" title="'.$TAGS['email:'.$key][1].'"><label for="email:'.$key.'">'.$TAGS['email:'.$key][0].'</label> ');
+			$id = ' id="email:'.$key.'" ';
+			if ($arrayParam) 
+				foreach($val as $thisval) {
+					echo('<input type="text" '.$id.' name="email:'.$key.'[]" value="'.htmlspecialchars($thisval).'" oninput="enableSaveButton();"> ');
+					$id = '';
+				}
+			else
+				echo('<input type="text" '.$id.' name="email:'.$key.'" value="'.htmlspecialchars($val).'" oninput="enableSaveButton();">');
+			echo('</span>');
+		}
 	}
 	echo('</fieldset>');
 
@@ -1230,7 +1269,18 @@ function triggerNewRow(obj)
 function showSpecial($specialid)
 {
 	global $DB, $TAGS, $KONSTANTS, $DBVERSION;
-	
+
+	$sql = "SELECT * FROM rallyparams";
+	$R = $DB->query($sql);
+	$rd = $R->fetchArray();
+	$ScoringMethod = $rd['ScoringMethod'];
+	if ($ScoringMethod == $KONSTANTS['AutoScoring'])
+		$ScoringMethod = chooseScoringMethod();
+	$ShowMults = $rd['ShowMultipliers'];
+	if ($ShowMults == $KONSTANTS['AutoShowMults'])
+		$ShowMults = chooseShowMults($ScoringMethod);
+
+
 	$sql = "SELECT * FROM sgroups ORDER BY GroupName";
 	$R = $DB->query($sql);
 	if ($DB->lastErrorCode() <> 0)
@@ -1287,9 +1337,15 @@ function showSpecial($specialid)
 	echo('<option value="1"'.($rd['AskPoints']==0 ? '>' : ' selected>').$TAGS['AskPoints1'][0].'</option>');
 	echo('</select>');
 	echo('</span>');
-	echo('<span class="vlabel" title="'.$TAGS['SpecialMultLit'][1].'"><label for="MultFactor">'.$TAGS['SpecialMultLit'][0].'</label> ');
-	echo('<input type="number" class="smallnumber" name="MultFactor" id="MultFactor" value="'.$rd['MultFactor'].'" onchange="enableSaveButton();">');
-	echo('</span>');
+
+	if ($ShowMults) {
+		echo('<span class="vlabel" title="'.$TAGS['SpecialMultLit'][1].'"><label for="MultFactor">'.$TAGS['SpecialMultLit'][0].'</label> ');
+		echo('<input type="number" class="smallnumber" name="MultFactor" id="MultFactor" value="'.$rd['MultFactor'].'" onchange="enableSaveButton();">');
+		echo('</span>');
+	} else {
+		echo('<input type="hidden" name="MultFactor" id="MultFactor" value="'.$rd['MultFactor'].'" >');		
+	}
+
 	echo('<span class="vlabel" title="'.$TAGS['CompulsoryBonus'][1].'"><label for="Compulsory">'.$TAGS['CompulsoryBonus'][0].'</label> ');
 	echo('<select name="Compulsory" id="Compulsory" onchange="enableSaveButton();">');
 	echo('<option value="0"'.($rd['Compulsory']==0 ? ' selected>' : '>').$TAGS['CompulsoryBonus0'][0].'</option>');

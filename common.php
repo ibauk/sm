@@ -71,9 +71,26 @@ $KONSTANTS['TeamRankLowest'] = 2;
 $KONSTANTS['TimeSpecDatetime'] = 0;
 $KONSTANTS['TimeSpecRallyDNF'] = 1;
 $KONSTANTS['TimeSpecEntrantDNF'] = 2;
+
+$KONSTANTS['TPM_MultPerMin'] = 3;
+$KONSTANTS['TPM_PointsPerMin'] = 2;
+$KONSTANTS['TPM_FixedMult'] = 1;
+$KONSTANTS['TPM_FixedPoints'] = 0;
+
+$KONSTANTS['ORDINARY_BONUS_PREFIX'] = 'B';
+$KONSTANTS['SPECIAL_BONUS_PREFIX'] = 'S';
+$KONSTANTS['COMBO_BONUS_PREFIX'] = 'C';
+
+
 $KONSTANTS['BCM_UNKNOWN'] = 0;
 $KONSTANTS['BCM_EBC'] = 1;
 $KONSTANTS['BCM_PAPER'] = 2;
+
+$KONSTANTS['MMM_FixedPoints'] = 0;
+$KONSTANTS['MMM_Multipliers'] = 1;
+$KONSTANTS['MMM_PointsPerMile'] = 2;
+
+
 
 // Beware, these next two used for combinations & catcompounds
 $KONSTANTS['ComboScoreMethodPoints'] = 0;
@@ -97,6 +114,12 @@ $KONSTANTS['showNot'] = 2;		// show only undecided/unapplied claims
 $KONSTANTS['UNDECIDED_CLAIM']	= -1;
 
 $KONSTANTS['UPLOADS_FOLDER'] = "./uploads";
+
+$KONSTANTS['COMPULSORYBONUS'] = 1;
+$KONSTANTS['MUSTNOTMATCH'] = 2;
+
+$KONSTANTS['doxpath'] = 'docs'; 	// path from sm to folder containing help documents
+$KONSTANTS['doxpage'] = 'smhelp';	// browser tab name for showing helps
 
 // Common subroutines below here; nothing translateable below
 	
@@ -122,6 +145,7 @@ if ($DBVERSION >= 5) {
 	$KONSTANTS['LocalTZ'] = getValueFromDB("SELECT LocalTZ FROM rallyparams","LocalTZ",$KONSTANTS['LocalTZ']);
 	$KONSTANTS['DecimalPointIsComma'] = getValueFromDB("SELECT DecimalComma FROM rallyparams","DecimalComma",$KONSTANTS['DecimalPointIsComma']);
 	$KONSTANTS['DefaultCountry'] = getValueFromDB("SELECT HostCountry FROM rallyparams","HostCountry",$KONSTANTS['DefaultCountry']);
+	$KONSTANTS['DefaultLocale'] = getValueFromDB("SELECT Locale FROM rallyparams","Locale",$KONSTANTS['DefaultLocale']);
 }
 
 /* Each simple bonus may be classified using
@@ -169,6 +193,57 @@ function calcCorrectedMiles($entrantOdoKms,$entrantOdoStart,$entrantOdoFinish,$e
 	return intval($odoDistance);
 	
 	
+}
+
+// If ScoringMethod is automatic, I choose what to do
+function chooseScoringMethod()
+{
+	global $DB, $TAGS, $KONSTANTS;
+	
+	$R = $DB->query("SELECT Count(*) AS Rex FROM catcompound");
+	$rd = $R->fetchArray();
+	if ($rd['Rex'] > 0)
+		return $KONSTANTS['CompoundScoring'];	
+
+	$R = $DB->query("SELECT Count(*) AS Rex FROM bonuses");
+	$rd = $R->fetchArray();
+	if ($rd['Rex'] > 0)
+		return $KONSTANTS['SimpleScoring'];
+	
+	$R = $DB->query("SELECT Count(*) AS Rex FROM specials");
+	$rd = $R->fetchArray();
+	if ($rd['Rex'] > 0)
+		return $KONSTANTS['SimpleScoring'];
+	
+	return $KONSTANTS['ManualScoring'];
+	
+	
+}
+
+
+
+// If ShowMults is automatic, I decide.
+function chooseShowMults($ScoringMethod)
+{
+	global $DB, $TAGS, $KONSTANTS;
+	
+	if ($ScoringMethod <> $KONSTANTS['CompoundScoring'])                              
+		return $KONSTANTS['SuppressMults'];
+	
+	$R = $DB->query("SELECT Count(*) AS Rex FROM catcompound WHERE PointsMults=".$KONSTANTS['ComboScoreMethodMults']);
+	$rd = $R->fetchArray();
+	if ($rd['Rex'] > 0)
+		return $KONSTANTS['ShowMults'];
+	$R = $DB->query("SELECT Count(*) AS Rex FROM combinations WHERE ScoreMethod=".$KONSTANTS['ComboScoreMethodMults']);
+	$rd = $R->fetchArray();
+	if ($rd['Rex'] > 0)
+		return $KONSTANTS['ShowMults'];
+	$R = $DB->query("SELECT Count(*) AS Rex FROM specials WHERE MultFactor<> 0");
+	$rd = $R->fetchArray();
+	if ($rd['Rex'] > 0)
+		return $KONSTANTS['ShowMults'];
+	
+	return $KONSTANTS['SuppressMults'];
 }
 
 
@@ -259,6 +334,21 @@ function gotoBreadcrumbStep($step)
 	
 }
 
+function getSetting($setting,$default)
+{
+	global $DB, $DBVERSION;
+
+	if ($DBVERSION < 6)
+		return $default;
+
+	$settings = json_decode(getValueFromDB("SELECT settings FROM rallyparams","settings","{}"),true);
+	if (isset($settings[$setting]))
+		return $settings[$setting];
+	else
+		return $default;
+
+}
+
 function joinDateTime($dt,$tm)
 // Accept a date and a time and return a properly formatted Datetime based on ISO8601
 {
@@ -283,7 +373,9 @@ function popBreadcrumb()
 function pushBreadcrumb($alink)
 {
 	global $TAGS;
-	
+
+	//print_r($_SESSION);
+	//echo('<hr>'.htmlentities($alink).'<hr>');
 	if (!isset($_SESSION['bc']) || $alink=='') {
 		$_SESSION['bc'] = [];
 		$_SESSION['bc'][0] = ['admin.php',$TAGS['BCHOME'][0]];
@@ -612,6 +704,8 @@ function showNav()
 	echo('</form>');
 	
 	show_menu_taglist();
+
+	echo(' <input title="Help!" type="button" value=" ? " onclick="showHelp('."'index'".');">');
 	echo('</div>');
 }
 
@@ -649,6 +743,7 @@ echo('<title>'.$pagetitle.'</title>');
 <body onload="bodyLoaded();">
 <?php echo('<input type="hidden" id="BasicDistanceUnit" value="'.$KONSTANTS['BasicDistanceUnit'].'"/>'); ?>
 <?php echo('<input type="hidden" id="DBVERSION" value="'.$DBVERSION.'"/>'); ?>
+<?php echo('<input type="hidden" id="DefaultLocale" value="'.$KONSTANTS['DefaultLocale'].'"/>'); ?>
 <div id="header">
 <?php	
 	echo("<a href=\"".$HOME_URL);

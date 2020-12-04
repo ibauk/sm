@@ -25,10 +25,11 @@
  *
  * targetFolder
  *	sm
- *		vendor
+ *		docs
  *		images
  *		jodit
  *		uploads
+ *		vendor
  *	php
  *	caddy
  *
@@ -37,6 +38,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"io"
@@ -45,12 +47,15 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
 	"strings"
 	"time"
+
+	"github.com/russross/blackfriday"
 )
 
-var mySMFLAVOUR = "v2.6.1"
+var mySMFLAVOUR = "v2.7"
 var port = flag.String("port", "80", "Webserver port specification")
 var caddyFolder = flag.String("caddy", "..", "Path to Caddy folder")
 var srcFolder = flag.String("src", ".", "Path to ScoreMaster source")
@@ -64,6 +69,8 @@ var ok = flag.Bool("ok", false, "Overwrite existing target")
 var sqlite3 string = "./sqlite3.exe" // path to executable
 var caddy string = "./caddy.exe"
 
+var docsFolder = "docs"
+
 var mySMFILES = [...]string{
 	"about.php", "admin.php", "bonuses.php",
 	"certedit.php", "certificate.css", "certificate.php", "claims.php", "common.php",
@@ -71,6 +78,7 @@ var mySMFILES = [...]string{
 	"favicon.ico", "importxls.php", "index.php",
 	"licence.txt", "readme.txt", "reboot.css",
 	"setup.php", "score.css", "score.js", "score.php", "sm.php",
+	"showhelp.php",
 	"speeding.php", "teams.php", "utils.php", "timep.php", "cats.php",
 	"classes.php",
 }
@@ -102,31 +110,6 @@ If you need further support please contact the author, Bob Stammers, at webmaste
 `
 
 var smFolder string
-
-
-func init() {
-
-	log.SetFlags(0)
-	log.SetOutput(new(logWriter))
-
-	os := runtime.GOOS
-	switch os {
-	case "darwin": // Apple
-
-		phpdbg = "/usr/bin/php"
-
-	case "linux":
-
-	case "windows":
-
-		phpdbg = "\\php\\php"
-		SetMyWindowTitle(myWINTITLE)
-
-	default:
-		// freebsd, openbsd,
-		// plan9, ...
-	}
-}
 
 func main() {
 
@@ -164,6 +147,7 @@ func main() {
 	copyImages()
 	copyJodit()
 	copyPhpPackages()
+	generateDocs()
 	log.Println("ScoreMaster installed in " + *targetFolder)
 	fmt.Println()
 
@@ -192,6 +176,39 @@ func copyDatabase() {
 		copyFile(filepath.Join(*srcFolder, "ScoreMaster.db"), filepath.Join(smFolder, "ScoreMaster.db"))
 	}
 
+}
+
+func copyDocs(srcpath string, dstpath string, folder string) error {
+
+	var err error
+	var fds []os.FileInfo
+	var mdre = regexp.MustCompile(`\.md`)
+
+	src := filepath.Join(srcpath, folder)
+	dst := filepath.Join(dstpath, folder)
+
+	makeFolder(dst)
+
+	if fds, err = ioutil.ReadDir(src); err != nil {
+		return err
+	}
+	for _, fd := range fds {
+		srcfp := filepath.Join(src, fd.Name())
+		dstfp := filepath.Join(dst, fd.Name())
+
+		if fd.IsDir() {
+			if err = copyDocs(src, dst, fd.Name()); err != nil {
+				fmt.Println(err)
+			}
+		} else if mdre.MatchString(fd.Name()) {
+			copyMarkdown(srcfp, dstfp)
+		} else {
+			if _, err = copyFile(srcfp, dstfp); err != nil {
+				fmt.Println(err)
+			}
+		}
+	}
+	return nil
 }
 
 func copyExecs() {
@@ -293,6 +310,27 @@ func copyJodit() {
 
 }
 
+func copyMarkdown(src string, dst string) {
+
+	dstname := strings.Replace(dst, ".md", ".hlp", -1)
+	file, err := os.Open(src)
+	if err != nil {
+		log.Panicf("failed reading file: %s", err)
+	}
+	defer file.Close()
+	txt, err := ioutil.ReadAll(file)
+	html := blackfriday.MarkdownCommon(txt)
+	f, err := os.Create(dstname)
+	if err != nil {
+		log.Panicf("failed creating file: %s", err)
+	}
+	w := bufio.NewWriter(f)
+	w.Write(html)
+	w.Flush()
+	f.Close()
+
+}
+
 func copyPHP() {
 
 	log.Print("Copying PHP")
@@ -332,6 +370,13 @@ func copySMFiles() {
 			log.Println("Can't copy " + s + lng)
 		}
 	}
+}
+
+func generateDocs() {
+
+	log.Print("Generating help")
+
+	copyDocs(*srcFolder, filepath.Join(*targetFolder, "sm"), docsFolder)
 }
 
 func loadSQL(sqlfile string) bool {

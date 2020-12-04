@@ -56,7 +56,31 @@ CREATE TABLE IF NOT EXISTS "rallyparams" (
 	"Cat7Label"	TEXT,
 	"Cat8Label"	TEXT,
 	"Cat9Label"	TEXT,
-	"RejectReasons"	TEXT DEFAULT '1=No/wrong photo
+	"RejectReasons"	TEXT,							/* Defaults entered in INSERT below */
+	"DBState" INTEGER NOT NULL DEFAULT 0,
+	"DBVersion" INTEGER NOT NULL DEFAULT 6, 		/* DBVERSION */
+	"AutoRank" INTEGER NOT NULL DEFAULT 1,
+	"Theme" TEXT NOT NULL DEFAULT 'default',
+	"MilesKms" INTEGER NOT NULL DEFAULT 0,
+	"LocalTZ" TEXT NOT NULL DEFAULT 'Europe/London',
+	"DecimalComma" INTEGER NOT NULL DEFAULT 0,
+	"HostCountry" TEXT NOT NULL DEFAULT 'UK',
+	"Locale" TEXT NOT NULL DEFAULT 'en-GB',
+	"EmailParams" TEXT,								/* Defaults entered in INSERT below */
+	"isvirtual"	INTEGER NOT NULL DEFAULT 0,
+	"tankrange"	INTEGER NOT NULL DEFAULT 200,
+	"refuelstops"	TEXT,
+	"stopmins"	INTEGER NOT NULL DEFAULT 10,
+	"spbonus"	TEXT,
+	"fpbonus"	TEXT,
+	"mpbonus"	TEXT,
+	"settings"	TEXT								/* Defaults entered in INSERT below */
+);
+
+DELETE FROM "rallyparams";
+
+INSERT INTO "rallyparams" (RallyTitle,RallySlogan,RejectReasons,EmailParams,settings) VALUES ('IBA rally','Fun with motorcycles',
+'1=No/wrong photo
 2=Photo unclear
 3=Out of hours
 4=Face not in photo
@@ -65,23 +89,23 @@ CREATE TABLE IF NOT EXISTS "rallyparams" (
 7=Missing rider/pillion
 8=Missing receipt
 9=Refer to Rallymaster!',
-	"DBState" INTEGER NOT NULL DEFAULT 0,
-	"DBVersion" INTEGER NOT NULL DEFAULT 5, 		/* DBVERSION */
-	"AutoRank" INTEGER NOT NULL DEFAULT 1,
-	"Theme" TEXT NOT NULL DEFAULT 'default',
-	"MilesKms" INTEGER NOT NULL DEFAULT 0,
-	"LocalTZ" TEXT NOT NULL DEFAULT 'Europe/London',
-	"DecimalComma" INTEGER NOT NULL DEFAULT 0,
-	"HostCountry" TEXT NOT NULL DEFAULT 'UK',
-	"EmailParams" TEXT DEFAULT '{"SMTPAuth":"TRUE","SMTPSecure":"tls","Port":"587","Host":"smtp.gmail.com","Username":"ibaukebc@gmail.com","Password":"","SetFrom":["ibaukebc@gmail.com","The Rally Team"]}',
-	"isvirtual"	INTEGER NOT NULL DEFAULT 0,
-	"tankrange"	INTEGER NOT NULL DEFAULT 200,
-	"refuelstops"	TEXT,
-	"stopmins"	INTEGER NOT NULL DEFAULT 10,
-	"spbonus"	TEXT,
-	"fpbonus"	TEXT,
-	"mpbonus"	TEXT
-);
+'{
+    "SMTPAuth": "TRUE",
+    "SMTPSecure": "tls",
+    "Port": "587",
+    "Host": "smtp.gmail.com",
+    "Username": "ibaukebc@gmail.com",
+    "Password": "",
+    "SetFrom": [
+        "ibaukebc@gmail.com",
+        "The Rally Team"
+    ]
+}',
+'{
+	"claimsShowPost": "true",
+	"claimsAutopostAll": "true"
+}');
+
 
 CREATE TABLE "emailq" (
 	"EntrantID"	INTEGER NOT NULL,
@@ -202,6 +226,8 @@ CREATE TABLE IF NOT EXISTS "entrants" (
 	"AvgSpeed" TEXT,
 	PRIMARY KEY("EntrantID")
 );
+
+
 CREATE TABLE IF NOT EXISTS "combinations" (
 	"ComboID"	TEXT,
 	"BriefDesc"	TEXT,
@@ -309,7 +335,6 @@ CREATE TABLE IF NOT EXISTS "classes" (
 	PRIMARY KEY("Class")
 );
 
-DELETE FROM "rallyparams";
 DELETE FROM "functions";
 DELETE FROM "menus";
 
@@ -329,7 +354,7 @@ DELETE FROM "themes";
 DELETE FROM "magicwords";
 DELETE FROM "classes";
 
-INSERT INTO "rallyparams" (RallyTitle,RallySlogan) VALUES ('IBA rally','Fun with motorcycles');
+
 INSERT INTO "classes" (Class,BriefDesc,AutoAssign) VALUES(0,'Default',0);
 
 INSERT INTO "functions" (functionid,menulbl,url,onclick,Tags) VALUES (1,'AdmEntrantChecks','entrants.php?c=entrants&amp;ord=EntrantID&amp;mode=check',NULL,'entrant,check-in/check-out');
@@ -376,7 +401,7 @@ INSERT INTO "functions" (functionid,menulbl,url,onclick,Tags) VALUES (41,'AdmSen
 INSERT INTO "functions" (functionid,menulbl,url,onclick,Tags) VALUES (42,'AdmShowAdvanced','admin.php?menu=advanced',NULL,'advanced,setup');
 INSERT INTO "functions" (functionid,menulbl,url,onclick,Tags) VALUES (43,'AdmRallyParams','sm.php?c=rallyparams&adv',NULL,'params,rally,advanced');
 INSERT INTO "functions" (functionid,menulbl,url,onclick,Tags) VALUES (44,'AdmClasses','classes.php?c=classes',NULL,'params,class,advanced');
-INSERT INTO "functions" (functionid,menulbl,url,onclick,Tags) VALUES (45,'AdmExportEntrants','exportxls.php?c=expentrants','this.firstChild.innerHTML=FINISHERS_EXPORTED;','entrant,all,export');
+INSERT INTO "functions" (functionid,menulbl,url,onclick,Tags) VALUES (45,'AdmExportEntrants','exportxls.php?c=expentrants','this.firstChild.innerHTML=ENTRANTS_EXPORTED;','entrant,all,export');
 
 INSERT INTO "menus" (menuid,menulbl,menufuncs) VALUES ('admin','AdmMenuHeader','2,37,36,4,24,25,41,6,5');
 INSERT INTO "menus" (menuid,menulbl,menufuncs) VALUES ('setup','AdmSetupHeader','16,17,18,19,20,42');

@@ -122,6 +122,8 @@ const NON_EXISTENT_BONUSID = 'zzyy23';
 
 const DDAREA_id	= "ddarea";
 const ORDINARY_BONUS_PREFIX = 'B';
+const SPECIAL_BONUS_PREFIX = 'S';
+const COMBO_BONUS_PREFIX = 'C';
 const ORDINARY_BONUSES_VISITED = 'BonusesVisited';
 const CONFIRMED_BONUS_MARKER	= '++';
 
@@ -265,7 +267,12 @@ function bodyLoaded()
 	trapDirtyPage();
 	if (!isScoresheetpage)
 		return;
-	
+
+	// If scorecard is dirty, get lock right away
+	let cmd = document.getElementById('savescorebutton');
+	if (cmd && !cmd.disabled)
+		getScoreLock(cmd);
+
 	calcScore(false);	
 		
 }
@@ -308,7 +315,7 @@ function calcAvgSpeed()
 	let dtStart = new Date(isoStart);
 	let dtFinish = new Date(isoFinish);
 	let minsDuration = Math.abs(dtFinish - dtStart) / msecsPerMinute;
-	
+	console.log('cas: mins='+minsDuration);
 	/* Now add up rest minutes and store the result for posting to Entrant record */
 	let specials = document.querySelectorAll('input[data-mins]');
 	console.log('cas: '+JSON.stringify(specials));
@@ -329,9 +336,22 @@ function calcAvgSpeed()
 	let odoScale = parseFloat(document.querySelector('#OdoScaleFactor').value);
 	if (odoScale < 0.5)
 		odoScale = 1.0;
-	let odoDistance = (parseInt(document.querySelector('#OdoRallyFinish').value) - parseInt(document.querySelector('#OdoRallyStart').value)) * odoScale;
+
+	let odoS = document.getElementById('OdoRallyStart');
+	let odoF = document.getElementById('OdoRallyFinish');
+	let odoDistance = (parseInt(odoF.value) - parseInt(odoS.value)) * odoScale;
+	if (odoDistance < 0) {
+		odoS.classList.add('yellow');
+		odoF.classList.add('yellow');
+	} else {
+		odoS.classList.remove('yellow');
+		odoF.classList.remove('yellow');
+	}
+
+
 	let odoKms = document.querySelector('#OdoKms').value=='1';
 	
+	console.log('cas: distance='+odoDistance+' x '+odoKms);
 	// Any non-zero value here means that we're handling kilometres rather than miles
 	let basicKms = parseInt(document.getElementById('BasicDistanceUnit').value) != 0;
 	
@@ -1098,13 +1118,14 @@ function calcSpeedPenalty(dnf)
  * This will return the number of penalty points (not multipliers) or 0
  * If highest match gives DNF, I return 0
  *
- * If pafsrameter dnf is true then
+ * If parameter dnf is true then
  * If highest match give DNF, return true otherwise false
  *
  */
 {
 	let SP = document.getElementsByName('SpeedPenalty[]');
 	let speed = parseFloat(document.getElementById('CalculatedAvgSpeed').value);
+	console.log('Checking '+speed+' against '+SP.length+' speed penalty records');
 	for (let i =0; i < SP.length; i++)
 		if (speed >= parseFloat(SP[i].getAttribute('data-MinSpeed')))
 		{
@@ -1262,7 +1283,7 @@ function enableSaveButton()
 	if (cmd == null)
 		return;
 	let x = document.getElementById('ScoreSheet');
-	if (x != null)
+	if (x != null && cmd.disabled)
 		getScoreLock(cmd);
 	cmd.disabled = false;
 	try {
@@ -1278,7 +1299,7 @@ function explainOrdinaryBonuses(totalSoFar)
 {
 	function showB(B)
 	{
-		sxappend(B.getAttribute('id'),B.parentNode.getAttribute("title").replace(/\[.+\]/,""),B.getAttribute('data-points'),0,totalSoFar += parseInt(B.getAttribute('data-points')));
+		sxappend(B.getAttribute('id'),B.parentNode.getAttribute("data-title").replace(/\[.+\]/,""),B.getAttribute('data-points'),0,totalSoFar += parseInt(B.getAttribute('data-points')));
 	}
 	var bv = document.getElementById(ORDINARY_BONUSES_VISITED);
 	if (!bv)
@@ -1296,7 +1317,7 @@ function explainOrdinaryBonuses(totalSoFar)
 		var bva = bv.value.split(',');
 		for (var i = 0; i < bva.length; i++ )
 		{
-			var bp = document.getElementById('B'+bva[i].replace(CONFIRMED_BONUS_MARKER,''));
+			var bp = document.getElementById(ORDINARY_BONUS_PREFIX+bva[i].replace(CONFIRMED_BONUS_MARKER,''));
 			if (bp && bp.checked)
 				if (!bp.hasAttribute('data-rejected') || bp.getAttribute('data-rejected') == '0')
 					showB(bp);
@@ -1337,11 +1358,16 @@ function formatNumberScore(n,prettyPrint)
  *
  */
 {
-	if (prettyPrint===undefined)
-	{
+	if (prettyPrint===undefined) {
 		return n;
 	}
-	var NF = new Intl.NumberFormat(MY_LOCALE);
+	let loc = document.getElementById('DefaultLocale');
+	console.log('loc is '+loc);
+	if (loc)
+		console.log('loc.value is '+loc.value);
+	else
+		console.log('Locale is '+MY_LOCALE);
+	var NF = new Intl.NumberFormat(loc ? loc.value : MY_LOCALE);
 	
 	if (parseInt(n) > 0)
 		return NF.format(n);
@@ -1894,6 +1920,10 @@ function showCat(cat,N,ent)
 	try	{ document.getElementById('cat'+cat+'_'+ent).innerText = X; } catch(err) { }		
 }
 
+function showHelp(topic)
+{
+	window.open('showhelp.php?topic='+topic, 'smhelp', 'location=no,height=800,width=800,scrollbars=yes,status=no');
+}
 
 /* Called from Entrant picklist when an Entrant number is entered */
 function showPickedName()
@@ -2199,9 +2229,9 @@ function tickCombos()
 			for (var j = 0; j < bps.length; j++ )
 				if (bps[j] != '') 
 				{
-					var bp = document.getElementById('B'+bps[j]);
-					var sp = document.getElementById('S'+bps[j]);
-					var cp = document.getElementById('C'+bps[j]);
+					var bp = document.getElementById(ORDINARY_BONUS_PREFIX+bps[j]);
+					var sp = document.getElementById(SPECIAL_BONUS_PREFIX+bps[j]);
+					var cp = document.getElementById(COMBO_BONUS_PREFIX+bps[j]);
 					if ( (bp != null && bonusScoredOk(bp)) || (sp != null && bonusScoredOk(sp)) || (cp != null && bonusScoredOk(cp)) )
 						ticks++;
 					else

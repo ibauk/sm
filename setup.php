@@ -58,6 +58,7 @@ function savePage($page_number)
 			case 'mpbonus':
 			case 'LocalTZ':
 			case 'HostCountry':
+			case 'Locale':
 				$sql_fields .= "'".$DB->escapeString($rv)."'";
 				break;
 			case 'StartTime':
@@ -126,10 +127,10 @@ function showPage($page_number)
 			echo('<div class="wizitem"><p>'.$TAGS['WizRegion'][1].'</p>');
 			
 			// Crude locale customisation
-			$regionspecs['United Kingdom'] = ['MilesKms'=>'0','LocalTZ'=>'Europe/London','DecimalComma'=>'0','HostCountry'=>'UK'];
-			$regionspecs['Republic of Ireland'] = ['MilesKms'=>'1','LocalTZ'=>'Europe/Dublin','DecimalComma'=>'0','HostCountry'=>'Eire'];
-			$regionspecs['Western Europe'] = ['MilesKms'=>'1','LocalTZ'=>'Europe/Berlin','DecimalComma'=>'1','HostCountry'=>'DE'];
-			$regionspecs['Eastern Europe'] = ['MilesKms'=>'1','LocalTZ'=>'Europe/Helsinki','DecimalComma'=>'1','HostCountry'=>'Finland'];
+			$regionspecs['United Kingdom'] = ['MilesKms'=>'0','LocalTZ'=>'Europe/London','DecimalComma'=>'0','HostCountry'=>'UK','Locale'=>'en-GB'];
+			$regionspecs['Republic of Ireland'] = ['MilesKms'=>'1','LocalTZ'=>'Europe/Dublin','DecimalComma'=>'0','HostCountry'=>'Eire','Locale'=>'en-IE'];
+			$regionspecs['Western Europe'] = ['MilesKms'=>'1','LocalTZ'=>'Europe/Berlin','DecimalComma'=>'1','HostCountry'=>'DE','Locale'=>'de-DE'];
+			$regionspecs['Eastern Europe'] = ['MilesKms'=>'1','LocalTZ'=>'Europe/Helsinki','DecimalComma'=>'1','HostCountry'=>'Finland','Locale'=>'fi-FI'];
 			
 			echo('<span class="hide" id="regionspecs">'.json_encode($regionspecs).'</span>');
 			$init = array_keys($regionspecs)[0];
