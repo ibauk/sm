@@ -7,3 +7,8 @@ ScoreMaster calculates overall average speed of entrants during the rally using 
 If no penalty records are entered no action will be taken otherwise a penalty may be applied: either be DNF or a fixed number of penalty points deducted from the score.
 
 Multiple records are entered to trigger penalties at different speeds. Only one such record will be applied to an entrant’s score and it will be the one with the highest speed equal to or lower than the entrant’s calculated average speed.
+
+---
+*If you don't want a speeding ticket, don't speed.*
+
+**Ainsley Earhardt**
