@@ -24,7 +24,7 @@
  */
 
 
-$PROGRAM = array("version" => "2.6.2b",	"title"	=> "ScoreMaster");
+$PROGRAM = array("version" => "2.7",	"title"	=> "ScoreMaster");
 /*
  *	2.0	25May18	Used live at BBR18
  *
@@ -152,14 +152,8 @@ function showAbout()
 	echo('<dl class="techie">');
 	echo('<dt title="'.$TAGS['abtOnlineDoc'][1].'">'.$TAGS['abtOnlineDoc'][0].'</dt>');
 	echo('<dd>');
-	echo('<span class="dox" title="'.$TAGS['abtDocAdminGuide'][1].'">');
-	echo('<a href="https://docs.google.com/document/d/1SFTU79AvWniOubc6psYkj55m3JCwlYJp1QkSMSJzij4/preview" target="smdox">'.$TAGS['abtDocAdminGuide'][0].'</a>');
-	echo('</span>');
-	echo('<span class="dox" title="'.$TAGS['abtDocDBSpec'][1].'">');
-	echo('<a href="https://docs.google.com/document/d/1oRSSBPdAJdHNgKaB3ZlFlFsqYm-PtBxjBkM7-QwG9xo/preview" target="smdox">'.$TAGS['abtDocDBSpec'][0].'</a>');
-	echo('</span>');
-	echo('<span class="dox" title="'.$TAGS['abtDocTechRef'][1].'">');
-	echo('<a href="https://docs.google.com/document/d/1IUiCZhgov1RSNxQ26CvoiSGEdEyFchIaFsXWaLnvUjM/preview" target="smdox">'.$TAGS['abtDocTechRef'][0].'</a>');
+	echo('<span class="dox" title="'.$TAGS['abtOnlineDocs'][1].'">');
+	echo('<a href="https://drive.google.com/drive/folders/1vTDJCPXaJ2ixyRa8yucFdHKbiMyTNSPh?usp=sharing" target="smdox">'.$TAGS['abtOnlineDocs'][0].'</a>');
 	echo('</span>');
 	echo('</dd>');
 	echo('</dl><hr>');
@@ -178,7 +172,8 @@ function showAbout()
 	echo('<dt title="'.$TAGS['abtSQLite'][1].'">'.$TAGS['abtSQLite'][0].'</dt><dd>'.SQLite3::version()['versionString'].'</dd>');
 	$mk = ($KONSTANTS['BasicDistanceUnit'] == $KONSTANTS['DistanceIsMiles'] ? 'miles' : 'kilometres');
 	echo('<dt title="'.$TAGS['abtBasicDistance'][1].'">'.$TAGS['abtBasicDistance'][0].'</dt><dd>'.$mk.'</dd>');
-	echo('<dt title="'.$TAGS['abtAuthor'][1].'">'.$TAGS['abtAuthor'][0].'</dt><dd>Bob Stammers &lt;webmaster@ironbutt.co.uk&gt; on behalf of <span title="Iron Butt Association (UK)">IBAUK</span>, inspired by Steve Eversfield (IBA #169)</dd>');
+	echo('<dt title="'.$TAGS['abtAuthor'][1].'">'.$TAGS['abtAuthor'][0].'</dt><dd>Bob Stammers &lt;webmaster@ironbutt.co.uk&gt; (IBA #51220)</dd>');
+	echo('<dt title="'.$TAGS['abtInspired'][1].'">'.$TAGS['abtInspired'][0].'</dt><dd>Chris Kilner (IBA #40058), Steve Eversfield (IBA #169), Robert Koeber (IBA #552)</dd>');
 	echo('<dt title="'.$TAGS['abtLicence'][1].'">'.$TAGS['abtLicence'][0].'</dt><dd class="clickme" onclick="document.getElementById(\'mit\').className=\'show\';">MIT</dd>');
 	echo('</dl>');
 	echo('<p id="mit" class="hide">'.$MIT.'</p>');

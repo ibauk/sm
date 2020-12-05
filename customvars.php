@@ -101,6 +101,7 @@ $TAGS = array(
 	'abtInspired'		=> array('Inspired by','Creative inpiration sources'),
 	'abtLicence'		=> array('Licence','The licence controlling use of this application'),
 	'abtOnlineDoc'		=> array('Online documentation','Current application manuals available on the web'),
+	'abtOnlineDocs'		=> array('Full documentation for all aspects of the software (needs internet connection)','Concepts, Configuration, Operations, Technical, Database'),
 	'abtPHP'			=> array('PHP version',''),
 	'abtSQLite'			=> array('SQLite version',''),
 	'abtWebserver'		=> array('Webserver','What webserver software is hosting this'),
