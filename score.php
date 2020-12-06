@@ -92,55 +92,6 @@ function blankFormRecord()
 	return $blankrec;
 }
 
-// If ShowMults is automatic, I decide.
-function chooseShowMults($ScoringMethod)
-{
-	global $DB, $TAGS, $KONSTANTS;
-	
-	if ($ScoringMethod <> $KONSTANTS['CompoundScoring'])                              
-		return $KONSTANTS['SuppressMults'];
-	
-	$R = $DB->query("SELECT Count(*) AS Rex FROM catcompound WHERE PointsMults=".$KONSTANTS['ComboScoreMethodMults']);
-	$rd = $R->fetchArray();
-	if ($rd['Rex'] > 0)
-		return $KONSTANTS['ShowMults'];
-	$R = $DB->query("SELECT Count(*) AS Rex FROM combinations WHERE ScoreMethod=".$KONSTANTS['ComboScoreMethodMults']);
-	$rd = $R->fetchArray();
-	if ($rd['Rex'] > 0)
-		return $KONSTANTS['ShowMults'];
-	$R = $DB->query("SELECT Count(*) AS Rex FROM specials WHERE MultFactor<> 0");
-	$rd = $R->fetchArray();
-	if ($rd['Rex'] > 0)
-		return $KONSTANTS['ShowMults'];
-	
-	return $KONSTANTS['SuppressMults'];
-}
-
-
-// If ScoringMethod is automatic, I choose what to do
-function chooseScoringMethod()
-{
-	global $DB, $TAGS, $KONSTANTS;
-	
-	$R = $DB->query("SELECT Count(*) AS Rex FROM catcompound");
-	$rd = $R->fetchArray();
-	if ($rd['Rex'] > 0)
-		return $KONSTANTS['CompoundScoring'];	
-
-	$R = $DB->query("SELECT Count(*) AS Rex FROM bonuses");
-	$rd = $R->fetchArray();
-	if ($rd['Rex'] > 0)
-		return $KONSTANTS['SimpleScoring'];
-	
-	$R = $DB->query("SELECT Count(*) AS Rex FROM specials");
-	$rd = $R->fetchArray();
-	if ($rd['Rex'] > 0)
-		return $KONSTANTS['SimpleScoring'];
-	
-	return $KONSTANTS['ManualScoring'];
-	
-	
-}
 
 
 function defaultFinishTime()
@@ -232,7 +183,7 @@ function putScore()
 {
 	global $DB, $TAGS, $KONSTANTS, $AUTORANK, $DBVERSION;
 
-//	var_dump($_REQUEST);
+	//var_dump($_REQUEST);exit;
 	
 	$sql = "UPDATE entrants SET ScoredBy='".$DB->escapeString($_REQUEST['ScorerName'])."'";
 	
@@ -391,7 +342,10 @@ function putScoreTeam($confirmed)
 
 function saveSpecials()
 {
-//	print_r($_REQUEST);
+	global $KONSTANTS;
+
+	//print_r($_REQUEST);
+	//exit;
 	if (isset($_REQUEST['SpecialID']))
 		$sv = implode(',',$_REQUEST['SpecialID']);
 	else
@@ -405,11 +359,14 @@ function saveSpecials()
 			$sv .= implode($_REQUEST['SpecialID'.'_'.$g]);
 	}
 	$TickedSpecials = explode(',',$sv);
+	//print_r($TickedSpecials);
+	//echo('<hr>');
 	foreach ($TickedSpecials as $ts)
-		if (isset($_REQUEST['apS'.$ts]))
-		{
-			array_push($TickedSpecials,$ts.'='.$_REQUEST['apS'.$ts]);
-			unset($TickedSpecials[$ts]);
+		if (isset($_REQUEST['ap'.$KONSTANTS['SPECIAL_BONUS_PREFIX'].$ts])) {
+			unset($TickedSpecials[array_search($ts,$TickedSpecials)]);
+			array_push($TickedSpecials,$ts.'='.$_REQUEST['ap'.$KONSTANTS['SPECIAL_BONUS_PREFIX'].$ts]);
+			//print_r($TickedSpecials);
+			//exit;
 		}
 	$sv = implode(',',$TickedSpecials);
 	return ",SpecialsTicked='".$sv."'";
@@ -674,11 +631,11 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 
 	echo("\r\n");
 	echo('<span title="'.$TAGS['OdoRallyStart'][1].'"><label for="OdoRallyStart">'.$TAGS['OdoRallyStart'][0].' </label> ');
-	echo('<input '.$sbfro.' type="'.$numbertype.'" name="OdoRallyStart" id="OdoRallyStart" value="'.$codof1.'" onchange="calcMiles();calcScore(true)" /> ');
+	echo('<input '.$sbfro.' class="bignumber" type="'.$numbertype.'" name="OdoRallyStart" id="OdoRallyStart" value="'.$codof1.'" onchange="calcMiles();calcScore(true)" /> ');
 	echo('</span>');
 	echo("\r\n");
 	echo('<span title="'.$TAGS['OdoRallyFinish'][1].'"><label for="OdoRallyFinish">'.$TAGS['OdoRallyFinish'][0].' </label> ');
-	echo('<input '.$sbfro.' type="'.$numbertype.'" name="OdoRallyFinish" id="OdoRallyFinish" value="'.$codof.'" onchange="calcMiles();calcScore(true)" /> ');
+	echo('<input '.$sbfro.' class="bignumber" type="'.$numbertype.'" name="OdoRallyFinish" id="OdoRallyFinish" value="'.$codof.'" onchange="calcMiles();calcScore(true)" /> ');
 	echo('</span>');
 	
 	if (!$showBlankForm)
@@ -855,10 +812,11 @@ function showBonuses($bonusesTicked,$showBlankForm,$postRallyForm)
 		if (!$showBlankForm)
 			echo(' oncontextmenu="showPopup(this);"');
 		
+		echo(' data-title="'.$bd.'"');	// HTML intact, use for scorex
 		
 		echo(' title="'.strip_tags($bd).' [ '.$rd['Points'].' ]">');
-		echo('<label for="B'.$bk.'">'.$bk.'-</label>');
-		echo('<input type="checkbox"'.$chk.' name="BonusID[]" id="B'.$bk.'" value="'.$bk.'" onchange="tickBonus(this)"');
+		echo('<label for="'.$KONSTANTS['ORDINARY_BONUS_PREFIX'].$bk.'">'.$bk.'-</label>');
+		echo('<input type="checkbox"'.$chk.' name="BonusID[]" id="'.$KONSTANTS['ORDINARY_BONUS_PREFIX'].$bk.'" value="'.$bk.'" onchange="tickBonus(this)"');
 		echo(' data-points="'.$rd['Points'].'" ');
 		for ($c = 1; $c <= $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $c++)
 			echo('data-cat'.$c.'="'.intval($rd['Cat'.$c]).'" ');
@@ -920,8 +878,8 @@ function showCombinations($Combos)
 			echo('x');
 		echo($rd['ScorePoints']);
 		echo(' ]" oncontextmenu="showPopup(this);">');
-		echo('<label for="C'.$bk.'">'.htmlspecialchars($bd).' </label>');
-		echo('<input type="checkbox"'.$chk.' name="ComboID[]" disabled="disabled" id="C'.$bk.'" value="'.$bk.'"');
+		echo('<label for="'.$KONSTANTS['COMBO_BONUS_PREFIX'].$bk.'">'.htmlspecialchars($bd).' </label>');
+		echo('<input type="checkbox"'.$chk.' name="ComboID[]" disabled="disabled" id="'.$KONSTANTS['COMBO_BONUS_PREFIX'].$bk.'" value="'.$bk.'"');
 		echo(' data-method="'.$rd['ScoreMethod'].'" data-points="'.$rd['ScorePoints'].'" data-bonuses="'.$rd['Bonuses'].'" ');
 		if ($DBVERSION >= 3)
 			for ($c = 1; $c <= $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $c++)
@@ -1106,7 +1064,7 @@ function showSpecials($specials)
 	global $DB, $TAGS, $KONSTANTS, $DBVERSION;
 
 	$BA = explode(',',','.$specials); // The leading comma means that the first element is index 1 not 0
-	
+	//print_R($BA); exit;
 	$sql = 'SELECT BonusID,BriefDesc,Points,MultFactor,Compulsory,AskPoints';
 	if ($DBVERSION >= 4)
 		$sql .= ',RestMinutes,AskMinutes';
@@ -1114,34 +1072,34 @@ function showSpecials($specials)
 		$sql .= ',0 as RestMinutes,0 as AskMinutes';
 	$sql .= ',specials.GroupName,GroupType FROM specials LEFT JOIN sgroups ON specials.GroupName=sgroups.GroupName ORDER BY specials.GroupName,BonusID';
 	$R = $DB->query($sql);
-	while ($rd = $R->fetchArray())
-	{
+	while ($rd = $R->fetchArray()) 
 		$BP[$rd['BonusID']] = array($rd['BriefDesc'],$rd['Points'],$rd['MultFactor'],$rd['Compulsory'],$rd['GroupName'],$rd['GroupType'],$rd['AskPoints'],$rd['RestMinutes'],$rd['AskMinutes']);
-	}
+	
 	echo('<input type="hidden" name="update_specials" value="1" />');
 	$lastSpecialGroup = '';
 	$SGroupsUsed = '';
 	$AP = array();
 	$AM = array();
-	foreach ($BA as $bk)
-	{
-		if (strpos($bk,'=')>0)
-		{
+	foreach ($BA as $bk) 	{
+		if (strpos($bk,'=')>0) {
 			$x = explode('=',$bk);
-			if (count($x)==2)
-			{
+			//print_r($x); exit;
+			if (count($x)==2) {
+				array_push($BA,$x[0]); // Add the proper key into the array
 				$pm = explode(';',$x[1]);
-				if (count($pm)>1)
-				{
+				//print_r($pm); echo(count($pm)); exit;
+				if (count($pm)>1) {
 					$AP[$x[0]] = $pm[0]; // points
 					$AM[$x[0]] = $pm[1]; // minutes
 				}
-				else
+				else {
 					$AP[$x[0]] = $x[1];
+					$AM[$x[0]] = '0';
+				}
 			}
 		}
 	}
-	//print_r($AP);
+	//print_r($AM); exit;
 	$firstRadio = ' checked="checked" ';
 	foreach($BP as $bk => $b)
 	{
@@ -1191,7 +1149,7 @@ function showSpecials($specials)
 			if ($optType == 'checkbox')
 				echo(' oncontextmenu="showPopup(this);"');
 			echo('>');
-			echo('<label for="S'.str_replace(' ','_',$bk).'">'.htmlspecialchars($b[0]).' </label>');
+			echo('<label for="'.$KONSTANTS['SPECIAL_BONUS_PREFIX'].str_replace(' ','_',$bk).'">'.htmlspecialchars($b[0]).' </label>');
 			$chk = array_search($bk, $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
 			if ($chk=='')	
 				$chk = array_search($KONSTANTS['ConfirmedBonusMarker'].$bk, $BA) ? ' checked="checked" ' : '';  // Depends on first item having index 1 not 0
@@ -1201,7 +1159,7 @@ function showSpecials($specials)
 			echo('<input type="'.$optType.'"'.$chk.' name="SpecialID');
 			if ($lastSpecialGroup <> '')
 				echo("_".$lastSpecialGroup);
-			echo('[]" id="S'.$specialid.'" value="'.$bk.'"');
+			echo('[]" id="'.$KONSTANTS['SPECIAL_BONUS_PREFIX'].$specialid.'" value="'.$bk.'"');
 			echo(' onchange="'.$onchange.'"');
 			
 			echo(' data-points="'.$points.'" data-mult="'.$b[2].'" data-reqd="'.$b[3].'" data-askpoints="'.$b[6].'" data-mins="'.$mins.'" data-askmins="'.$b[8].'"> ');
@@ -1213,10 +1171,12 @@ function showSpecials($specials)
 		echo('</fieldset>');
 	echo("\r\n");
 	echo('<span id="apspecials">');
-	foreach ($AP as $b => $p)
-	{
-		echo('<input type="hidden" name=ap'.$b.'" id="ap'.$b.'" value="'.$p.'">');
+	foreach ($AP as $b => $p) {
+		// Need to cater for variable points and variable minutes
+		$xx = $p.';'.$AM[$b];
+		echo('<input type="hidden" name="ap'.$KONSTANTS['SPECIAL_BONUS_PREFIX'].$b.'" id="ap'.$KONSTANTS['SPECIAL_BONUS_PREFIX'].$b.'" value="'.$xx.'">');
 	}
+	
 	echo('</span>');
 	echo('<input type="hidden" name="SGroupsUsed" id="SGroupsUsed" value="'.$SGroupsUsed.'"/>');
 	

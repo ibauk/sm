@@ -161,15 +161,15 @@ function validate() {
 	echo('<input type="hidden" id="wheresql" name="wheresql">');
 	
 	echo('<span class="vlabel" title="'.$TAGS['em_EntrantStatus'][1].'"><label  style="vertical-align: middle;" for="EntrantDNS">'.$TAGS['em_EntrantStatus'][0].'</label> ');
-	echo('<label for="EntrantDNS">'.$TAGS['EntrantDNS'][0].'</label> <input onchange="countrecs();" type="checkbox" id="EntrantDNS" name="EntrantStatus" value="'.$KONSTANTS['EntrantDNS'].'"> ');
-	echo('<label for="EntrantOK">'.$TAGS['EntrantOK'][0].'</label> <input onchange="countrecs();" type="checkbox" id="EntrantOK" name="EntrantStatus" value="'.$KONSTANTS['EntrantOK'].'"> ');
-	echo('<label for="EntrantFinisher">'.$TAGS['EntrantFinisher'][0].'</label> <input onchange="countrecs();" type="checkbox" id="EntrantFinisher" name="EntrantStatus" value="'.$KONSTANTS['EntrantFinisher'].'"> ');
-	echo('<label for="EntrantDNF">'.$TAGS['EntrantDNF'][0].'</label> <input onchange="countrecs();" type="checkbox" id="EntrantDNF" name="EntrantStatus" value="'.$KONSTANTS['EntrantDNF'].'"> ');
+	echo('<label class="short" for="EntrantDNS">'.$TAGS['EntrantDNS'][0].'</label> <input onchange="countrecs();" type="checkbox" id="EntrantDNS" name="EntrantStatus" value="'.$KONSTANTS['EntrantDNS'].'"> ');
+	echo('<label class="short" for="EntrantOK">'.$TAGS['EntrantOK'][0].'</label> <input onchange="countrecs();" type="checkbox" id="EntrantOK" name="EntrantStatus" value="'.$KONSTANTS['EntrantOK'].'"> ');
+	echo('<label class="short" for="EntrantFinisher">'.$TAGS['EntrantFinisher'][0].'</label> <input onchange="countrecs();" type="checkbox" id="EntrantFinisher" name="EntrantStatus" value="'.$KONSTANTS['EntrantFinisher'].'"> ');
+	echo('<label class="short" for="EntrantDNF">'.$TAGS['EntrantDNF'][0].'</label> <input onchange="countrecs();" type="checkbox" id="EntrantDNF" name="EntrantStatus" value="'.$KONSTANTS['EntrantDNF'].'"> ');
 	//echo('</span>');
 	
 	//echo('<span class="vlabel" title="'.$TAGS['em_EntrantID'][1].'"><label  style="vertical-align: middle;" for="EntrantID">'.$TAGS['em_EntrantID'][0].'</label> ');
 	echo('<br><label  style="vertical-align: middle;" for="EntrantID">'.$TAGS['em_EntrantID'][0].'</label> ');
-	echo('<input type="text" name="EntrantID" id="EntrantID" onchange="countrecs();showEntrants();" > ');
+	echo('<input title="'.$TAGS['em_EntrantID'][1].'" type="text" name="EntrantID" id="EntrantID" onchange="countrecs();showEntrants();" > ');
 	echo('<span id="entrantnames"></span>');
 	echo('</span>');
 	

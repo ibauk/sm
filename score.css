@@ -109,6 +109,7 @@ caption					{ margin-bottom: 1em;  }
 span.vlabel				{ display: block; padding-top: 1em;}
 span.vlabel label		{ text-align: right; min-width: 8em; display: inline-block; }
 span.vlabel label.wide	{ text-align: right; min-width: 12em; display: inline-block; }
+span.vlabel label.short	{ text-align: right; min-width: 5em; display: inline-block; }
 span.xlabel:before		{ content: '\A\A'; white-space: pre; }
 input[name="BikeReg"]	{ width: 7em; }
 select[name="EntrantStatus"]	{ margin-bottom: 1em; }
@@ -423,6 +424,26 @@ input[name="RallySlogan"]	{ width: 20em; }
 .teamslist .lastrow	td	{ padding-bottom: .5em; }
 
 #listctrl *		{ font-size: small; }
+
+/* Help system */
+.currenttopic	{ 
+	font-size: .5em; 
+	max-width: 80em;
+	padding: .5em 1em .5em 1em;
+	margin: 1em auto 1em auto;
+	background-color: white;
+	color: black;
+}
+
+.currenttopic p { text-align: justify; margin-top: 0; }
+.currenttopic h2 { margin-bottom: 0; }
+.currenttopic h3 { margin-bottom: 0; }
+.currenttopic h4 { margin-bottom: 0; }
+.currenttopic h5 { margin-bottom: 0; }
+.currenttopic h6 { margin-bottom: 0; }
+
+.currenttopic a	{ color: blue; text-decoration: none; }
+.currenttopic a:visited	{ color: blue; text-decoration: none; }
 
 @media print {
 	*			{ background-color: white; color: black !important; }

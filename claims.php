@@ -115,6 +115,44 @@ function updateDDate(obj)
 	xhttp.send();
 	
 }
+
+function updateFA(obj)
+// Filter by applied changed
+{
+	let val = obj.value;
+	console.log('updateFA: '+val);
+	let xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		let ok = new RegExp("\W*ok\W*");
+		if (this.readyState == 4 && this.status == 200) {
+			console.log('{'+this.responseText+'}');
+			document.getElementById('refreshlist').click();			
+		}
+	};
+	xhttp.open("GET", "claims.php?c=updatefa&"+'&val='+val, true);
+	xhttp.send();
+	
+}
+
+
+function updateFD(obj)
+// Filter by decision changed
+{
+	let val = obj.value;
+	console.log('updateFD: '+val);
+	let xhttp = new XMLHttpRequest();
+	xhttp.onreadystatechange = function() {
+		let ok = new RegExp("\W*ok\W*");
+		if (this.readyState == 4 && this.status == 200) {
+			console.log('{'+this.responseText+'}');
+			document.getElementById('refreshlist').click();			
+		}
+	};
+	xhttp.open("GET", "claims.php?c=updatefd&"+'&val='+val, true);
+	xhttp.send();
+	
+}
+
 //-->
 </script>
 <?php	
@@ -145,7 +183,6 @@ function listclaims()
 	$rallyStartDate = substr(getValueFromDB("SELECT StartTime FROM rallyparams","StartTime",$todaysDate),0,10);
 	$rallyFinishDate = substr(getValueFromDB("SELECT FinishTime FROM rallyparams","FinishTime",$todaysDate),0,10);
 	$defaultDate = ($todaysDate<$rallyStartDate ? $rallyStartDate : ($todaysDate>$rallyFinishDate ? $rallyFinishDate : $todaysDate));
-	
 	$rr = explode("\n",str_replace("\r","",getValueFromDB("SELECT RejectReasons FROM rallyparams","RejectReasons","1=1")));
 	$decisions = [];
 	$decisions['0'] = $TAGS['BonusClaimOK'][0];
@@ -154,21 +191,25 @@ function listclaims()
 		if (isset($rtt[1]))
 			$decisions[$rtt[0]] = $rtt[1];
 	}
+
+	$decided = isset($_REQUEST['showd']) ? intval($_REQUEST['showd']) : (isset($_SESSION['fd']) ? $_SESSION['fd'] : $KONSTANTS['showAll']);
+	$applied = isset($_REQUEST['showa']) ? intval($_REQUEST['showa']) : (isset($_SESSION['fa']) ? $_SESSION['fa'] : $KONSTANTS['showNot']);
+
 	$sql = "SELECT Count(*) AS rex FROM claims";
 	$sqlw = '';
-	if (isset($_REQUEST['showe']) || isset($_REQUEST['showb']) || isset($_REQUEST['showd']) || isset($_REQUEST['showa']) ) {
-		if (isset($_REQUEST['showe']) && $_REQUEST['showe']!='')
-			$sqlw .= "EntrantID=".$_REQUEST['showe'];
-		if (isset($_REQUEST['showb']) && $_REQUEST['showb']!='')
-			$sqlw .= ($sqlw != ''? ' AND ' : '')."Bonusid='".$DB->escapeString($_REQUEST['showb'])."'";
-		if (isset($_REQUEST['showd']) && $_REQUEST['showd']!=$KONSTANTS['showAll'] && $_REQUEST['showd']!='')
-			$sqlw .= ($sqlw != ''? ' AND ' : '').'Decision'.($_REQUEST['showd']==$KONSTANTS['showNot'] ? '='.$KONSTANTS['UNDECIDED_CLAIM']: '<>'.$KONSTANTS['UNDECIDED_CLAIM']);
-		if (isset($_REQUEST['showa']) && $_REQUEST['showa']!=$KONSTANTS['showAll']  && $_REQUEST['showa']!='')
-			$sqlw .= ($sqlw != ''? ' AND ' : '').'Applied'.($_REQUEST['showa']==$KONSTANTS['showNot'] ? '=0': '<>0');
-	}
+	if (isset($_REQUEST['showe']) && $_REQUEST['showe']!='')
+		$sqlw .= "EntrantID=".$_REQUEST['showe'];
+	if (isset($_REQUEST['showb']) && $_REQUEST['showb']!='')
+		$sqlw .= ($sqlw != ''? ' AND ' : '')."Bonusid='".$DB->escapeString($_REQUEST['showb'])."'";
+	if ($decided != $KONSTANTS['showAll'])
+		$sqlw .= ($sqlw != '' ? ' AND ' : '').'Decision'.($decided==$KONSTANTS['showNot'] ? '=' : '<>').' '.$KONSTANTS['UNDECIDED_CLAIM'];
+	if ($applied != $KONSTANTS['showAll'])
+		$sqlw .= ($sqlw != '' ? ' AND ' : '').'Applied'.($applied==$KONSTANTS['showNot'] ? '=0' : '<>0');
+
 	if ($sqlw !='')
 		$sql .= " WHERE ".$sqlw;
-	$R = $DB->query($sql);
+
+		$R = $DB->query($sql);
 	if ($DB->lastErrorCode() <> 0)
 		echo($DB->lastErrorMsg().'<br>'.$sql.'<hr>');
 	$rd = $R->fetchArray();
@@ -211,15 +252,13 @@ function listclaims()
 		pushBreadcrumb($mybc);
 	emitBreadcrumbs();
 	
-	$decided = isset($_REQUEST['showd']) ? intval($_REQUEST['showd']) : $KONSTANTS['showAll'];
-	echo('<select name="showd" style="font-size: small;" title="'.$TAGS['cl_showAllD'][1].'" onchange="document.getElementById(\'refreshlist\').click();"> ');
+	echo('<select name="showd" style="font-size: small;" title="'.$TAGS['cl_showAllD'][1].'" onchange="updateFD(this);"> ');
 	echo('<option value="'.$KONSTANTS['showAll'].'" '.($decided==$KONSTANTS['showAll'] ? 'selected' : '').'>'.$TAGS['cl_showAllD'][0].'</option>');
 	echo('<option value="'.$KONSTANTS['showOnly'].'" '.($decided==$KONSTANTS['showOnly'] ? 'selected' : '').'>'.$TAGS['cl_showOnlyD'][0].'</option>');
 	echo('<option value="'.$KONSTANTS['showNot'].'" '.($decided==$KONSTANTS['showNot'] ? 'selected' : '').'>'.$TAGS['cl_showNotD'][0].'</option>');
 	echo('</select> ');
 	
-	$applied = isset($_REQUEST['showa']) ? intval($_REQUEST['showa']) : $KONSTANTS['showAll'];
-	echo('<select name="showa" style="font-size: small;" title="'.$TAGS['cl_showAllA'][1].'" onchange="document.getElementById(\'refreshlist\').click();"> ');
+	echo('<select name="showa" style="font-size: small;" title="'.$TAGS['cl_showAllA'][1].'" onchange="updateFA(this);"> ');
 	echo('<option value="'.$KONSTANTS['showAll'].'" '.($applied==$KONSTANTS['showAll'] ? 'selected' : '').'>'.$TAGS['cl_showAllA'][0].'</option>');
 	echo('<option value="'.$KONSTANTS['showOnly'].'" '.($applied==$KONSTANTS['showOnly'] ? 'selected' : '').'>'.$TAGS['cl_showOnlyA'][0].'</option>');
 	echo('<option value="'.$KONSTANTS['showNot'].'" '.($applied==$KONSTANTS['showNot'] ? 'selected' : '').'>'.$TAGS['cl_showNotA'][0].'</option>');
@@ -229,7 +268,13 @@ function listclaims()
 	
 	echo('<input type="submit" id="refreshlist" onclick="document.getElementById(\'refreshc\').value=\'listclaims\';" title="'.$TAGS['cl_RefreshList'][1].'" value="'.$TAGS['cl_RefreshList'][0].'"> ');
 	
+
+	if (strtolower(getSetting('claimsShowPost',"true"))=='true') {
+		$go = "window.location.href='claims.php?c=applyclaims';";
+		echo(' <input type="button" title="'.$TAGS['cl_ApplyBtn'][1].'" value="'.$TAGS['cl_ApplyBtn'][0].'" onclick="'.$go.'";>');
+	}
 	echo('</form>');
+
 	echo('</div>');
 
 
@@ -250,7 +295,7 @@ function listclaims()
 		$ename = getValueFromDB("SELECT RiderName FROM entrants WHERE EntrantID=".$rd['EntrantID'],"RiderName",$rd['EntrantID']);
 		echo(htmlspecialchars($ename).' </td>');
 		echo('<td title="');
-		fetchBonusName($rd['BonusID']);
+		fetchBonusName($rd['BonusID'],false);
 		echo('" onclick="showCurrentClaim(this);"> '.$rd['BonusID'].' </td>');
 		echo('<td onclick="showCurrentClaim(this);"> '.$rd['OdoReading'].' </td>');
 		echo('<td onclick="showCurrentClaim(this);"> '.logtime($rd['ClaimTime']).' </td>');
@@ -554,7 +599,7 @@ function checkDateTime() {
 	let rf = document.getElementById('rallyFinish');
 	let lc = document.getElementById('lastClaimTime');
 	let ct = cdt.value+'T'+ctm.value;
-	//console.log(rs.value+'  '+rf.value+' '+lc.value+' '+ct);
+	console.log(rs.value+'  '+rf.value+' '+lc.value+' '+ct);
 	let ok = (!lc || ct > lc.value) && (!rs || ct >= rs.value) && (!rf || ct <= rf.value);
 	console.log('Decided it was ok = '+ok);
 	if (ok) {
@@ -697,27 +742,38 @@ function pasteNewClaim()
 	if (!matches)
 		return;
 	let mlen = matches.length;
+
+	console.log(matches+'--'+mlen);
+
 	let echg = new Event('change');
 
 	let e = document.getElementById('EntrantID');
-	e.value = matches[1];
-	e.dispatchEvent(echg);
-	if (mlen > 1) {
-		let b = document.getElementById('BonusID');
-		b.value = matches[2];
-		b.dispatchEvent(echg);
-	}
-	if (mlen > 2) {
-		let o = document.getElementById('OdoReading');
-		o.value = matches[3];
-		o.dispatchEvent(echg);
-	}
-	if (mlen > 3) {
-		let t = document.getElementById('ClaimTime');
-		t.value = matches[4];
-		t.dispatchEvent(echg);
-	}
-	console.log(matches);
+	let b = document.getElementById('BonusID');
+	let o = document.getElementById('OdoReading');
+	let t = document.getElementById('ClaimTime');
+
+	
+	
+	if (mlen > 1) { // Fields were captured
+		e.value = matches[1];	
+		e.dispatchEvent(echg);
+
+		if (mlen > 2 && typeof(matches[2]) !== 'undefined') {
+			b.value = matches[2];
+			b.dispatchEvent(echg);
+			if (mlen > 3 && typeof(matches[3]) !== 'undefined') {
+				o.value = matches[3];
+				o.dispatchEvent(echg);
+				if (mlen > 4 && typeof(matches[4]) !== 'undefined') {
+					t.value = matches[4];
+					t.dispatchEvent(echg);
+				} else
+					t.focus();
+			} else
+				o.focus();
+		} else
+			b.focus();
+	} 
 	checkEnableSave();
 }
 
@@ -732,11 +788,15 @@ function showBonus(obj) {
 	xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
-			document.getElementById("BonusName").innerHTML = this.responseText;
-			if (this.responseText.trim().startsWith('*'))
+			let bname = document.getElementById("BonusName");
+			bname.innerHTML = this.responseText;
+			if (this.responseText.trim().startsWith('*')) {
 				obj.parentNode.classList.add('yellow');
-			else
+				bname.setAttribute('data-ok','0');
+			} else {
 				obj.parentNode.classList.remove('yellow');
+				bname.setAttribute('data-ok','1');
+			}
 		}
 	};
 	xhttp.open("GET", "claims.php?c=bondes&b="+str, true);
@@ -754,12 +814,16 @@ function showEntrant(obj) {
 	xhttp = new XMLHttpRequest();
 	xhttp.onreadystatechange = function() {
 		if (this.readyState == 4 && this.status == 200) {
-			document.getElementById("EntrantName").innerHTML = this.responseText;
+			let ename = document.getElementById("EntrantName");
+			ename.innerHTML = this.responseText;
 			console.log('{ '+this.responseText+' }');
-			if (this.responseText.trim().startsWith('*'))
+			if (this.responseText.trim().startsWith('*')) {
 				obj.parentNode.classList.add('yellow');
-			else
+				ename.setAttribute('data-ok','0');
+			} else {
 				obj.parentNode.classList.remove('yellow');
+				ename.setAttribute('data-ok','1');
+			}
 			let lastodo = document.getElementById('lastOdoReading');
 			let thisodo = document.getElementById('OdoReading');
 			if (lastodo && thisodo)
@@ -778,14 +842,24 @@ function showEntrant(obj) {
 function validateClaim(final) {
 	
 	console.log('Validating form ... ');
-	if (document.getElementById('EntrantID').value == '') {
-		if (final) document.getElementById('EntrantID').focus();
+	let eno = document.getElementById('EntrantID');
+	console.log('enok ok');
+	let ename = document.getElementById('EntrantName');
+	console.log('ename ok');
+	if (eno.value == '' || !ename.hasAttribute('data-ok') || ename.getAttribute('data-ok')=='0') {
+		if (final) eno.focus();
 		return false;
 	}
-	if (document.getElementById('BonusID').value == '') {
+	console.log('entrant ok');
+	let bid = document.getElementById('BonusID');
+	console.log('bid ok');
+	let bname = document.getElementById('BonusName');
+	console.log('bname ok');
+	if (bid.value == '' || !bname.hasAttribute('data-ok') || bname.getAttribute('data-ok')=='0') {
 		if (final) document.getElementById('BonusID').focus();
 		return false;
 	}
+	console.log('Bonus ok');
 	if (document.getElementById('OdoReading').value == '') {
 		if (final) document.getElementById('OdoReading').focus();
 		return false;
@@ -795,24 +869,28 @@ function validateClaim(final) {
 		return false;
 	}
 	let claimid = parseInt(document.getElementById('claimid').value);
-	console.log('Claimid='+claimid);
+	console.log('Claimid=='+claimid);
 	//alert('Check1');
 	if (claimid > 0)
 		return true;
-	
+	console.log('Checking ntm');
 	let ntm = document.getElementById('NextTimeMins');
 	if (ntm && ntm.value == '') {
+		console.log('ntm failed');
 		if (final) ntm.focus();
 		return false;
 	}
+	console.log('Checking mw');
 	let mw = document.getElementById('magicword');
 	if (mw && mw.value == '') {
 		let wms = document.getElementsByName('mw');
 		if (wms.length > 0) {
+			console.log('mw failed');
 			if (final) mw.focus();
 			return false;
 		}
 	}
+	console.log('Checking odo');
 	let odo = document.getElementById('OdoReading').value;
 	//alert('Check2');
 	odoChanged(odo,true);
@@ -847,8 +925,13 @@ function validateClaim(final) {
 	
 	echo('<div class="frmContent" style="max-width: 45em;">');
 	
+	echo('<p>'.$TAGS['cl_EditHeader'][0]);
+	if ($claimid==0)
+		echo(' '.$TAGS['cl_EditHeader'][1]);
+	echo('</p>');
+	
 	echo('<span class="vlabel" title="'.$TAGS['EntrantID'][1].'"><label for="EntrantID">'.$TAGS['EntrantID'][0].'</label> ');
-	echo('<input onpaste="pasteNewClaim();" autofocus type="text" name="EntrantID" id="EntrantID" tabindex="1" oninput="checkEnableSave();" onchange="showEntrant(this);"');
+	echo('<input onpaste="pasteNewClaim();" autofocus type="number" name="EntrantID" id="EntrantID" tabindex="1" oninput="checkEnableSave();" onchange="showEntrant(this);"');
 	echo(' value="'.($claimid > 0 ? $rd['EntrantID'] : '').'"> ');
 	echo('<span id="EntrantName" style="display:inline-block; vertical-align: top;">');
 	if ($claimid > 0)
@@ -861,7 +944,7 @@ function validateClaim(final) {
 	echo(' value="'.($claimid> 0 ? $rd['BonusID'] : '').'"> ');
 	echo('<span id="BonusName">');
 	if ($claimid > 0)
-		fetchBonusName($rd['BonusID']);
+		fetchBonusName($rd['BonusID'],true);
 	echo('</span>');
 	echo('</span>');
 	
@@ -947,7 +1030,7 @@ function showTimeMins($mins)
 	return $res;
 }
 
-function fetchBonusName($b)
+function fetchBonusName($b,$htmlok)
 {
 	global $DB,$TAGS,$KONSTANTS;
 
@@ -956,17 +1039,26 @@ function fetchBonusName($b)
 		return;
 	}
 	$R = $DB->query("SELECT BriefDesc FROM bonuses WHERE BonusID='".$b."'");
-	if ($rd = $R->fetchArray())
-		echo($rd['BriefDesc']);
-	else {
-		$R = $DB->query("SELECT BriefDesc FROM specials WHERE BonusID='".$b."'");
-		if ($rd = $R->fetchArray())
+	if ($rd = $R->fetchArray()) {
+		if ($htmlok)
 			echo($rd['BriefDesc']);
-		else {
-			$R = $DB->query("SELECT BriefDesc FROM combinations WHERE ComboID='".$b."'");
-			if ($rd = $R->fetchArray())
+		else
+			echo(strip_tags($rd['BriefDesc']));
+	} else {
+		$R = $DB->query("SELECT BriefDesc FROM specials WHERE BonusID='".$b."'");
+		if ($rd = $R->fetchArray()) {
+			if ($htmlok)
 				echo($rd['BriefDesc']);
 			else
+				echo(strip_tags($rd['BriefDesc']));
+		} else {
+			$R = $DB->query("SELECT BriefDesc FROM combinations WHERE ComboID='".$b."'");
+			if ($rd = $R->fetchArray()) {
+				if ($htmlok)
+					echo($rd['BriefDesc']);
+				else
+					echo(strip_tags($rd['BriefDesc']));
+			} else
 				echo('***');
 		}
 	}
@@ -1090,11 +1182,23 @@ function applyClaimsForm()
 	$lodate = substr(getValueFromDB("SELECT StartTime FROM rallyparams","StartTime",$lodate),0,10);
 
 	$hidate = date("Y-m-d");
+	if (strtolower(getSetting('claimsAutopostAll','true'))=='true')
+		$chooseline = 1;
+	else
+		$chooseline = 2;
+
+	echo('<span class="vlabel" title="'.$TAGS['cl_DecisionsIncluded'][1].'">');
+	echo('<label for="decisions">'.$TAGS['cl_DecisionsIncluded'][0].'</label> ');
+	echo('<select id="decisions" name="decisions"> ');
+	echo('<option value="0" '.($chooseline==1 ? 'selected' : '').' >'.$TAGS['cl_DecIncGoodOnly'][0].'</option>');
+	echo('<option value="0,1,2,3,4,5,6,7,8,9" '.($chooseline==2 ? 'selected' : '').' >'.$TAGS['cl_DecIncDecided'][0].'</option>');
+	echo('</select></span>');
+
 	echo('<span class="vlabel" title="'.$TAGS['cl_DateFrom'][1].'"><label for="lodate">'.$TAGS['cl_DateFrom'][0].'</label> <input type="date" id="lodate" name="lodate" value="'.$lodate.'"></span>');
 	echo('<span class="vlabel" title="'.$TAGS['cl_DateTo'][1].'"><label for="hidate">'.$TAGS['cl_DateTo'][0].'</label> <input type="date" id="hidate" name="hidate" value="'.$hidate.'"></span>');
 	echo('<span class="vlabel" title="'.$TAGS['cl_TimeFrom'][1].'"><label for="lotime">'.$TAGS['cl_TimeFrom'][0].'</label> <input type="time" id="lotime" name="lotime" value="00:00"></span>');
 	echo('<span class="vlabel" title="'.$TAGS['cl_TimeTo'][1].'"><label for="hitime">'.$TAGS['cl_TimeTo'][0].'</label> <input type="time" id="hitime" name="hitime" value="23:59"></span>');
-	echo('<input type="hidden" name="decisions" value="0">'); // Only process good claims
+	//echo('<input type="hidden" name="decisions" value="0">'); // Only process good claims
 	echo('<span class="vlabel"><label for="gobutton"></label> <input id="gobutton" type="submit" value="'.$TAGS['cl_Go'][0].'"></span>');
 	echo('</form>');
 }
@@ -1144,11 +1248,11 @@ function applyClaims()
 	$loclaimtime = joinDateTime($_REQUEST['lodate'],$_REQUEST['lotime']);
 	$hiclaimtime = joinDateTime($_REQUEST['hidate'],$_REQUEST['hitime']);
 	
-	$sqlW = "Applied=0 AND ";		// Not already applied
+	$sqlW = "Applied=0";		// Not already applied
 	
-	$sqlW .= "ClaimTime>='".$loclaimtime."' AND ";
-	$sqlW .= "ClaimTime<='".$hiclaimtime."' AND ";
-	$sqlW .= "Decision IN (".$_REQUEST['decisions'].") ";
+	$sqlW .= " AND ClaimTime>='".$loclaimtime."'";
+	$sqlW .= " AND ClaimTime<='".$hiclaimtime."'";
+	$sqlW .= " AND Decision IN (".$_REQUEST['decisions'].") ";
 	
 	$sqlW .= " AND SpeedPenalty=0 AND FuelPenalty=0 AND MagicPenalty=0"; // Penalties applied by hand
 	
@@ -1161,25 +1265,32 @@ function applyClaims()
 	$sql .= $sqlW;
 	$sql .= " ORDER BY ClaimTime";
 	
-	echo('<div style="font-size: small;">');
-	echo($sql.'<hr><br></div>');
+	//echo('<div style="font-size: small;">');
+	//echo($sql.'<hr><br></div>');
+	error_log($sql);
 	// Load all claims records into memory
 	// organised as EntrantID, BonusID
 	$claims = [];
 	$R = $DB->query($sql);
+	$claimcount = 0;
+	while ($R->fetchArray())
+		$claimcount++;
+	$R->reset();
+	echo('<p style="font-size: small;">'.sprintf($TAGS['cl_ProcessingCC'][0],$claimcount).'</p>');
 	while ($rd = $R->fetchArray()){
 		if (!isset($claims[$rd['EntrantID']])) 
 			$claims[$rd['EntrantID']] = [];
 		if (!isset($claims[$rd['BonusID']]))
-			$claims[$rd['EntrantID']][$rd['BonusID']] = [str_replace(' ','T',$rd['ClaimTime']),$rd['OdoReading']]; // If ClaimTime was date time, make it dateTtime
+			$claims[$rd['EntrantID']][$rd['BonusID']] = [str_replace(' ','T',$rd['ClaimTime']),$rd['OdoReading'],$rd['Decision']]; // If ClaimTime was date time, make it dateTtime
 	}
 	//print_r($claims);
 	//return;
 	
-	
+	$scorecardsTouched = 0;
 	foreach($claims as $entrant => $bonuses) {
 		
 		$sql = "SELECT IfNull(FinishTime,'2020-01-01') As FinishTime,IfNull(OdoRallyFinish,0) As OdoRallyFinish,BonusesVisited";
+		$sql .= ",RejectedClaims";
 		$sql .= ",IfNull(StartTime,'') As StartTime";
 		$sql .= ",IfNull(OdoRallyStart,0) As OdoRallyStart,IfNull(OdoScaleFactor,1) As OdoScaleFactor";
 		$sql .= ",IfNull(CorrectedMiles,0) As CorrectedMiles,OdoKms";
@@ -1192,6 +1303,15 @@ function applyClaims()
 		$fo = $rd['OdoRallyFinish'];
 		$cm = $rd['CorrectedMiles'];
 		
+		$rcd = explode(',',$rd['RejectedClaims']);
+		$rc = [];
+		foreach($rcd as $reject) {
+			$x = explode('=',$reject);
+			if (count($x) > 1)
+				$rc[$x[0]] = $x[1];
+		}
+		//print_r($rc);
+
 		$bv = explode(',',$rd['BonusesVisited']);
 		foreach($bonuses as $bonus => $stats)  {
 			
@@ -1199,7 +1319,7 @@ function applyClaims()
 				$rd['OdoRallyStart'] = $stats[1];
 
 			// If StartTime has not already been set for this entrant then use the time of the first claim
-			// If fixed rall start time is needed then either open each scorecard in advance or don't use
+			// If fixed rally start time is needed then either open each scorecard in advance or don't use
 			// batch claim updating.
 			if ($rd['StartTime']=='')
 				$rd['StartTime'] = $stats[0];
@@ -1213,27 +1333,42 @@ function applyClaims()
 			if (!in_array($bonus,$bv)) {
 				array_push($bv,$bonus);
 			}
+			$bid = bonusPrefix($bonus).$bonus;
+			if ($stats[2] > 0) {	// Decision is reject
+				$rc[$bid] = $stats[2];
+			} else if (isset($rc[$bid]))
+				unset($rc[$bid]);
 		}
 		//print_r($bv);
+
+		// Reassemble RejectedClaims
+		$rcx = '';
+		foreach($rc as $bonus => $decision) {
+			if ($rcx != '')
+				$rcx .= ',';
+			$rcx .= $bonus.'='.$decision;
+		}
 		$sql = "UPDATE entrants SET BonusesVisited='".implode(',',$bv)."', Confirmed=".$KONSTANTS['ScorecardIsDirty'];
-		
+		$sql .= ",RejectedClaims='".$rcx."'";
 		$sql .= ",StartTime='".$rd['StartTime']."'";
 		$sql .= ",OdoRallyStart=".$rd['OdoRallyStart'];
 		$sql .= ",FinishTime='".$ft."',OdoRallyFinish=".$fo;
 		$sql .= ",CorrectedMiles=".$cm;
 		$sql .= " WHERE EntrantID=$entrant";
-		echo('<div style="font-size: small;">');
-		echo($sql.'<br>');
+		echo('<p style="font-size: small;">'.sprintf($TAGS['cl_UpdatingSC'][0],$entrant).'</p>');
+		//echo('<div style="font-size: small;">');
+		//echo($sql.'<br>');
 		$DB->exec($sql);
 		if ($DB->lastErrorCode()<>0) {
 			echo("SQL ERROR: ".$DB->lastErrorMsg().'<hr>'.$sql.'<hr>');
 			$DB->exec('ROLLBACK');
 			exit;
 		}
+		$scorecardsTouched++;
 		$sql = "UPDATE claims SET Applied=1 WHERE ";
 		$sql .= "EntrantID=$entrant AND ";
 		$sql .= $sqlW;
-		echo($sql.'<hr><br></div>');
+		//echo($sql.'<hr><br></div>');
 		$DB->exec($sql);
 		if ($DB->lastErrorCode()<>0) {
 			echo("SQL ERROR: ".$DB->lastErrorMsg().'<hr>'.$sql.'<hr>');
@@ -1244,7 +1379,22 @@ function applyClaims()
 	}
 	$DB->exec('COMMIT');
 	echo('<br>');
-	echo($TAGS['cl_Complete'][0]);
+	
+	echo($TAGS['cl_Complete'][$scorecardsTouched > 0 ? 1 : 0]);
+}
+
+function bonusPrefix($bonus)
+/*
+ * This returns either B or S for [ordinary] Bonus or Special
+ * no consideration of combinations
+ * 
+ */
+{
+	global $KONSTANTS;
+
+	$sql = "SELECT BriefDesc FROM specials WHERE BonusID='".$bonus."'";
+	$bd = getValueFromDB($sql,"BriefDesc",'');
+	return ($bd=='' ? $KONSTANTS['ORDINARY_BONUS_PREFIX'] : $KONSTANTS['SPECIAL_BONUS_PREFIX']);
 }
 
 function saveMagicWords()
@@ -1394,7 +1544,7 @@ if (isset($_REQUEST['c'])) {
 	}
 	if ($_REQUEST['c']=='bondes') {
 		$b = (isset($_REQUEST['b']) ? $_REQUEST['b'] : '');
-		fetchBonusName($b);
+		fetchBonusName($b,true);
 		exit;
 	}
 	
@@ -1414,6 +1564,20 @@ if (isset($_REQUEST['c'])) {
 		echo('ok');
 		exit;
 	}
+	if ($_REQUEST['c']=='updatefa') {
+		$val = $_REQUEST['val'];
+		$_SESSION['fa'] = $val;
+		echo('ok');
+		exit;
+	}
+	
+	if ($_REQUEST['c']=='updatefd') {
+		$val = $_REQUEST['val'];
+		$_SESSION['fd'] = $val;
+		echo('ok');
+		exit;
+	}
+	
 	
 	// If dropped through then just list the buggers.
 	//echo('dropped through<br>');

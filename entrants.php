@@ -571,11 +571,11 @@ function showEntrantRejectedClaims($rejections)
 	//var_dump($rejections);
 	//$R->close();
 	$RR = array();
-	foreach($RRlines as $rrl)
-	{
+	foreach($RRlines as $rrl) {
 		//var_dump($rrl);
 		$x = explode('=',$rrl);
-		$RR[$x[0]] = $x[1];
+		if (count($x) >1)
+			$RR[$x[0]] = $x[1];
 	}
 	$BA = explode(',',$rejections); // The leading comma means that the first element is index 1 not 0
 	
