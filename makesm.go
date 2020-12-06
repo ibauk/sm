@@ -66,8 +66,8 @@ var db2Use = flag.String("db", "v", "v=virgin,r=rblr,l=live database")
 var lang2use = flag.String("lang", "en", "Language code (en,de)")
 var ok = flag.Bool("ok", false, "Overwrite existing target")
 
-var sqlite3 string = "./sqlite3.exe" // path to executable
-var caddy string = "./caddy.exe"
+var sqlite3 string = "./sqlite3" // path to executable
+var caddy string = "./caddy"
 
 var docsFolder = "docs"
 
@@ -121,6 +121,8 @@ func main() {
 		log.Fatal("You must specify a target folder")
 	}
 
+	checkPrerequisites()
+
 	if *ok {
 		zapTarget()
 	}
@@ -150,6 +152,39 @@ func main() {
 	generateDocs()
 	log.Println("ScoreMaster installed in " + *targetFolder)
 	fmt.Println()
+
+}
+
+func checkPrerequisites() {
+
+	var ok = true
+	var sqlitetest = sqlite3
+	var caddytest = caddy
+
+	if runtime.GOOS == "windows" {
+		sqlitetest = sqlite3 + ".exe"
+		caddytest = caddy + ".exe"
+	}
+
+	if !fileExists(*phpFolder) {
+		log.Printf("*** %s does not exist!", *phpFolder)
+		log.Printf("*** You must have a working PHP installation installed. Download from php.net")
+		ok = false
+	}
+
+	if !fileExists(sqlitetest) {
+		log.Printf("*** %s does not exist!", sqlitetest)
+		log.Printf("*** Please download from sqlite.org")
+		ok = false
+	}
+	if !fileExists(caddytest) {
+		log.Printf("*** %s does not exist!", caddytest)
+		log.Printf("*** You must have a working Caddy installation. Download from github.com/caddyserver/caddy)")
+		ok = false
+	}
+	if !ok {
+		log.Fatal("*** Please fix these issues and try again")
+	}
 
 }
 
@@ -213,10 +248,28 @@ func copyDocs(srcpath string, dstpath string, folder string) error {
 
 func copyExecs() {
 
+	var src = caddy
+	var dst = "caddy"
+
 	log.Print("Copying executables")
-	copyFile(caddy, filepath.Join(*targetFolder, "caddy", "caddy.exe"))
-	copyFile(filepath.Join(*srcFolder, "runsm.exe"), filepath.Join(*targetFolder, "runsm.exe"))
-	copyFile(filepath.Join(*srcFolder, "runsm.exe"), filepath.Join(*targetFolder, "debugsm.exe"))
+
+	if runtime.GOOS == "windows" {
+		src = src + ".exe"
+		dst = dst + ".exe"
+	}
+	copyFile(src, filepath.Join(*targetFolder, "caddy", dst))
+	src = "runsm"
+	dst = "runsm"
+	if runtime.GOOS == "windows" {
+		src = src + ".exe"
+		dst = dst + ".exe"
+	}
+	copyFile(filepath.Join(*srcFolder, src), filepath.Join(*targetFolder, dst))
+	dst = "debugsm"
+	if runtime.GOOS == "windows" {
+		dst = dst + ".exe"
+	}
+	copyFile(filepath.Join(*srcFolder, src), filepath.Join(*targetFolder, dst))
 }
 
 func copyFile(src, dst string) (int64, error) {
@@ -291,8 +344,7 @@ func copyImageSet(set []string) {
 	for _, img := range set {
 		_, err := copyFile(filepath.Join(*srcFolder, "images", img), filepath.Join(smFolder, "images", img))
 		if err != nil {
-			log.Println("Can't copy " + img)
-			log.Fatal(err)
+			log.Fatalf("*** Can't copy image %s (%s)", img, err)
 		}
 	}
 
@@ -333,8 +385,10 @@ func copyMarkdown(src string, dst string) {
 
 func copyPHP() {
 
-	log.Print("Copying PHP")
-	copyFolderTree(*phpFolder, filepath.Join(*targetFolder, "php"))
+	log.Print("Copying PHP from " + *phpFolder)
+	if err := copyFolderTree(*phpFolder, filepath.Join(*targetFolder, "php")); err != nil {
+		log.Fatalf("*** FAILED copying folder: %s", err)
+	}
 	ini := filepath.Join(*srcFolder, "php", "php.ini")
 	if _, err := os.Stat(ini); err == nil {
 		copyFile(ini, filepath.Join(*targetFolder, "php", "php.ini"))
@@ -345,7 +399,9 @@ func copyPHP() {
 func copyPhpPackages() {
 
 	log.Print("Copying PHP packages")
-	copyFolderTree(filepath.Join(*srcFolder, "vendor"), filepath.Join(smFolder, "vendor"))
+	if err := copyFolderTree(filepath.Join(*srcFolder, "vendor"), filepath.Join(smFolder, "vendor")); err != nil {
+		log.Fatalf("*** FAILED copying folder: %s", err)
+	}
 
 }
 
@@ -370,6 +426,14 @@ func copySMFiles() {
 			log.Println("Can't copy " + s + lng)
 		}
 	}
+}
+
+func fileExists(filename string) bool {
+	_, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return true
 }
 
 func generateDocs() {
