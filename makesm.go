@@ -59,8 +59,8 @@ var mySMFLAVOUR = "v2.7"
 var port = flag.String("port", "80", "Webserver port specification")
 var caddyFolder = flag.String("caddy", "..", "Path to Caddy folder")
 var srcFolder = flag.String("src", ".", "Path to ScoreMaster source")
-var phpFolder = flag.String("php", "C:\\PHP", "Path to PHP installation")
-var targetOS = flag.String("os", runtime.GOOS, "Target operating system")
+var phpFolder = flag.String("php", "C:\\PHP", "Path to PHP installation") // Windows only
+var targetOS = flag.String("os", runtime.GOOS, "Target operating system") // Info only, no effect
 var targetFolder = flag.String("target", "", "Path for new installation")
 var db2Use = flag.String("db", "v", "v=virgin,r=rblr,l=live database")
 var lang2use = flag.String("lang", "en", "Language code (en,de)")
@@ -155,16 +155,21 @@ func main() {
 
 }
 
+func binexe(exename string) string {
+
+	if runtime.GOOS == "windows" {
+		return exename + ".exe"
+	} else {
+		return exename
+	}
+}
+
 func checkPrerequisites() {
 
 	var ok = true
-	var sqlitetest = sqlite3
-	var caddytest = caddy
-
-	if runtime.GOOS == "windows" {
-		sqlitetest = sqlite3 + ".exe"
-		caddytest = caddy + ".exe"
-	}
+	var sqlitetest = binexe(sqlite3)
+	var caddytest = binexe(caddy)
+	var runtest = binexe("runsm")
 
 	if !fileExists(*phpFolder) {
 		log.Printf("*** %s does not exist!", *phpFolder)
@@ -180,6 +185,11 @@ func checkPrerequisites() {
 	if !fileExists(caddytest) {
 		log.Printf("*** %s does not exist!", caddytest)
 		log.Printf("*** You must have a working Caddy installation. Download from github.com/caddyserver/caddy)")
+		ok = false
+	}
+	if !fileExists(runtest) {
+		log.Printf("*** %s does not exist!", runtest)
+		log.Printf("*** You must do 'go build runsm.go'")
 		ok = false
 	}
 	if !ok {
@@ -248,27 +258,16 @@ func copyDocs(srcpath string, dstpath string, folder string) error {
 
 func copyExecs() {
 
-	var src = caddy
-	var dst = "caddy"
+	var src = binexe(caddy)
+	var dst = binexe("caddy")
 
 	log.Print("Copying executables")
 
-	if runtime.GOOS == "windows" {
-		src = src + ".exe"
-		dst = dst + ".exe"
-	}
 	copyFile(src, filepath.Join(*targetFolder, "caddy", dst))
-	src = "runsm"
-	dst = "runsm"
-	if runtime.GOOS == "windows" {
-		src = src + ".exe"
-		dst = dst + ".exe"
-	}
+	src = binexe("runsm")
+	dst = binexe("runsm")
 	copyFile(filepath.Join(*srcFolder, src), filepath.Join(*targetFolder, dst))
-	dst = "debugsm"
-	if runtime.GOOS == "windows" {
-		dst = dst + ".exe"
-	}
+	dst = binexe("debugsm")
 	copyFile(filepath.Join(*srcFolder, src), filepath.Join(*targetFolder, dst))
 }
 
@@ -385,9 +384,11 @@ func copyMarkdown(src string, dst string) {
 
 func copyPHP() {
 
-	log.Print("Copying PHP from " + *phpFolder)
-	if err := copyFolderTree(*phpFolder, filepath.Join(*targetFolder, "php")); err != nil {
-		log.Fatalf("*** FAILED copying folder: %s", err)
+	if runtime.GOOS == "windows" {
+		log.Print("Copying PHP from " + *phpFolder)
+		if err := copyFolderTree(*phpFolder, filepath.Join(*targetFolder, "php")); err != nil {
+			log.Fatalf("*** FAILED copying folder: %s", err)
+		}
 	}
 	ini := filepath.Join(*srcFolder, "php", "php.ini")
 	if _, err := os.Stat(ini); err == nil {
