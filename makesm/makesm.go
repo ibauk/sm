@@ -169,7 +169,7 @@ func checkPrerequisites() {
 	var ok = true
 	var sqlitetest = binexe(sqlite3)
 	var caddytest = binexe(caddy)
-	var runtest = binexe("runsm")
+	var runtest = binexe("runsm/runsm")
 
 	if !fileExists(*phpFolder) {
 		log.Printf("*** %s does not exist!", *phpFolder)
@@ -264,7 +264,7 @@ func copyExecs() {
 	log.Print("Copying executables")
 
 	copyFile(src, filepath.Join(*targetFolder, "caddy", dst))
-	src = binexe("runsm")
+	src = binexe("runsm/runsm")
 	dst = binexe("runsm")
 	copyFile(filepath.Join(*srcFolder, src), filepath.Join(*targetFolder, dst))
 	dst = binexe("debugsm")
