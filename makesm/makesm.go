@@ -268,10 +268,10 @@ func copyExecs() {
 	src = binexe("runsm/runsm")
 	dst = binexe("runsm")
 	copyFile(filepath.Join(*srcFolder, src), filepath.Join(*targetFolder, dst))
-	os.Chmod(filepath.Join(*targetFolder, "caddy", dst), 0755)
+	os.Chmod(filepath.Join(*targetFolder, dst), 0755)
 	dst = binexe("debugsm")
 	copyFile(filepath.Join(*srcFolder, src), filepath.Join(*targetFolder, dst))
-	os.Chmod(filepath.Join(*targetFolder, "caddy", dst), 0755)
+	os.Chmod(filepath.Join(*targetFolder, dst), 0755)
 }
 
 func copyFile(src, dst string) (int64, error) {
