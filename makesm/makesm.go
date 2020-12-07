@@ -159,9 +159,9 @@ func binexe(exename string) string {
 
 	if runtime.GOOS == "windows" {
 		return exename + ".exe"
-	} else {
-		return exename
 	}
+	return exename
+
 }
 
 func checkPrerequisites() {
@@ -171,7 +171,7 @@ func checkPrerequisites() {
 	var caddytest = binexe(caddy)
 	var runtest = binexe("runsm/runsm")
 
-	if !fileExists(*phpFolder) {
+	if runtime.GOOS == "windows" && !fileExists(*phpFolder) {
 		log.Printf("*** %s does not exist!", *phpFolder)
 		log.Printf("*** You must have a working PHP installation installed. Download from php.net")
 		ok = false
@@ -264,11 +264,14 @@ func copyExecs() {
 	log.Print("Copying executables")
 
 	copyFile(src, filepath.Join(*targetFolder, "caddy", dst))
+	os.Chmod(filepath.Join(*targetFolder, "caddy", dst), 0755)
 	src = binexe("runsm/runsm")
 	dst = binexe("runsm")
 	copyFile(filepath.Join(*srcFolder, src), filepath.Join(*targetFolder, dst))
+	os.Chmod(filepath.Join(*targetFolder, "caddy", dst), 0755)
 	dst = binexe("debugsm")
 	copyFile(filepath.Join(*srcFolder, src), filepath.Join(*targetFolder, dst))
+	os.Chmod(filepath.Join(*targetFolder, "caddy", dst), 0755)
 }
 
 func copyFile(src, dst string) (int64, error) {
