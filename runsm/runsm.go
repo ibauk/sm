@@ -113,9 +113,11 @@ func main() {
 	}
 	if *debug && phpdbg != "" {
 		debugPHP()
-	} else if runtime.GOOS != "linux" {
+	} else if runtime.GOOS == "windows" {
 		go runCaddy()
 		go runPHP()
+	} else if runtime.GOOS != "linux" {
+		go runCaddy()
 	}
 
 	if !*nolocal {
@@ -182,7 +184,7 @@ func getOutboundIP() net.IP {
 
 	conn, err := net.Dial(udp, ip)
 	if err != nil {
-		log.Fatal(err)
+		log.Print(err)
 	}
 	defer conn.Close()
 
