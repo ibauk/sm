@@ -219,7 +219,7 @@ func runPHP() {
 func runCaddy() {
 
 	// If IP is not wildcard then assume that grownup has checked
-	if *ipspec == "*" && (!rawPortAvail(*port) || !testWebPort(*port) {
+	if *ipspec == "*" && (!rawPortAvail(*port) || !testWebPort(*port)) {
 		fmt.Println(timestamp() + " service port " + *port + " already served")
 		return
 	}
