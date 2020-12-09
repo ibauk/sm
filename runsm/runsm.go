@@ -28,7 +28,7 @@
  *	2019-11-05	Linux setup; webserver/PHP already available
  *	2020-02-19	Apple Mac setup
  *	2020-06-29	Window title
- *	2020-12-04	Bumped to v2.7
+ *	2020-12-04	Bumped to v2.7, Caddy v2
  *
  */
 
@@ -113,11 +113,9 @@ func main() {
 	}
 	if *debug && phpdbg != "" {
 		debugPHP()
-	} else if runtime.GOOS == "windows" {
+	} else {
 		go runCaddy()
 		go runPHP()
-	} else if runtime.GOOS != "linux" {
-		go runCaddy()
 	}
 
 	if !*nolocal {
@@ -185,6 +183,7 @@ func getOutboundIP() net.IP {
 	conn, err := net.Dial(udp, ip)
 	if err != nil {
 		log.Print(err)
+		return net.IPv4(127, 0, 0, 1)
 	}
 	defer conn.Close()
 
@@ -233,6 +232,7 @@ func runCaddy() {
 		log.Fatal(err)
 	}
 	f.WriteString(*ipspec + ":" + *port + "\n")
+	f.WriteString("file_server\n")
 	f.WriteString("root sm\n")
 	f.WriteString("errors " + ep + "\n")
 	f.WriteString("fastcgi " + *root + " " + cgiport + " php\n")
@@ -242,7 +242,7 @@ func runCaddy() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	fp := filepath.Join(smCaddyFolder, "caddy")
-	if err := exec.CommandContext(ctx, fp, "-agree", "-conf", cp).Run(); err != nil {
+	if err := exec.CommandContext(ctx, fp, "start").Run(); err != nil {
 		log.Fatal(err)
 	}
 
