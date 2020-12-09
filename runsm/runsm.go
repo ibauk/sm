@@ -219,7 +219,7 @@ func runPHP() {
 func runCaddy() {
 
 	// If IP is not wildcard then assume that grownup has checked
-	if *ipspec == "*" && !rawPortAvail(*port) {
+	if *ipspec == "*" && !rawPortAvail(*port) && testWebPort(*port) {
 		fmt.Println(timestamp() + " service port " + *port + " already served")
 		return
 	}
@@ -231,6 +231,7 @@ func runCaddy() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	f.WriteString("{\nhttp_port " + *port + "\n}\n")
 	f.WriteString(*ipspec + ":" + *port + "\n")
 	f.WriteString("file_server\n")
 	f.WriteString("root sm\n")
@@ -273,5 +274,19 @@ func rawPortAvail(port string) bool {
 		defer conn.Close()
 		return false
 	}
+	return true
+}
+
+func testWebPort(port string) bool {
+
+	ln, err := net.Listen("tcp", ":"+port)
+
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Can't listen on port %q: %s", port, err)
+		return false
+	}
+
+	ln.Close()
+	fmt.Printf("TCP Port %q is available", port)
 	return true
 }
