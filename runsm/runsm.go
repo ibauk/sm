@@ -226,7 +226,7 @@ func runCaddy() {
 	fmt.Printf(timestamp() + " serving on " + *ipspec + ":" + *port + "\n")
 	// Create the conf file
 	cp := filepath.Join(smCaddyFolder, "caddyfile")
-	ep := filepath.Join(smCaddyFolder, "error.log")
+	//	ep := filepath.Join(smCaddyFolder, "error.log")
 	f, err := os.Create(cp)
 	if err != nil {
 		log.Fatal(err)
