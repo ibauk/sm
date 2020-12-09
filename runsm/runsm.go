@@ -50,7 +50,7 @@ import (
 	"github.com/pkg/browser"
 )
 
-const myPROGTITLE = "ScoreMaster Server v2.7 [2020-12-04]"
+const myPROGTITLE = "ScoreMaster Server v2.7 [2020-12-09]"
 const myWINTITLE = "IBA ScoreMaster"
 
 var phpcgi = filepath.Join("php", "php-cgi")
@@ -219,7 +219,7 @@ func runPHP() {
 func runCaddy() {
 
 	// If IP is not wildcard then assume that grownup has checked
-	if *ipspec == "*" && !rawPortAvail(*port) && testWebPort(*port) {
+	if *ipspec == "*" && (!rawPortAvail(*port) || !testWebPort(*port) {
 		fmt.Println(timestamp() + " service port " + *port + " already served")
 		return
 	}
