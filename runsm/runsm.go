@@ -234,8 +234,8 @@ func runCaddy() {
 	f.WriteString(*ipspec + ":" + *port + "\n")
 	f.WriteString("file_server\n")
 	f.WriteString("root sm\n")
-	f.WriteString("errors " + ep + "\n")
-	f.WriteString("fastcgi " + *root + " " + cgiport + " php\n")
+	//	f.WriteString("errors " + ep + "\n")
+	f.WriteString("php_fastcgi " + *root + " " + cgiport + " php\n")
 	f.Close()
 
 	// Now run Caddy
