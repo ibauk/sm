@@ -66,6 +66,7 @@ var root = flag.String("root", "/", "HTTP document root")
 const cgiport = "127.0.0.1:9000"
 const smCaddyFolder = "caddy"
 const starturl = "http://localhost"
+const alternateWebPort = "2015"
 
 type logWriter struct {
 }
@@ -219,9 +220,18 @@ func runPHP() {
 func runCaddy() {
 
 	// If IP is not wildcard then assume that grownup has checked
-	if *ipspec == "*" && (!rawPortAvail(*port) || !testWebPort(*port)) {
-		fmt.Println(timestamp() + " service port " + *port + " already served")
-		return
+	if *ipspec == "*" {
+		if !rawPortAvail(*port) {
+			fmt.Println(timestamp() + " service port " + *port + " already served")
+			return
+		}
+		if !testWebPort(*port) {
+			if *port != alternateWebPort && testWebPort(alternateWebPort) {
+				*port = alternateWebPort
+			} else {
+				fmt.Println(timestamp() + " switching to alternate port " + *port)
+			}
+		}
 	}
 	fmt.Printf(timestamp() + " serving on " + *ipspec + ":" + *port + "\n")
 	// Create the conf file
@@ -278,15 +288,18 @@ func rawPortAvail(port string) bool {
 }
 
 func testWebPort(port string) bool {
-
+	/*
+	 * Used to trap port access not permitted errors
+	 *
+	 */
 	ln, err := net.Listen("tcp", ":"+port)
 
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Can't listen on port %q: %s", port, err)
+		fmt.Printf("%s port %s NOT AVAILABLE: %s\n", timestamp(), port, err)
 		return false
 	}
 
 	ln.Close()
-	fmt.Printf("TCP Port %q is available", port)
+	fmt.Printf("%s port %s available\n", timestamp(), port)
 	return true
 }
