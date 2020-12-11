@@ -235,8 +235,13 @@ func runCaddy() {
 	}
 	fmt.Printf(timestamp() + " serving on " + *ipspec + ":" + *port + "\n")
 	// Create the conf file
-	cp := filepath.Join(smCaddyFolder, "caddyfile")
-	//	ep := filepath.Join(smCaddyFolder, "error.log")
+	//cp := filepath.Join(smCaddyFolder, "caddyfile")
+
+	// Caddy v2 wants "old fashioned" caddyfile in *current* folder
+	// otherwise I have to do complicated stuff - and why would I?
+	cp := "caddyfile"
+
+	// ep := filepath.Join(smCaddyFolder, "error.log")
 	f, err := os.Create(cp)
 	if err != nil {
 		log.Fatal(err)
@@ -245,14 +250,15 @@ func runCaddy() {
 	f.WriteString(*ipspec + ":" + *port + "\n")
 	f.WriteString("file_server\n")
 	f.WriteString("root sm\n")
-	//	f.WriteString("errors " + ep + "\n")
-	f.WriteString("php_fastcgi " + *root + " " + cgiport + " php\n")
+	//f.WriteString("log {\noutput file " + ep + "\n}\n")
+	f.WriteString("php_fastcgi " + cgiport + "\n")
 	f.Close()
 
 	// Now run Caddy
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	fp := filepath.Join(smCaddyFolder, "caddy")
+
 	if err := exec.CommandContext(ctx, fp, "start").Run(); err != nil {
 		log.Fatal(err)
 	}
