@@ -65,6 +65,7 @@ var overwriteok = flag.Bool("ok", false, "Overwrite existing target")
 
 var sqlite3 string = "./sqlite3" // path to executable
 var caddy string = "./caddy"
+var phpcgi string = "./php-cgi" // non-windows only
 
 var docsFolder = "docs"
 
@@ -391,6 +392,11 @@ func copyPHP() {
 		log.Print("Copying PHP from " + *phpFolder)
 		if err := copyFolderTree(*phpFolder, filepath.Join(*targetFolder, "php")); err != nil {
 			log.Fatalf("*** FAILED copying folder: %s", err)
+		}
+	} else {
+		cgi := filepath.Join(*srcFolder, binexe(phpcgi))
+		if _, err := os.Stat(cgi); err == nil {
+			copyFile(ini, filepath.Join(*targetFolder, "php", binexe("php-cgi")))
 		}
 	}
 	ini := filepath.Join(*srcFolder, "php", "php.ini")
