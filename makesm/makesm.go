@@ -396,7 +396,7 @@ func copyPHP() {
 	} else {
 		cgi := filepath.Join(*srcFolder, binexe(phpcgi))
 		if _, err := os.Stat(cgi); err == nil {
-			copyFile(ini, filepath.Join(*targetFolder, "php", binexe("php-cgi")))
+			copyFile(cgi, filepath.Join(*targetFolder, "php", binexe("php-cgi")))
 		}
 	}
 	ini := filepath.Join(*srcFolder, "php", "php.ini")
