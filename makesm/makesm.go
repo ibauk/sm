@@ -56,15 +56,12 @@ import (
 )
 
 var mySMFLAVOUR = "v2.7"
-var port = flag.String("port", "80", "Webserver port specification")
-var caddyFolder = flag.String("caddy", "..", "Path to Caddy folder")
 var srcFolder = flag.String("src", ".", "Path to ScoreMaster source")
 var phpFolder = flag.String("php", "C:\\PHP", "Path to PHP installation") // Windows only
-var targetOS = flag.String("os", runtime.GOOS, "Target operating system") // Info only, no effect
 var targetFolder = flag.String("target", "", "Path for new installation")
 var db2Use = flag.String("db", "v", "v=virgin,r=rblr,l=live database")
 var lang2use = flag.String("lang", "en", "Language code (en,de)")
-var ok = flag.Bool("ok", false, "Overwrite existing target")
+var overwriteok = flag.Bool("ok", false, "Overwrite existing target")
 
 var sqlite3 string = "./sqlite3" // path to executable
 var caddy string = "./caddy"
@@ -76,7 +73,7 @@ var mySMFILES = [...]string{
 	"certedit.php", "certificate.css", "certificate.php", "claims.php", "common.php",
 	"entrants.php", "exportxls.php", "emails.php",
 	"favicon.ico", "importxls.php", "index.php",
-	"licence.txt", "readme.txt", "reboot.css",
+	"licence.txt", "reboot.css",
 	"setup.php", "score.css", "score.js", "score.php", "sm.php",
 	"showhelp.php",
 	"speeding.php", "teams.php", "utils.php", "timep.php", "cats.php",
@@ -116,14 +113,14 @@ func main() {
 	fmt.Println()
 	log.Println("MakeSM", mySMFLAVOUR, "ScoreMaster installation maker")
 	flag.Parse()
-	log.Println("Hosted on", runtime.GOOS, "- building for", *targetOS)
+	log.Println("Building for ", runtime.GOOS)
 	if *targetFolder == "" {
 		log.Fatal("You must specify a target folder")
 	}
 
 	checkPrerequisites()
 
-	if *ok {
+	if *overwriteok {
 		zapTarget()
 	}
 
@@ -220,6 +217,9 @@ func copyDatabase() {
 	} else {
 		copyFile(filepath.Join(*srcFolder, "ScoreMaster.db"), filepath.Join(smFolder, "ScoreMaster.db"))
 	}
+
+	// Now make a copy to provide a simple means of starting again if necessary
+	copyFile(filepath.Join(smFolder, "ScoreMaster.db"), filepath.Join(smFolder, "ScoreMaster-empty.db"))
 
 }
 
@@ -486,6 +486,7 @@ func writeReadme() {
 
 	defer f.Close()
 	f.WriteString(myREADME)
+	f.WriteString("\n\n" + runtime.GOOS)
 
 }
 
