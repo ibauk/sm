@@ -50,7 +50,7 @@ import (
 	"github.com/pkg/browser"
 )
 
-const myPROGTITLE = "ScoreMaster Server v2.7 [2020-12-09]"
+const myPROGTITLE = "ScoreMaster Server v2.7 [2020-12-12]"
 const myWINTITLE = "IBA ScoreMaster"
 
 var phpcgi = filepath.Join("php", "php-cgi")
@@ -87,6 +87,9 @@ func init() {
 		setMyWindowTitle(myWINTITLE)
 
 	case "linux":
+
+		phpdbg = "/usr/bin/php"
+		setMyWindowTitle(myWINTITLE)
 
 	case "windows":
 
@@ -231,11 +234,7 @@ func runCaddy() {
 	}
 	fmt.Printf(timestamp() + " serving on " + *ipspec + ":" + *port + "\n")
 	// Create the conf file
-	//cp := filepath.Join(smCaddyFolder, "caddyfile")
-
-	// Caddy v2 wants "old fashioned" caddyfile in *current* folder
-	// otherwise I have to do complicated stuff - and why would I?
-	cp := "caddyfile"
+	cp := filepath.Join(smCaddyFolder, "caddyfile")
 
 	// ep := filepath.Join(smCaddyFolder, "error.log")
 	f, err := os.Create(cp)
@@ -255,7 +254,7 @@ func runCaddy() {
 	defer cancel()
 	fp := filepath.Join(smCaddyFolder, "caddy")
 
-	if err := exec.CommandContext(ctx, fp, "start").Run(); err != nil {
+	if err := exec.CommandContext(ctx, fp, "start", "--config", cp, "--adapter", "caddyfile").Run(); err != nil {
 		log.Fatal(err)
 	}
 
