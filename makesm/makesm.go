@@ -168,6 +168,7 @@ func checkPrerequisites() {
 	var sqlitetest = binexe(sqlite3)
 	var caddytest = binexe(caddy)
 	var runtest = binexe("runsm/runsm")
+	var cgitest = binexe(phpcgi)
 
 	if runtime.GOOS == "windows" && !fileExists(*phpFolder) {
 		log.Printf("*** %s does not exist!", *phpFolder)
@@ -188,6 +189,11 @@ func checkPrerequisites() {
 	if !fileExists(runtest) {
 		log.Printf("*** %s does not exist!", runtest)
 		log.Printf("*** You must do 'go build runsm.go'")
+		ok = false
+	}
+	if runtime.GOOS != "windows" && !fileExists(cgitest) {
+		log.Printf("*** %s does not exist!", cgitest)
+		log.Printf("*** You must obtain a copy - compile PHP from source?")
 		ok = false
 	}
 	if !ok {
@@ -396,7 +402,10 @@ func copyPHP() {
 	} else {
 		cgi := filepath.Join(*srcFolder, binexe(phpcgi))
 		if _, err := os.Stat(cgi); err == nil {
-			copyFile(cgi, filepath.Join(*targetFolder, "php", binexe("php-cgi")))
+			tgtcgi := filepath.Join(*targetFolder, "php", binexe("php-cgi"))
+			copyFile(cgi, tgtcgi)
+			os.Chmod(tgtcgi, 0755)
+
 		}
 	}
 	ini := filepath.Join(*srcFolder, "php", "php.ini")
