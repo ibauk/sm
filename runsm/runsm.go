@@ -56,17 +56,16 @@ const myWINTITLE = "IBA ScoreMaster"
 var phpcgi = filepath.Join("php", "php-cgi")
 var phpdbg = ""
 
-var debug = flag.Bool("debug", false, "Run in PHP debug mode (Windows only)")
+var debug = flag.Bool("debug", false, "Run in PHP debug mode")
 var port = flag.String("port", "80", "Webserver port specification")
+var alternateWebPort = flag.String("altport", "2015", "Alternate webserver port")
 var ipspec = flag.String("ip", "*", "Webserver IP specification")
 var spawnInterval = flag.Int("respawn", 60, "Number of minutes before restarting PHP server")
 var nolocal = flag.Bool("nolocal", false, "Don't start a web browser on the host machine")
-var root = flag.String("root", "/", "HTTP document root")
 
 const cgiport = "127.0.0.1:9000"
 const smCaddyFolder = "caddy"
 const starturl = "http://localhost"
-const alternateWebPort = "2015"
 
 type logWriter struct {
 }
@@ -85,6 +84,7 @@ func init() {
 	case "darwin": // Apple
 
 		phpdbg = "/usr/bin/php"
+		setMyWindowTitle(myWINTITLE)
 
 	case "linux":
 
@@ -108,10 +108,6 @@ func main() {
 	serverIP := getOutboundIP()
 	fmt.Printf("%s IPv4 = %s\n", timestamp(), serverIP)
 
-	if *debug && runtime.GOOS != "windows" {
-
-		*debug = false
-	}
 	if *debug && phpdbg != "" {
 		debugPHP()
 	} else {
@@ -226,8 +222,8 @@ func runCaddy() {
 			return
 		}
 		if !testWebPort(*port) {
-			if *port != alternateWebPort && testWebPort(alternateWebPort) {
-				*port = alternateWebPort
+			if *port != *alternateWebPort && testWebPort(*alternateWebPort) {
+				*port = *alternateWebPort
 			} else {
 				fmt.Println(timestamp() + " switching to alternate port " + *port)
 			}
