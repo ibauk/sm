@@ -1,1 +1,0 @@
-# [Help table of contents](help:index)
