@@ -56,7 +56,7 @@ while ($rd = $R->fetchArray()) {
 }
 
 // Loadup PhpSpreadsheet
-require_once("vendor\autoload.php");
+require_once("vendor".DIRECTORY_SEPARATOR."autoload.php");
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 
 
