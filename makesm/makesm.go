@@ -25,7 +25,7 @@
  *
  * targetFolder
  *	sm
- *		docs
+ *		help
  *		images
  *		jodit
  *		uploads
@@ -57,17 +57,18 @@ import (
 
 var mySMFLAVOUR = "v2.7"
 var srcFolder = flag.String("src", ".", "Path to ScoreMaster source")
-var phpFolder = flag.String("php", "C:\\PHP", "Path to PHP installation") // Windows only
+var phpFolder = flag.String("php", "C:\\PHP", "Path to PHP installation (Windows only)")
 var targetFolder = flag.String("target", "", "Path for new installation")
 var db2Use = flag.String("db", "v", "v=virgin,r=rblr,l=live database")
 var lang2use = flag.String("lang", "en", "Language code (en,de)")
 var overwriteok = flag.Bool("ok", false, "Overwrite existing target")
 
-var sqlite3 string = "./sqlite3" // path to executable
-var caddy string = "./caddy"
-var phpcgi string = "./php-cgi" // non-windows only
+var utilsFolder = "utils"
+var sqlite3 string = "sqlite3"
+var caddy string = "caddy"
+var phpcgi string = "php-cgi" // non-windows only
 
-var docsFolder = "docs"
+var helpFolder = "help"
 
 var mySMFILES = [...]string{
 	"about.php", "admin.php", "bonuses.php",
@@ -114,7 +115,7 @@ func main() {
 	fmt.Println()
 	log.Println("MakeSM", mySMFLAVOUR, "ScoreMaster installation maker")
 	flag.Parse()
-	log.Println("Building for ", runtime.GOOS)
+	log.Println("Building for", runtime.GOOS)
 	if *targetFolder == "" {
 		log.Fatal("You must specify a target folder")
 	}
@@ -147,7 +148,7 @@ func main() {
 	copyImages()
 	copyJodit()
 	copyPhpPackages()
-	generateDocs()
+	generateHelp()
 	log.Println("ScoreMaster installed in " + *targetFolder)
 	fmt.Println()
 
@@ -165,35 +166,47 @@ func binexe(exename string) string {
 func checkPrerequisites() {
 
 	var ok = true
-	var sqlitetest = binexe(sqlite3)
-	var caddytest = binexe(caddy)
-	var runtest = binexe("runsm/runsm")
-	var cgitest = binexe(phpcgi)
+	var sqlitetest = binexe(filepath.Join(*srcFolder, utilsFolder, sqlite3))
+	var caddytest = binexe(filepath.Join(*srcFolder, utilsFolder, caddy))
+	var runtest = binexe(filepath.Join(*srcFolder, "runsm", "runsm"))
+	var cgitest = binexe(filepath.Join(*srcFolder, utilsFolder, phpcgi))
+	var jodittest = filepath.Join(*srcFolder, "jodit")
+	var vendortest = filepath.Join(*srcFolder, "vendor")
 
-	if runtime.GOOS == "windows" && !fileExists(*phpFolder) {
+	if runtime.GOOS == "windows" && !fileOrFolderExists(*phpFolder) {
 		log.Printf("*** %s does not exist!", *phpFolder)
 		log.Printf("*** You must have a working PHP installation installed. Download from php.net")
 		ok = false
 	}
 
-	if !fileExists(sqlitetest) {
+	if runtime.GOOS != "windows" && !fileOrFolderExists(cgitest) {
+		log.Printf("*** %s does not exist!", cgitest)
+		log.Printf("*** You must obtain a copy - compile PHP from source?")
+		ok = false
+	}
+	if !fileOrFolderExists(sqlitetest) {
 		log.Printf("*** %s does not exist!", sqlitetest)
 		log.Printf("*** Please download from sqlite.org")
 		ok = false
 	}
-	if !fileExists(caddytest) {
+	if !fileOrFolderExists(caddytest) {
 		log.Printf("*** %s does not exist!", caddytest)
 		log.Printf("*** You must have a working Caddy installation. Download from github.com/caddyserver/caddy)")
 		ok = false
 	}
-	if !fileExists(runtest) {
-		log.Printf("*** %s does not exist!", runtest)
-		log.Printf("*** You must do 'go build runsm.go'")
+	if !fileOrFolderExists(jodittest) {
+		log.Printf("*** %s does not exist!", jodittest)
+		log.Printf("*** You might want to download from github.com/xdan/jodit")
 		ok = false
 	}
-	if runtime.GOOS != "windows" && !fileExists(cgitest) {
-		log.Printf("*** %s does not exist!", cgitest)
-		log.Printf("*** You must obtain a copy - compile PHP from source?")
+	if !fileOrFolderExists(vendortest) {
+		log.Printf("*** %s does not exist!", vendortest)
+		log.Printf("*** You probably need to run composer")
+		ok = false
+	}
+	if !fileOrFolderExists(runtest) {
+		log.Printf("*** %s does not exist!", runtest)
+		log.Printf("*** You must do 'go build runsm.go'")
 		ok = false
 	}
 	if !ok {
@@ -230,55 +243,22 @@ func copyDatabase() {
 
 }
 
-func copyDocs(srcpath string, dstpath string, folder string) error {
+func copyExec(src, dst string) {
 
-	var err error
-	var fds []os.FileInfo
-	var mdre = regexp.MustCompile(`\.md`)
+	var xsrc = binexe(src)
+	var xdst = binexe(dst)
 
-	src := filepath.Join(srcpath, folder)
-	dst := filepath.Join(dstpath, folder)
+	copyFile(xsrc, xdst)
+	os.Chmod(dst, 0755)
 
-	makeFolder(dst)
-
-	if fds, err = ioutil.ReadDir(src); err != nil {
-		return err
-	}
-	for _, fd := range fds {
-		srcfp := filepath.Join(src, fd.Name())
-		dstfp := filepath.Join(dst, fd.Name())
-
-		if fd.IsDir() {
-			if err = copyDocs(src, dst, fd.Name()); err != nil {
-				fmt.Println(err)
-			}
-		} else if mdre.MatchString(fd.Name()) {
-			copyMarkdown(srcfp, dstfp)
-		} else {
-			if _, err = copyFile(srcfp, dstfp); err != nil {
-				fmt.Println(err)
-			}
-		}
-	}
-	return nil
 }
-
 func copyExecs() {
-
-	var src = binexe(caddy)
-	var dst = binexe("caddy")
 
 	log.Print("Copying executables")
 
-	copyFile(src, filepath.Join(*targetFolder, "caddy", dst))
-	os.Chmod(filepath.Join(*targetFolder, "caddy", dst), 0755)
-	src = binexe("runsm/runsm")
-	dst = binexe("runsm")
-	copyFile(filepath.Join(*srcFolder, src), filepath.Join(*targetFolder, dst))
-	os.Chmod(filepath.Join(*targetFolder, dst), 0755)
-	dst = binexe("debugsm")
-	copyFile(filepath.Join(*srcFolder, src), filepath.Join(*targetFolder, dst))
-	os.Chmod(filepath.Join(*targetFolder, dst), 0755)
+	copyExec(filepath.Join(*srcFolder, utilsFolder, caddy), filepath.Join(*targetFolder, "caddy", "caddy"))
+	copyExec(filepath.Join(*srcFolder, "runsm", "runsm"), filepath.Join(*targetFolder, "runsm"))
+	copyExec(filepath.Join(*srcFolder, "runsm", "runsm"), filepath.Join(*targetFolder, "debugsm"))
 }
 
 func copyFile(src, dst string) (int64, error) {
@@ -303,6 +283,9 @@ func copyFile(src, dst string) (int64, error) {
 	}
 	defer destination.Close()
 	nBytes, err := io.Copy(destination, source)
+	if err != nil {
+		log.Fatal("Can't copy file " + src)
+	}
 	return nBytes, err
 }
 
@@ -339,6 +322,39 @@ func copyFolderTree(src string, dst string) error {
 	return nil
 }
 
+func copyHelp(srcpath string, dstpath string, folder string) error {
+
+	var err error
+	var fds []os.FileInfo
+	var mdre = regexp.MustCompile(`\.md`)
+
+	src := filepath.Join(srcpath, folder)
+	dst := filepath.Join(dstpath, folder)
+
+	makeFolder(dst)
+
+	if fds, err = ioutil.ReadDir(src); err != nil {
+		return err
+	}
+	for _, fd := range fds {
+		srcfp := filepath.Join(src, fd.Name())
+		dstfp := filepath.Join(dst, fd.Name())
+
+		if fd.IsDir() {
+			if err = copyHelp(src, dst, fd.Name()); err != nil {
+				fmt.Println(err)
+			}
+		} else if mdre.MatchString(fd.Name()) {
+			copyMarkdown(srcfp, dstfp)
+		} else {
+			if _, err = copyFile(srcfp, dstfp); err != nil {
+				fmt.Println(err)
+			}
+		}
+	}
+	return nil
+}
+
 func copyImages() {
 
 	log.Print("Copying images")
@@ -364,8 +380,8 @@ func copyJodit() {
 
 	makeFolder(filepath.Join(smFolder, "jodit"))
 
-	copyFile(filepath.Join(*srcFolder, "jodit-master", "build", "jodit.min.js"), filepath.Join(smFolder, "jodit", "jodit.min.js"))
-	copyFile(filepath.Join(*srcFolder, "jodit-master", "build", "jodit.min.css"), filepath.Join(smFolder, "jodit", "jodit.min.css"))
+	copyFile(filepath.Join(*srcFolder, "jodit", "build", "jodit.min.js"), filepath.Join(smFolder, "jodit", "jodit.min.js"))
+	copyFile(filepath.Join(*srcFolder, "jodit", "build", "jodit.min.css"), filepath.Join(smFolder, "jodit", "jodit.min.css"))
 	copyFile(filepath.Join(*srcFolder, "images", "icons", "fields.png"), filepath.Join(smFolder, "jodit", "fields.png"))
 	copyFile(filepath.Join(*srcFolder, "images", "icons", "borders.png"), filepath.Join(smFolder, "jodit", "borders.png"))
 
@@ -400,11 +416,10 @@ func copyPHP() {
 			log.Fatalf("*** FAILED copying folder: %s", err)
 		}
 	} else {
-		cgi := filepath.Join(*srcFolder, binexe(phpcgi))
+		cgi := filepath.Join(*srcFolder, utilsFolder, phpcgi)
 		if _, err := os.Stat(cgi); err == nil {
-			tgtcgi := filepath.Join(*targetFolder, "php", binexe("php-cgi"))
-			copyFile(cgi, tgtcgi)
-			os.Chmod(tgtcgi, 0755)
+			tgtcgi := filepath.Join(*targetFolder, "php", "php-cgi")
+			copyExec(cgi, tgtcgi)
 
 		}
 	}
@@ -447,7 +462,7 @@ func copySMFiles() {
 	}
 }
 
-func fileExists(filename string) bool {
+func fileOrFolderExists(filename string) bool {
 	_, err := os.Stat(filename)
 	if os.IsNotExist(err) {
 		return false
@@ -455,17 +470,17 @@ func fileExists(filename string) bool {
 	return true
 }
 
-func generateDocs() {
+func generateHelp() {
 
 	log.Print("Generating help")
 
-	copyDocs(*srcFolder, filepath.Join(*targetFolder, "sm"), docsFolder)
+	copyHelp(*srcFolder, filepath.Join(*targetFolder, "sm"), helpFolder)
 }
 
 func loadSQL(sqlfile string) bool {
 
 	sql, err := ioutil.ReadFile(filepath.Join(*srcFolder, sqlfile))
-	cmd := exec.Command(sqlite3, filepath.Join(smFolder, "ScoreMaster.db"))
+	cmd := exec.Command(filepath.Join(*srcFolder, utilsFolder, sqlite3), filepath.Join(smFolder, "ScoreMaster.db"))
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		log.Fatal("Can't load database from SQL")
