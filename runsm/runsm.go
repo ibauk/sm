@@ -50,7 +50,7 @@ import (
 	"github.com/pkg/browser"
 )
 
-const myPROGTITLE = "ScoreMaster Server v2.7 [2020-12-12]"
+const myPROGTITLE = "ScoreMaster Server v2.7"
 const myWINTITLE = "IBA ScoreMaster"
 
 var phpcgi = filepath.Join("php", "php-cgi")
