@@ -113,7 +113,7 @@ $KONSTANTS['showOnly'] = 1;		// show only Judged/applied claims
 $KONSTANTS['showNot'] = 2;		// show only undecided/unapplied claims
 $KONSTANTS['UNDECIDED_CLAIM']	= -1;
 
-$KONSTANTS['UPLOADS_FOLDER'] = "./uploads";
+$KONSTANTS['UPLOADS_FOLDER'] = "uploads";
 
 $KONSTANTS['COMPULSORYBONUS'] = 1;
 $KONSTANTS['MUSTNOTMATCH'] = 2;

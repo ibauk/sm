@@ -391,14 +391,14 @@ function openWorksheet()
 {
 	global $target_dir,$IMPORTSPEC;
 	
-	$filetype = \PhpOffice\PhpSpreadsheet\IOFactory::identify($target_dir.$IMPORTSPEC['xlsname']);
+	$filetype = \PhpOffice\PhpSpreadsheet\IOFactory::identify($target_dir.DIRECTORY_SEPARATOR.$IMPORTSPEC['xlsname']);
 
 	$rdr = \PhpOffice\PhpSpreadsheet\IOFactory::createReader($filetype);
 
 	$rdr->setReadDataOnly(true);
 	$rdr->setLoadSheetsOnly($IMPORTSPEC['whichsheet']);
 	try {
-		$xls = $rdr->load($target_dir.$IMPORTSPEC['xlsname']);
+		$xls = $rdr->load($target_dir.DIRECTORY_SEPARATOR.$IMPORTSPEC['xlsname']);
 	} catch (\PhpOffice\PhpSpreadsheet\Reader\Exception $e) {
 		die("Error: ".$e->getMessage());
 	}
@@ -474,8 +474,8 @@ function processUpload()
 	global $IMPORTSPEC, $target_dir, $TAGS, $upload_state;
 	
 	if(isset($_FILES['fileid']['tmp_name']) && $_FILES['fileid']['tmp_name']!='')
-	  if (!move_uploaded_file($_FILES['fileid']['tmp_name'],$target_dir.$IMPORTSPEC['xlsname']))
-		die('Upload failed ['.$_FILES['fileid']['tmp_name'].']==>['.$target_dir.$IMPORTSPEC['xlsname'].']');
+	  if (!move_uploaded_file($_FILES['fileid']['tmp_name'],$target_dir.DIRECTORY_SEPARATOR.$IMPORTSPEC['xlsname']))
+		die('Upload failed ['.$_FILES['fileid']['tmp_name'].']==>['.$target_dir.DIRECTORY_SEPARATOR.$IMPORTSPEC['xlsname'].']');
 	$upload_state = 2;
 }
 
