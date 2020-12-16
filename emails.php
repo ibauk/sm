@@ -30,9 +30,6 @@ require_once("vendor".DIRECTORY_SEPARATOR."autoload.php");
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\SMTP;
-require 'vendor'.DIRECTORY_SEPARATOR.'PHPMailer'.DIRECTORY_SEPARATOR.'PHPMailer'.DIRECTORY_SEPARATOR.'src'.DIRECTORY_SEPARATOR.'Exception.php';
-require 'vendor'.DIRECTORY_SEPARATOR.'PHPMailer'.DIRECTORY_SEPARATOR.'PHPMailer'.DIRECTORY_SEPARATOR.'src'.DIRECTORY_SEPARATOR.'PHPMailer.php';
-require 'vendor'.DIRECTORY_SEPARATOR.'PHPMailer'.DIRECTORY_SEPARATOR.'PHPMailer'.DIRECTORY_SEPARATOR.'src'.DIRECTORY_SEPARATOR.'SMTP.php';
 
 require_once('certificate.php');
 
