@@ -118,7 +118,7 @@ $KONSTANTS['UPLOADS_FOLDER'] = "uploads";
 $KONSTANTS['COMPULSORYBONUS'] = 1;
 $KONSTANTS['MUSTNOTMATCH'] = 2;
 
-$KONSTANTS['doxpath'] = 'docs'; 	// path from sm to folder containing help documents
+$KONSTANTS['doxpath'] = 'help'; 	// path from sm to folder containing help documents
 $KONSTANTS['doxpage'] = 'smhelp';	// browser tab name for showing helps
 
 // Common subroutines below here; nothing translateable below
