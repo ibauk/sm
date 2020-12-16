@@ -26,13 +26,13 @@
 $HOME_URL = 'admin.php';
 
 require_once('common.php');
-require_once("./vendor/autoload.php");
+require_once("vendor".DIRECTORY_SEPARATOR."autoload.php");
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 use PHPMailer\PHPMailer\SMTP;
-require 'vendor/PHPMailer/PHPMailer-master/src/Exception.php';
-require 'vendor/PHPMailer/PHPMailer-master/src/PHPMailer.php';
-require 'vendor/PHPMailer/PHPMailer-master/src/SMTP.php';
+require 'vendor'.DIRECTORY_SEPARATOR.'PHPMailer'.DIRECTORY_SEPARATOR.'PHPMailer'.'src'.DIRECTORY_SEPARATOR.'Exception.php';
+require 'vendor'.DIRECTORY_SEPARATOR.'PHPMailer'.DIRECTORY_SEPARATOR.'PHPMailer'.DIRECTORY_SEPARATOR.'src'.DIRECTORY_SEPARATOR.'PHPMailer.php';
+require 'vendor'.DIRECTORY_SEPARATOR.'PHPMailer'.DIRECTORY_SEPARATOR.'PHPMailer'.DIRECTORY_SEPARATOR.'src'.DIRECTORY_SEPARATOR.'SMTP.php';
 
 require_once('certificate.php');
 
