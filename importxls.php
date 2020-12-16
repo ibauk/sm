@@ -332,8 +332,9 @@ function loadSpreadsheet()
 		
 		if ($IMPORTSPEC['type']==$TYPE_ENTRANTS) {
 			$xtraData = '';
-			foreach($IMPORTSPEC['data'] as $k => $kcol)
-				$xtraData .= $k.'='.getMergeCols($sheet,$row,$IMPORTSPEC['data'][$k])."\n";
+			if (isset($IMPORTSPEC['data']))
+				foreach($IMPORTSPEC['data'] as $k => $kcol)
+					$xtraData .= $k.'='.getMergeCols($sheet,$row,$IMPORTSPEC['data'][$k])."\n";
 			$fldval['ExtraData'] = $xtraData;
 		}
 		
