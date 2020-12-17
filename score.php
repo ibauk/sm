@@ -533,20 +533,26 @@ function scoreEntrant($showBlankForm = FALSE,$postRallyForm = TRUE)
 		$rd = $R->fetchArray();
 	}
 
-	if (is_null($rd['StartTime']))
-		$starttime = date("Y-m-d\TH:i");
-	else
-		$starttime = $rd['StartTime'];
-	error_log($starttime);
-	$mtDNF = DateTime::createFromFormat('Y\-m\-d\TH\:i',$starttime);
-	try {
-		$mtDNF = date_add($mtDNF,new DateInterval("PT".$certhours."H"));
-	} catch(Exception $e) {
-		echo('omg! '.$e->getMessage());
+	if ($rd['StartTime'] != '') {
+		if (is_null($rd['StartTime']))
+			$starttime = date("Y-m-d\TH:i");
+		else
+			$starttime = $rd['StartTime'];
+		error_log($starttime);
+		$mtDNF = DateTime::createFromFormat('Y\-m\-d\TH\:i',$starttime);
+		try {
+			$mtDNF = date_add($mtDNF,new DateInterval("PT".$certhours."H"));
+		} catch(Exception $e) {
+			echo('omg! '.$e->getMessage());
+		}
+		$myTimeDNF = joinDateTime(date_format($mtDNF,'Y-m-d'),date_format($mtDNF,'H:i'));
+		if ($rallyTimeDNF < $myTimeDNF)
+			$myTimeDNF = $rallyTimeDNF;
+	} else {
+		$starttime = '';
+		$mtDNF = '';
+		$myTimeDNF = '';
 	}
-	$myTimeDNF = joinDateTime(date_format($mtDNF,'Y-m-d'),date_format($mtDNF,'H:i'));
-	if ($rallyTimeDNF < $myTimeDNF)
-		$myTimeDNF = $rallyTimeDNF;
 		
 		
 	echo('<input type="hidden" id="MaxHours" value="'.$certhours.'">');
