@@ -25,6 +25,8 @@
 - [Penalties](help:penalties)
 - [Rally team](help:teamroles)
 - [Rally time](help:rallytime)
+
+- [Reasons to be cheerful](help:reasons)
 - [Scorecard reconciliation](help:recon) - building confidence in the results
 - [Score explanations](help:scorex)
 - [Speed monitoring](help:speeding) - yes it's optional; don't fret the small stuff

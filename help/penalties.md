@@ -2,7 +2,7 @@
 ### Speed penalties
 Speeding control methods such as live tracking by members of the rally team are outside the scope of the system. ScoreMaster provides for control using average speeds. Average speed is calculated from odo readings taken between check-out and check-in, making allowance for recognised rest periods. The penalty applied will either be DNF or a fixed number of penalty points deducted from the score.
 
-Multiple records are entered to trigger penalties at different speeds. Only one such record will be applied to an entrant’s score and it will be the one with the highest speed equal to or lower than the entrant’s calculated average speed.
+Multiple records are entered to trigger penalties at different speeds. Only one such record will be applied to an entrant’s score and it will be the one with the highest speed equal to or lower than the entrant’s calculated average speed. See also [Speed monitoring](help:speeding)
 ### Time penalties
 The ultimate time penalty is that entrants finishing after the rally finish time are DNF. Point or multiplier deductions can be specified for late arrivals short of the finish time.
 

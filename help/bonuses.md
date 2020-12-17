@@ -1,6 +1,6 @@
 ## Bonuses: ordinary, special
 
-Bonuses are the basic unit of scoring. Each rally will use its own mixture of bonuses, implmenting each rally's unique design or geography. Usually, ordinary bonuses are used to represent normal geographical bonuses while specials are used for items such as sleep bonuses or 'flag at table' but as far as the software's concerned such distinctions don't matter and the rally can be specified using the more convenient bonus type.
+Bonuses are the basic unit of scoring. Each rally will use its own mixture of bonuses, implementing each rally's unique design or geography. Usually, ordinary bonuses are used to represent normal geographical bonuses while specials are used for items such as sleep bonuses or 'flag at table' but as far as the software's concerned such distinctions don't matter and the rally can be specified using the more convenient bonus type.
 
 Individual bonuses may be marked as *Compulsory* so that failure to score a compulsory bonus results in the entrant being DNF.
 

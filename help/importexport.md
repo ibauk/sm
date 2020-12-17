@@ -1,6 +1,6 @@
 ## Import/export - data integration
 
-ScoreMaster is designed to make integration with other IBA systems easy. Let's face it, we're lazy buggers and nobody enjots keying stuff in more than once!
+ScoreMaster is designed to make integration with other IBA systems easy. Let's face it, we're lazy buggers and nobody enjoys keying stuff in more than once!
 
 ## Importing entrants
 

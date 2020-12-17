@@ -1,6 +1,6 @@
 ## Speed penalties
 
-We are not the police! It is not our job to police the roads and we do not have the resources available to the police to counter speeding also not everyone agrees that we should even be monitoring speeds **but**
+We are not the police! It is not our job to police the roads and we do not have the resources available to the police to counter speeding. Also not everyone agrees that we should even be monitoring speeds **but**
 
 ScoreMaster calculates overall average speed of entrants during the rally using information obtained during **Check-out** and **Check-in** as well as information obtained during live bonus claiming and information about [rest periods](help:rest) and includes that figure on [score explanations](help:scorex).
 
