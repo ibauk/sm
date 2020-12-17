@@ -383,10 +383,10 @@ INSERT INTO "functions" (functionid,menulbl,url,onclick,Tags) VALUES (23,'AdmSet
 INSERT INTO "functions" (functionid,menulbl,url,onclick,Tags) VALUES (24,'AdmPrintScoreX','entrants.php?c=scorex','window.open(''entrants.php?c=scorex'',''scorex'');return false;','entrant,score,finisher');
 INSERT INTO "functions" (functionid,menulbl,url,onclick,Tags) VALUES (25,'AdmPrintQlist','entrants.php?c=qlist','window.open(''entrants.php?c=qlist'',''qlist'');return false;','entrant,rank,finisher');
 INSERT INTO "functions" (functionid,menulbl,url,onclick,tags) VALUES (26,'UtlFolderMaker','utils.php','window.open(''utils.php'',''utils'');return false;','entrant,bonus,folder,directory,script');
-INSERT INTO "functions" (functionid,menulbl,url,onclick,tags) VALUES (27,'UtlDeleteEntrant','entrants.php?c=delentrant',NULL,'entrant,delete entrant');
+INSERT INTO "functions" (functionid,menulbl,url,onclick,tags) VALUES (27,'UtlDeleteEntrant','entrants.php?c=delentrant',NULL,'entrant,delete');
 INSERT INTO "functions" (functionid,menulbl,url,onclick,tags) VALUES (28,'UtlRenumEntrant','entrants.php?c=moveentrant',NULL,'entrant,renumber entrant,entrant number,number');
 INSERT INTO "functions" (functionid,menulbl,url,onclick,tags) VALUES (29,'UtlRAE','entrants.php?c=showrae',NULL,'entrant,renumber all entrants,entrant number,number');
-INSERT INTO "functions" (functionid,menulbl,url,onclick,Tags) VALUES (30,'AdmUtilHeader','admin.php?menu=util',NULL,'utilities,delete');
+INSERT INTO "functions" (functionid,menulbl,url,onclick,Tags) VALUES (30,'AdmUtilHeader','admin.php?menu=util',NULL,'utilities,renumber,magic,teams,export');
 INSERT INTO "functions" (functionid,menulbl,url,onclick,Tags) VALUES (31,'UtlFindEntrant','#','return findEntrant();','entrant,find');
 INSERT INTO "functions" (functionid,menulbl,url,onclick,Tags) VALUES (32,'AdmDoBlankB4','score.php?c=blank&prf=0',NULL,'score,blank score sheet');
 INSERT INTO "functions" (functionid,menulbl,url,onclick,Tags) VALUES (33,'ttTeams','teams.php?m=3&g=2',NULL,'teams,integrity');
