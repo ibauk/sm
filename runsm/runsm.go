@@ -106,6 +106,8 @@ func init() {
 
 func main() {
 
+	var cancelCaddy context.CancelFunc = nil
+
 	fmt.Printf("\n%s\t\t%s\n", "Iron Butt Association UK", "webmaster@ironbutt.co.uk")
 	fmt.Printf("\n%s\n\n", myPROGTITLE)
 
@@ -116,10 +118,7 @@ func main() {
 	if *debug && phpdbg != "" {
 		debugPHP()
 	} else {
-		caddyCtx := runCaddy()
-		if caddyCtx != nil {
-			defer caddyCtx()
-		}
+		cancelCaddy = runCaddy()
 		go runPHP()
 	}
 
@@ -146,6 +145,10 @@ func main() {
 		done <- true
 	}()
 	<-done
+	if cancelCaddy != nil {
+		fmt.Printf("%s cancelling Caddy\n", timestamp())
+		cancelCaddy()
+	}
 	fmt.Printf("%s quitting\n", timestamp())
 }
 
