@@ -147,7 +147,7 @@ func main() {
 	<-done
 	if cancelCaddy != nil {
 		fmt.Printf("%s cancelling Caddy\n", timestamp())
-		cancelCaddy()
+		killCaddy()
 	}
 	fmt.Printf("%s quitting\n", timestamp())
 }
@@ -285,6 +285,14 @@ func runCaddy() context.CancelFunc {
 		log.Fatal(err)
 	}
 	return cancel
+
+}
+
+func killCaddy() {
+
+	fp := filepath.Join(smCaddyFolder, "caddy")
+	cmd := exec.Command(fp, "stop")
+	cmd.Start()
 
 }
 
