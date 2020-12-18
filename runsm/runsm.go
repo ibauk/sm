@@ -116,7 +116,10 @@ func main() {
 	if *debug && phpdbg != "" {
 		debugPHP()
 	} else {
-		go runCaddy()
+		caddyCtx := runCaddy()
+		if caddyCtx != nil {
+			defer caddyCtx()
+		}
 		go runPHP()
 	}
 
@@ -237,13 +240,13 @@ func runPHP() {
 
 }
 
-func runCaddy() {
+func runCaddy() context.CancelFunc {
 
 	// If IP is not wildcard then assume that grownup has checked
 	if *ipspec == "*" {
 		if !rawPortAvail(*port) {
 			fmt.Println(timestamp() + " service port " + *port + " already served")
-			return
+			return nil
 		}
 		if !testWebPort(*port) {
 			if *port != *alternateWebPort && testWebPort(*alternateWebPort) {
@@ -272,12 +275,13 @@ func runCaddy() {
 
 	// Now run Caddy
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	//defer cancel()
 	fp := filepath.Join(smCaddyFolder, "caddy")
 
 	if err := exec.CommandContext(ctx, fp, "start", "--config", cp, "--adapter", "caddyfile").Run(); err != nil {
 		log.Fatal(err)
 	}
+	return cancel
 
 }
 
