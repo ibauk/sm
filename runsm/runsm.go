@@ -42,9 +42,11 @@ import (
 	"net"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/pkg/browser"
@@ -127,7 +129,25 @@ func main() {
 		os.Exit(0)
 	}
 
+	go monitorIP(serverIP)
+
 	// Now just kill time and wait for someone to kill me
+	sigs := make(chan os.Signal, 1)
+	done := make(chan bool, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP, syscall.SIGQUIT)
+	go func() {
+		sig := <-sigs
+		fmt.Printf("%s\n", timestamp())
+		fmt.Printf("%s ** %v\n", timestamp(), sig)
+		fmt.Printf("%s\n", timestamp())
+		done <- true
+	}()
+	<-done
+	fmt.Printf("%s quitting\n", timestamp())
+}
+
+func monitorIP(serverIP net.IP) {
+
 	for {
 		time.Sleep(1 * time.Minute)
 		myIP := getOutboundIP()
@@ -136,6 +156,7 @@ func main() {
 			fmt.Printf("%s IPv4 = %s\n", timestamp(), serverIP)
 		}
 	}
+
 }
 
 func showInvite() {
