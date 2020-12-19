@@ -62,6 +62,7 @@ var targetFolder = flag.String("target", "", "Path for new installation")
 var db2Use = flag.String("db", "v", "v=virgin,r=rblr,l=live database")
 var lang2use = flag.String("lang", "en", "Language code (en,de)")
 var overwriteok = flag.Bool("ok", false, "Overwrite existing target")
+var nodebug = flag.Bool("nodebug", false, "Don't produce debugsm")
 
 var utilsFolder = "utils"
 var sqlite3 string = "sqlite3"
@@ -258,7 +259,9 @@ func copyExecs() {
 
 	copyExec(filepath.Join(*srcFolder, utilsFolder, caddy), filepath.Join(*targetFolder, "caddy", "caddy"))
 	copyExec(filepath.Join(*srcFolder, "runsm", "runsm"), filepath.Join(*targetFolder, "runsm"))
-	copyExec(filepath.Join(*srcFolder, "runsm", "runsm"), filepath.Join(*targetFolder, "debugsm"))
+	if !*nodebug {
+		copyExec(filepath.Join(*srcFolder, "runsm", "runsm"), filepath.Join(*targetFolder, "debugsm"))
+	}
 }
 
 func copyFile(src, dst string) (int64, error) {
@@ -514,9 +517,12 @@ func writeReadme() {
 		return
 	}
 
-	defer f.Close()
 	f.WriteString(myREADME)
 	f.WriteString("\n\n" + runtime.GOOS)
+	f.Close()
+
+	f, _ = os.Create(filepath.Join(*targetFolder, runtime.GOOS))
+	f.Close()
 
 }
 
