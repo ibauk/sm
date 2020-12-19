@@ -69,6 +69,8 @@ const cgiport = "127.0.0.1:9000"
 const smCaddyFolder = "caddy"
 const starturl = "http://localhost"
 
+var shuttingDown bool = false
+
 type logWriter struct {
 }
 
@@ -140,13 +142,14 @@ func main() {
 	go func() {
 		sig := <-sigs
 		fmt.Printf("%s\n", timestamp())
-		fmt.Printf("%s ** %v\n", timestamp(), sig)
+		fmt.Printf("%s %v\n", timestamp(), sig)
 		fmt.Printf("%s\n", timestamp())
 		done <- true
 	}()
 	<-done
+	shuttingDown = true
 	if cancelCaddy != nil {
-		fmt.Printf("%s cancelling Caddy\n", timestamp())
+		fmt.Printf("%s ending Caddy\n", timestamp())
 		killCaddy()
 	}
 	fmt.Printf("%s quitting\n", timestamp())
@@ -235,7 +238,7 @@ func runPHP() {
 	}
 	os.Setenv("PHP_FCGI_MAX_REQUESTS", "0") // PHP defaults to die after 500 requests so disable that
 	x := "spawning"
-	for {
+	for !shuttingDown {
 		fmt.Printf("%s %s PHP\n", timestamp(), x)
 		x = "respawning"
 		execPHP()
