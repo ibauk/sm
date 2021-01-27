@@ -24,7 +24,7 @@
  */
 
 
-$PROGRAM = array("version" => "2.7",	"title"	=> "ScoreMaster");
+$PROGRAM = array("version" => "2.7.1",	"title"	=> "ScoreMaster");
 /*
  *	2.0	25May18	Used live at BBR18
  *
@@ -72,6 +72,7 @@ $PROGRAM = array("version" => "2.7",	"title"	=> "ScoreMaster");
  *	2.6.2a		First Rick update: scorecards/import/wizard buttons
  *	2.6.2b		Pre Jorvik mods
  *	2.7			Post Jorvik - claims rebuild, locking conflict traps
+ *	2.7.1		Post Gerhard
  */
 
 $MIT = <<<'EOT'

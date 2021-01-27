@@ -270,6 +270,8 @@ function saveRallyConfig()
 	$KONSTANTS['DefaultLocale'] = $hc;
 
 	$sql .= ",EmailParams='".$DB->escapeString(saveEmailConfig())."'";
+	if (isset($_REQUEST['settings']))
+		$sql .= ",settings='".$DB->escapeString($_REQUEST['settings'])."'";
 
 	$sql .= ",RejectReasons='".$DB->escapeString($RejectReasons)."'";
 	//echo($sql.'<hr>');
@@ -875,6 +877,8 @@ function showRallyConfig($showAdvanced)
 	if ($showVirtual)
 		echo('<li><a href="#tab_virtual">'.$TAGS['VirtualParams'][0].'</a></li>');
 	echo('<li><a href="#tab_email">'.$TAGS['EmailParams'][0].'</a></li>');
+	if ($showAdvanced) 
+		echo('<li><a href="#tab_settings">'.$TAGS['rp_settings'][0].'</a></li>');
 	echo('</ul></div>');
 	
 	
@@ -1161,7 +1165,7 @@ function switchv(sel) {
 	echo('</p>');
 	
 	echo('<span class="vlabel"><label for="EmailParams"> </label> '); // Label merely to maintain spacing
-	echo('<textarea id="EmailParams" name="EmailParams" cols="60" rows="15" oninput="enableSaveButton();">');
+	echo('<textarea id="EmailParams" name="EmailParams" cols="100" rows="15" oninput="enableSaveButton();">');
 	//echo($rd['EmailParams']);
 	echo(json_encode($email,JSON_PRETTY_PRINT));  // Make sure it's legible
 	echo('</textarea></span>');
@@ -1183,6 +1187,26 @@ function switchv(sel) {
 		}
 	}
 	echo('</fieldset>');
+
+	if ($showAdvanced) {
+		echo('<fieldset id="tab_settings" class="tabContent"><legend>'.$TAGS['rp_settings'][0].'</legend>');
+	
+		$settings = json_decode($rd['settings'],true);
+		echo('<p>'.$TAGS['rp_settings'][1]);
+		echo(' <input title="Help!" type="button" value=" ? " onclick="showHelp('."'rpsettings'".');">');
+		echo('</p>');
+	
+		echo('<span class="vlabel"><label for="settings"> </label> '); // Label merely to maintain spacing
+		echo('<textarea id="settings" name="settings" cols="100" rows="15" oninput="enableSaveButton();">');
+	
+		echo(json_encode($settings,JSON_PRETTY_PRINT));  // Make sure it's legible
+		echo('</textarea></span>');
+
+
+		echo('</fieldset>');
+	}
+
+
 
 	echo('<input type="submit" disabled onclick="this.setAttribute(\'data-triggered\',\'1\');" data-triggered="0" name="savedata" id="savedata" data-altvalue="'.$TAGS['SaveRallyConfig'][0].'" value="'.$TAGS['RallyConfigSaved'][0].'">');
 	echo('</form>');

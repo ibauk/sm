@@ -111,7 +111,8 @@ function editCertificateW() {
 		$x = ' onchange="document.getElementById('."'".'fetchcert'."'".').disabled=false;"';
 		echo('<input title="'.$TAGS['Class'][1].'" type="hidden" min="0" name="Class" id="Class" value="'.$class.'" '.$x.' class="smallnumber"> ');
 	
-		//echo('<input type="submit" disabled id="fetchcert" name="fetchcert" value="'.$TAGS['FetchCert'][0].'" title="'.$TAGS['FetchCert'][1].'"> ');
+		if ($MC > 1)
+			echo('<input type="submit" style="display:none;" disabled id="fetchcert" name="fetchcert" value="'.$TAGS['FetchCert'][0].'" title="'.$TAGS['FetchCert'][1].'"> ');
 		//echo('<label for="Title">'.$TAGS['CertTitle'][0].' </label>');
 		echo('<input title="'.$TAGS['CertTitle'][1].'" type="hidden" name="Title" id="Title" value="'.$rd['Title'].'" > ');
 	

@@ -546,6 +546,9 @@ $TAGS = array(
 	'RiderIBA'			=> array('IBA #',"Rider's IBA number if known"),
 	'RiderName'			=> array('Rider name','The full name of the rider'),
 	'ROUseScore'		=> array('ReadOnly','These fields may not be changed here, use Scoring instead'),
+
+	'rp_settings'		=> array('Settings','Settings: These fields contain rather technical information which fine-tune the behaviour of ScoreMaster. If you know what you\'re doing, have at it otherwise don\'t guess, do consult a grownup.'),
+	
 	'SaveCertificate'	=> array('Save certificate','Save the updated copy of this certificate'),
 	'SaveEntrantRecord' => array('Save entrant details',''),
 	'SaveNewCC'			=> array('Update database',''),
