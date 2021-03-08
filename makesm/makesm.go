@@ -363,7 +363,7 @@ func copyImages() {
 	log.Print("Copying images")
 	copyImageSet(myIMAGES[:])
 	if *db2Use == "r" {
-		copyImageSet(myIMAGES[:])
+		copyImageSet(rblrIMAGES[:])
 	}
 }
 
