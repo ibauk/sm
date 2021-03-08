@@ -121,6 +121,10 @@ input[name="showb"],
 .BonusID,
 input[name="comboid"],
 input[name="BonusID"]	{ width: 3em; }
+
+/* Scorecard ordinary bonuses */
+input[name="BonusID[]"][type="checkbox"] { width:2em; margin-right:1em; }
+
 input[name="EntrantID"]	{ width: 3em; }
 input[name="OdoCheckMiles"]	{ width:3em; }
 input.bignumber			{ width: 5em;}

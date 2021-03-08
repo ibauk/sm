@@ -821,7 +821,7 @@ function showBonuses($bonusesTicked,$showBlankForm,$postRallyForm)
 		echo(' data-title="'.$bd.'"');	// HTML intact, use for scorex
 		
 		echo(' title="'.strip_tags($bd).' [ '.$rd['Points'].' ]">');
-		echo('<label for="'.$KONSTANTS['ORDINARY_BONUS_PREFIX'].$bk.'">'.$bk.'-</label>');
+		echo('<label for="'.$KONSTANTS['ORDINARY_BONUS_PREFIX'].$bk.'">'.$bk.'</label>');
 		echo('<input type="checkbox"'.$chk.' name="BonusID[]" id="'.$KONSTANTS['ORDINARY_BONUS_PREFIX'].$bk.'" value="'.$bk.'" onchange="tickBonus(this)"');
 		echo(' data-points="'.$rd['Points'].'" ');
 		for ($c = 1; $c <= $KONSTANTS['NUMBER_OF_COMPOUND_AXES']; $c++)
