@@ -681,22 +681,22 @@ $IMPORTSPEC[''default''][''FinishPosition''] = 1; /* Print certs right away */
 $IMPORTSPEC[''default''][''EntrantStatus'']	= 8; // Finisher so certificate can be printed straight away
 
 $IMPORTSPEC[''default''][''Class'']		= 0;
-$IMPORTSPEC[''setif''][''Class''][1]	= array(35,''/North Anti Clock Wise/'');
-$IMPORTSPEC[''setif''][''Class''][2]	= array(35,''/North Clock Wise/'');
-$IMPORTSPEC[''setif''][''Class''][3]	= array(35,''/South Anti Clock Wise/'');
-$IMPORTSPEC[''setif''][''Class''][4]	= array(35,''/South Clock Wise/'');
+$IMPORTSPEC[''setif''][''Class''][1]	= array(35,''/B - North Anti-Clockwise/'');
+$IMPORTSPEC[''setif''][''Class''][2]	= array(35,''/A - North Clockwise/'');
+$IMPORTSPEC[''setif''][''Class''][3]	= array(35,''/D - South Anti-Clockwise/'');
+$IMPORTSPEC[''setif''][''Class''][4]	= array(35,''/C - South Clockwise/'');
 $IMPORTSPEC[''setif''][''Class''][5]	= array(35,''/BBG 1500/'');
-$IMPORTSPEC[''setif''][''Class''][6]	= array(35,''/500 Clock Wise/'');
-$IMPORTSPEC[''setif''][''Class''][7]	= array(35,''/500 Anti Clock Wise/'');
+$IMPORTSPEC[''setif''][''Class''][6]	= array(35,''/E - 500 Clockwise/'');
+$IMPORTSPEC[''setif''][''Class''][7]	= array(35,''/F - 500 Anti-Clockwise/'');
 
 $IMPORTSPEC[''default''][''CorrectedMiles'']		= 0;
-$IMPORTSPEC[''setif''][''CorrectedMiles''][1006]	= array(35,''/North Anti Clock Wise/'');
-$IMPORTSPEC[''setif''][''CorrectedMiles''][1006]	= array(35,''/North Clock Wise/'');
-$IMPORTSPEC[''setif''][''CorrectedMiles''][1004]	= array(35,''/South Anti Clock Wise/'');
-$IMPORTSPEC[''setif''][''CorrectedMiles''][1004]	= array(35,''/South Clock Wise/'');
+$IMPORTSPEC[''setif''][''CorrectedMiles''][1006]	= array(35,''/B - North Anti-Clockwise/'');
+$IMPORTSPEC[''setif''][''CorrectedMiles''][1006]	= array(35,''/A - North Clockwise/'');
+$IMPORTSPEC[''setif''][''CorrectedMiles''][1004]	= array(35,''/D - South Anti-Clockwise/'');
+$IMPORTSPEC[''setif''][''CorrectedMiles''][1004]	= array(35,''/C - South Clockwise/'');
 $IMPORTSPEC[''setif''][''CorrectedMiles''][1527]	= array(35,''/BBG 1500/'');
-$IMPORTSPEC[''setif''][''CorrectedMiles''][504]	= array(35,''/500 Clock Wise/'');
-$IMPORTSPEC[''setif''][''CorrectedMiles''][504]	= array(35,''/500 Anti Clock Wise/'');
+$IMPORTSPEC[''setif''][''CorrectedMiles''][504]	= array(35,''/E - 500 Clockwise/'');
+$IMPORTSPEC[''setif''][''CorrectedMiles''][504]	= array(35,''/F - 500 Anti-Clockwise/'');
 
 
 $IMPORTSPEC[''data''][''Miles2Squires'']	= 37;
