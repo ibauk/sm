@@ -125,6 +125,9 @@ input[name="BonusID"]	{ width: 3em; }
 /* Scorecard ordinary bonuses */
 input[name="BonusID[]"][type="checkbox"] { width:2em; margin-right:1em; }
 
+input[name="RiderIBA"],
+input[name="PillionIBA"] { width:5em !important; }
+
 input[name="EntrantID"]	{ width: 3em; }
 input[name="OdoCheckMiles"]	{ width:3em; }
 input.bignumber			{ width: 5em;}
