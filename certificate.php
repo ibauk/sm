@@ -260,12 +260,17 @@ function fetchCertificateText($EntrantID)
 		if ($EntrantID == 0)
 			return;
 		// No specific text, fetch the master text
-		// First, fetch the class value from the entrant rec
-		$R = $DB->query("SELECT Class FROM entrants WHERE EntrantID=$EntrantID");
-		if (!$rd = $R->fetchArray())
-			return;
-		
-		$R = $DB->query($sql.'0'.' AND Class='.$rd['Class']);
+
+		if (isset($_REQUEST['useclass']))
+			$useclass = $_REQUEST['useclass'];
+		else {
+			// First, fetch the class value from the entrant rec
+			$R = $DB->query("SELECT Class FROM entrants WHERE EntrantID=$EntrantID");
+			if (!$rd = $R->fetchArray())
+				return;
+			$useclass = $rd['Class'];
+		}
+		$R = $DB->query($sql.'0'.' AND Class='.$useclass);
 		if (!$rd = $R->fetchArray())
 			return;
 	}
